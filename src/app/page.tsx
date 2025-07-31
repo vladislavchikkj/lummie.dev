@@ -1,7 +1,5 @@
-import { Button } from '@/components/ui/button'
-
-function Page() {
-	return <Button>Click Me</Button>
+const Page = () => {
+	return <div>Hello World</div>
 }
 
 export default Page
