@@ -1,11 +1,43 @@
-# luci.ai
+# 🌌 luci.ai
 
-_Designed by intuition. Built for imagination._
+> _Designed by intuition. Built for imagination._
 
-Luci is not just another tool — it's a quiet force behind your next big interface.  
-It listens deeper, sees patterns where others see pixels, and offers you something unexpected: clarity.
+---
 
-From first spark to polished flow — Luci stays with you.  
-Not telling you what to build, but revealing what’s already possible.
+🎯 **Vision**  
+Luci isn’t just a product. It’s a shift in how interfaces emerge.  
+Crafted not to follow rules — but to understand them, challenge them, and evolve them.  
+Quietly intelligent. Endlessly adaptive.
 
-> Created with intention by [lcloud.inc](https://lcloud.inc)
+---
+
+🧩 **What Luci _feels_ like**
+
+- It listens before it suggests
+- It sketches ideas before you ask
+- It aligns with the way you think, not the way you type
+- It doesn’t generate — it collaborates
+
+---
+
+🏗️ **Made for builders who think in possibilities**  
+Designers, engineers, dreamers — Luci stays with you from the first spark to the final layer.  
+This is not a plugin. It’s not a tool.  
+It’s your unseen co-creator.
+
+---
+
+🧬 **Born from LCloud Inc.**  
+A product shaped by [lcloud.inc](https://lcloud.inc) — where we build things meant to disappear behind the brilliance of your ideas.
+
+---
+
+🪪 **License**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
+👁️‍🗨️ _Luci sees the interface before you draw it._
