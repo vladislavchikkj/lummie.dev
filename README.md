@@ -4,6 +4,22 @@
 
 ---
 
+<div align="center">
+  <svg width="500" height="150" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#32333E" />
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em"
+        font-family="Arial, sans-serif" font-size="64"
+        fill="#D2FCF6" stroke="#BDFB4E" stroke-width="1" opacity="0">
+    luci.ai
+    <animate attributeName="opacity" from="0" to="1" dur="2s" fill="freeze" />
+  </text>
+  <circle cx="50%" cy="50%" r="120" fill="none" stroke="#BDFB4E" stroke-width="2" opacity="0.4">
+    <animate attributeName="r" values="100;130;100" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite"/>
+  </circle>
+</svg>
+</div>
+
 🎯 **Vision**  
 Luci isn’t just a product. It’s a shift in how interfaces emerge.  
 Crafted not to follow rules — but to understand them, challenge them, and evolve them.  
