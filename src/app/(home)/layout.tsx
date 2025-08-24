@@ -1,4 +1,4 @@
-import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect'
+import { Navbar } from '@/modules/home/ui/components/navbar'
 
 interface Props {
 	children: React.ReactNode
@@ -7,8 +7,8 @@ interface Props {
 const Layout = ({ children }: Props) => {
 	return (
 		<main className='flex flex-col min-h-screen'>
+			<Navbar />
 			<div className='relative flex min-h-screen w-full flex-col items-start justify-start overflow-auto'>
-				<BackgroundRippleEffect />
 				<div className='mt-40 w-full'>{children}</div>
 			</div>
 		</main>
