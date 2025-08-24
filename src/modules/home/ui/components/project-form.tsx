@@ -14,8 +14,9 @@ import { Button } from '@/components/ui/button'
 import { Form, FormField } from '@/components/ui/form'
 import { useRouter } from 'next/navigation'
 import { PROJECT_TEMPLATES } from '../../constants'
-import { Meteors } from '@/components/ui/meteors'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
+import { useClerk } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
 	value: z
@@ -27,6 +28,7 @@ const formSchema = z.object({
 export const ProjectForm = () => {
 	const router = useRouter()
 	const trpc = useTRPC()
+	const clerk = useClerk()
 	const queryClient = useQueryClient()
 
 	const form = useForm<z.infer<typeof formSchema>>({
@@ -42,6 +44,13 @@ export const ProjectForm = () => {
 				queryClient.invalidateQueries(trpc.projects.getMany.queryOptions())
 				router.push(`/projects/${data.id}`)
 				// TODO: Invalidate usage status
+			},
+			onError: error => {
+				toast.error(error.message)
+
+				if (error.data?.code === 'UNAUTHORIZED') {
+					clerk.openSignIn()
+				}
 			},
 		})
 	)
