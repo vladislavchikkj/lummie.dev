@@ -4,6 +4,7 @@ import { Fragment, MessageRole, MessageType } from '@/generated/prisma'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { ChevronRightIcon, Code2Icon } from 'lucide-react'
+import Logo from '@/components/ui/logo'
 
 interface UserMessageProps {
 	content: string
@@ -78,14 +79,8 @@ const AssistantMessage = ({
 			)}
 		>
 			<div className='flex items-center gap-2 pl-2 mb-2'>
-				<Image
-					src='/logo-l.svg'
-					alt='luci'
-					width={20}
-					height={20}
-					className='shrink-0'
-				/>
-				<span className='text-sm font-medium'>Luci</span>
+				<Logo width={20} height={20} className='shrink-0' />
+				<span className='text-sm font-medium'>Lummie</span>
 				<span className='text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100'>
 					{format(createdAt, "HH:mm 'on' MMM dd, yyyy")}
 				</span>

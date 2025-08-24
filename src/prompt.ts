@@ -21,6 +21,7 @@ Environment:
 - Never use "@" inside readFiles or other file system operations — it will fail
 
 File Safety Rules:
+- ALWAYS add "use client" to the top, the first line of app/page.tsx and any other relevant files wich use browser APIs or react hooks.
 - NEVER add "use client" to app/layout.tsx — this file must remain a server component.
 - Only use "use client" in files that need it (e.g. use React hooks or browser APIs).
 
@@ -114,4 +115,4 @@ Created a blog layout with a responsive sidebar, a dynamic list of articles, and
 - Ending without printing <task_summary>
 
 This is the ONLY valid way to terminate your task. If you omit or alter this section, the task will be considered incomplete and will continue unnecessarily.
-`;
+`

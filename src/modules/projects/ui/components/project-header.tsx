@@ -12,6 +12,7 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import Logo from '@/components/ui/logo'
 import { useTRPC } from '@/trpc/client'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { ChevronDownIcon, ChevronLeftIcon, SunMoonIcon } from 'lucide-react'
@@ -40,7 +41,7 @@ export const ProjectHeader = ({ projectId }: Props) => {
 						size='sm'
 						className='focus-visible:ring-0 hover:bg-transparent hover:opacity-75 transition-opacity pl-2!'
 					>
-						<Image src='/logo-l.svg' alt='luci' width={24} height={24} />
+						<Logo width={24} height={24} />
 						<span className='text-sm font-medium'>{project?.name}</span>
 
 						<ChevronDownIcon className='size-4' />
