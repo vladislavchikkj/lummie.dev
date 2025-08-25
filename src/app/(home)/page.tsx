@@ -7,9 +7,9 @@ import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect
 
 const Page = () => {
 	return (
-		<section>
+		<section className='mt-40'>
 			<BackgroundRippleEffect />
-			<div className='flex flex-col items-center max-w-5xl mx-auto w-full px-5'>
+			<div className='flex flex-col items-center max-w-7xl mx-auto w-full px-5'>
 				<Logo width={75} height={75} className='relative z-10 mb-2 ' />
 				<h2 className='relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-neutral-800 md:text-4xl lg:text-6xl dark:text-neutral-100'>
 					{APP_NAME}
@@ -20,7 +20,7 @@ const Page = () => {
 				<div className='relative z-10 max-w-3xl mx-auto w-full'>
 					<ProjectForm />
 				</div>
-				<div className='relative z-10 max-w-5xl mx-auto w-full my-15 mt-35'>
+				<div className='relative z-10 max-w-7xl mx-auto w-full my-15 mt-35'>
 					<ProjectsList />
 				</div>
 			</div>
