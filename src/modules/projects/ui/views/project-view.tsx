@@ -9,6 +9,7 @@ import {
 	ResizablePanelGroup,
 } from '@/components/ui/resizable'
 
+import { Skeleton } from '@/components/ui/skeleton'
 import { MessagesContainer } from '../components/messages-container'
 import { ProjectHeader } from '../components/project-header'
 import { FragmentWeb } from '../components/fragment-web'
@@ -19,10 +20,21 @@ import Link from 'next/link'
 import { FileExplorer } from '@/components/file-explorer'
 import { UserControl } from '@/components/user-control'
 import { useAuth } from '@clerk/nextjs'
+import { ErrorBoundary } from 'react-error-boundary'
 
 interface Props {
 	projectId: string
 }
+
+const ProjectHeaderSkeleton = () => (
+	<div className='flex items-center gap-3 p-3 border-b'>
+		<Skeleton className='h-6 w-6 rounded-lg' />
+		<div className='flex flex-col gap-2'>
+			<Skeleton className='h-2 w-32 rounded-xs' />
+			<Skeleton className='h-2 w-20 rounded-xs' />
+		</div>
+	</div>
+)
 
 export const ProjectView = ({ projectId }: Props) => {
 	const { has } = useAuth()
@@ -39,16 +51,22 @@ export const ProjectView = ({ projectId }: Props) => {
 					minSize={20}
 					className='flex flex-col min-h-0'
 				>
-					<Suspense fallback={<div>Loading project...</div>}>
-						<ProjectHeader projectId={projectId} />
-					</Suspense>
-					<Suspense fallback={<div>Loading messages...</div>}>
-						<MessagesContainer
-							projectId={projectId}
-							activeFragment={activeFragment}
-							setActiveFragment={setActiveFragment}
-						/>
-					</Suspense>
+					<ErrorBoundary fallback={<p>Header error</p>}>
+						<Suspense fallback={<ProjectHeaderSkeleton />}>
+							<ProjectHeader projectId={projectId} />
+						</Suspense>
+					</ErrorBoundary>
+					<ErrorBoundary
+						fallback={<p className='p-2'>Messages container error</p>}
+					>
+						<Suspense fallback={<></>}>
+							<MessagesContainer
+								projectId={projectId}
+								activeFragment={activeFragment}
+								setActiveFragment={setActiveFragment}
+							/>
+						</Suspense>
+					</ErrorBoundary>
 				</ResizablePanel>
 				<ResizableHandle className='hover:bg-primary transition-colors' />
 				<ResizablePanel defaultSize={65} minSize={50}>

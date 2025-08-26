@@ -28,7 +28,7 @@ const Logo = ({ width, height, theme: propTheme, className }: LogoProps) => {
 			alt='logo'
 			width={width}
 			height={height}
-			className={`${className}`}
+			className={`logo ${className}`}
 		/>
 	)
 }
