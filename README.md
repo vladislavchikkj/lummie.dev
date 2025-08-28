@@ -1,59 +1,62 @@
-# 🌌 luci.ai
+# 🚀 lummie.dev
 
-> _Designed by intuition. Built for imagination._
-
----
-
-<div align="center">
-  <svg width="500" height="150" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100%" height="100%" fill="#32333E" />
-  <text x="50%" y="50%" text-anchor="middle" dy=".35em"
-        font-family="Arial, sans-serif" font-size="64"
-        fill="#D2FCF6" stroke="#BDFB4E" stroke-width="1" opacity="0">
-    luci.ai
-    <animate attributeName="opacity" from="0" to="1" dur="2s" fill="freeze" />
-  </text>
-  <circle cx="50%" cy="50%" r="120" fill="none" stroke="#BDFB4E" stroke-width="2" opacity="0.4">
-    <animate attributeName="r" values="100;130;100" dur="4s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite"/>
-  </circle>
-</svg>
-</div>
-
-🎯 **Vision**  
-Luci isn’t just a product. It’s a shift in how interfaces emerge.  
-Crafted not to follow rules — but to understand them, challenge them, and evolve them.  
-Quietly intelligent. Endlessly adaptive.
+✨ Turn your ideas into full-stack web applications with a single prompt. ✨
 
 ---
 
-🧩 **What Luci _feels_ like**
+## What is lummie.dev?
 
-- It listens before it suggests
-- It sketches ideas before you ask
-- It aligns with the way you think, not the way you type
-- It doesn’t generate — it collaborates
+**lummie.dev** is an AI-powered platform designed to automate the process of software development. Users can describe the application they want to build using natural language, and our platform orchestrates AI models to generate, build, and deliver a complete, ready-to-use codebase.
 
----
+This repository contains the source code for the lummie.dev platform.
 
-🏗️ **Made for builders who think in possibilities**  
-Designers, engineers, dreamers — Luci stays with you from the first spark to the final layer.  
-This is not a plugin. It’s not a tool.  
-It’s your unseen co-creator.
+<p align="center">
+  <img style='item-center' width="280" height="280" alt="banner-l" src="https://github.com/user-attachments/assets/547e2b50-5aaa-4aaf-b5fa-ae0cd8f92bc4" />
+</p>
 
 ---
 
-🧬 **Born from LCloud Inc.**  
-A product shaped by [lcloud.inc](https://lcloud.inc) — where we build things meant to disappear behind the brilliance of your ideas.
+## Key Features
+
+-   **🤖 AI-Powered Generation:** Leverages Large Language Models to convert text prompts into high-quality source code.
+-   **🌐 Full-Stack Scaffolding:** Generates everything you need—from the frontend UI to the backend logic and database schema.
+-   **🛡️ Secure & Isolated Builds:** All generated code is built and tested in a secure, sandboxed cloud environment.
+-   **📂 Project Dashboard:** Manage, view, and download all your generated projects from a simple, intuitive interface.
 
 ---
 
-🪪 **License**
+## How It Works
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+The application generation process is simple yet powerful:
 
-This project is licensed under the [MIT License](./LICENSE).
+1.  **Prompt:** A user submits a detailed description of their desired application.
+2.  **Generate:** Our backend triggers an asynchronous workflow that uses an AI model to write the source code.
+3.  **Build:** The generated code is provisioned in a secure cloud sandbox where dependencies are installed and the project is built.
+4.  **Download:** Once the build is complete, the user receives a notification and can download the final project archive.
 
 ---
 
-👁️‍🗨️ _Luci sees the interface before you draw it._
+## High-Level Tech Stack
+
+Our platform is built with a modern, scalable, and type-safe technology stack.
+
+-   **Framework:** [Next.js](https://nextjs.org/) (App Router)
+-   **Language:** [TypeScript](https://www.typescriptlang.org/)
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+-   **Database:** Serverless Postgres with [Prisma](https://www.prisma.io/)
+-   **API Layer:** [tRPC](https://trpc.io/) for end-to-end type safety
+-   **Deployment:** [Vercel](https://vercel.com/)
+
+---
+
+## Project Status
+
+**Status:** In Active Development 🏗️
+
+We are currently building out the core features. Contributions and feedback are welcome!
+
+---
+
+## Getting Started
+
+_(Instructions on how to set up the project locally will be added here soon.)_
