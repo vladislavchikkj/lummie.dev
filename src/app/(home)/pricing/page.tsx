@@ -4,13 +4,17 @@ import { PricingTable } from '@clerk/nextjs'
 import Logo from '@/components/ui/logo'
 import { dark } from '@clerk/themes'
 import { useCurrentTheme } from '@/hooks/use-current-theme'
+import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect'
 
 const Page = () => {
 	const currentTheme = useCurrentTheme()
 
 	return (
 		<div className='flex flex-col max-w-3xl mx-auto w-full'>
-			<section className='space-y-6'>
+			<div className='z-5'>
+				<BackgroundRippleEffect />
+			</div>
+			<section className='relative z-10 space-y-6'>
 				<div className='flex flex-col items-center'>
 					<Logo width={50} height={30} className='hidden md:block' />
 				</div>
