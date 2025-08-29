@@ -5,18 +5,33 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import TextareaAutosezi from 'react-textarea-autosize'
-import { ArrowUpIcon, Loader2Icon } from 'lucide-react'
+import { ArrowUpIcon, Loader2Icon, Sparkles } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { useClerk } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/components/ui/button'
 import { Form, FormField } from '@/components/ui/form'
-import { useRouter } from 'next/navigation'
-import { PROJECT_TEMPLATES } from '../../constants'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
-import { useClerk } from '@clerk/nextjs'
-import { toast } from 'sonner'
+import { PROJECT_TEMPLATES } from '../../constants'
+
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const formSchema = z.object({
 	value: z
@@ -44,15 +59,12 @@ export const ProjectForm = () => {
 				queryClient.invalidateQueries(trpc.projects.getMany.queryOptions())
 				queryClient.invalidateQueries(trpc.usage.status.queryOptions())
 				router.push(`/projects/${data.id}`)
-				// TODO: Invalidate usage status
 			},
 			onError: error => {
 				toast.error(error.message)
-
 				if (error.data?.code === 'UNAUTHORIZED') {
 					clerk.openSignIn()
 				}
-
 				if (error.data?.code === 'TOO_MANY_REQUESTS') {
 					router.push('/pricing')
 				}
@@ -118,12 +130,54 @@ export const ProjectForm = () => {
 						)}
 					/>
 					<div className='flex gap-x-2 items-end justify-between pt-2'>
-						<div className='text-[10px] text-muted-foreground font-mono'>
-							<kbd className='ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground'>
-								<span>&#8984;</span>Enter
-							</kbd>
-							&nbsp;to submit
+						<div className='flex items-end gap-x-4'>
+							<TooltipProvider delayDuration={150}>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													type='button'
+													variant='secondary' // Этот вариант даст кнопке фон
+													size='sm'
+													className='h-7 rounded-full px-3' // Добавляем скругление и паддинг
+													disabled={isPending}
+												>
+													<Sparkles className='size-3.5 mr-1.5' />
+													Use a template
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align='start'>
+												<DropdownMenuLabel>
+													Start with a template
+												</DropdownMenuLabel>
+												<DropdownMenuSeparator />
+												{PROJECT_TEMPLATES.map(template => (
+													<DropdownMenuItem
+														key={template.title}
+														onSelect={() => onSelect(template.prompt)}
+														className='cursor-pointer'
+													>
+														{template.title}
+													</DropdownMenuItem>
+												))}
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Start with a template</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+
+							<div className='text-[10px] text-muted-foreground font-mono hidden sm:block'>
+								<kbd className='ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground'>
+									<span>&#8984;</span>Enter
+								</kbd>
+								&nbsp;to submit
+							</div>
 						</div>
+
 						<Button
 							disabled={isButtonDisabled}
 							className={cn(
@@ -139,19 +193,6 @@ export const ProjectForm = () => {
 						</Button>
 					</div>
 				</form>
-				<div className='flex-wrap justify-center gap-2 hidden md:flex max-w-3xl'>
-					{PROJECT_TEMPLATES.map(template => (
-						<Button
-							key={template.title}
-							variant='outline'
-							size='sm'
-							className='bg-white dark:bg-sidebar'
-							onClick={() => onSelect(template.prompt)}
-						>
-							{template.emoji} {template.title}
-						</Button>
-					))}
-				</div>
 			</section>
 		</Form>
 	)

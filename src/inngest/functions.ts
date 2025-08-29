@@ -1,4 +1,3 @@
-import { Fragment } from './../generated/prisma/index.d'
 import { Sandbox } from '@e2b/code-interpreter'
 import {
 	createAgent,
