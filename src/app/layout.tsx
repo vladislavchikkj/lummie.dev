@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
 import { APP_NAME } from './constants'
 import { ClerkProvider } from '@clerk/nextjs'
+import CookieConsent from '@/components/cookie-consent'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -60,6 +61,7 @@ export default function RootLayout({
 						>
 							<Toaster />
 							{children}
+							<CookieConsent />
 						</ThemeProvider>
 					</body>
 				</html>

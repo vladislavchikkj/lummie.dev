@@ -20,7 +20,7 @@ const Page = () => {
 				<div className='relative z-10 max-w-3xl mx-auto w-full'>
 					<ProjectForm />
 				</div>
-				<div className='relative z-10 max-w-7xl mx-auto w-full my-15 mt-35'>
+				<div className='relative z-10 max-w-7xl mx-auto w-full my-15 mt-50'>
 					<ProjectsList />
 				</div>
 			</div>
