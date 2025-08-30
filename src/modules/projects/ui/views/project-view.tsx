@@ -18,9 +18,9 @@ import { CodeIcon, CrownIcon, EyeIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { FileExplorer } from '@/components/file-explorer'
-import { UserControl } from '@/components/user-control'
 import { useAuth } from '@clerk/nextjs'
 import { ErrorBoundary } from 'react-error-boundary'
+import { UserMenu } from '@/modules/home/ui/components/navbar/user-menu'
 
 interface Props {
 	projectId: string
@@ -76,7 +76,7 @@ export const ProjectView = ({ projectId }: Props) => {
 						value={tabState}
 						onValueChange={value => setTabState(value as 'preview' | 'code')}
 					>
-						<div className='w-full flex items-center p-2 border-b gap-x-2'>
+						<div className='w-full flex items-center p-2 border-b gap-x-2 h-12'>
 							<TabsList className='h-8 p-0 border rounded-md'>
 								<TabsTrigger value='preview' className='rounded-md'>
 									<EyeIcon /> <span>Demo</span>
@@ -93,7 +93,7 @@ export const ProjectView = ({ projectId }: Props) => {
 										</Link>
 									</Button>
 								)}
-								<UserControl />
+								<UserMenu />
 							</div>
 						</div>
 						<TabsContent value='preview'>

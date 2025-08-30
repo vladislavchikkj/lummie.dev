@@ -239,6 +239,11 @@ export const codeAgentFunction = inngest.createFunction(
 
 		await step.run('save-result', async () => {
 			if (isError) {
+				await prisma.project.update({
+					where: { id: event.data.projectId },
+					data: { status: 'ERROR' },
+				})
+
 				return await prisma.message.create({
 					data: {
 						projectId: event.data.projectId,
@@ -249,21 +254,34 @@ export const codeAgentFunction = inngest.createFunction(
 				})
 			}
 
-			return await prisma.message.create({
-				data: {
-					projectId: event.data.projectId,
-					content: parseAgentOutput(responseOutput),
-					role: 'ASSISTANT',
-					type: 'RESULT',
-					fragment: {
-						create: {
-							sandboxUrl: sandboxUrl,
-							title: parseAgentOutput(fragmentTitleOutput),
-							files: result.state.data.files,
+			const newProjectName = parseAgentOutput(fragmentTitleOutput)
+
+			return await prisma.$transaction([
+				prisma.project.update({
+					where: {
+						id: event.data.projectId,
+					},
+					data: {
+						name: newProjectName,
+						status: 'COMPLETED',
+					},
+				}),
+				prisma.message.create({
+					data: {
+						projectId: event.data.projectId,
+						content: parseAgentOutput(responseOutput),
+						role: 'ASSISTANT',
+						type: 'RESULT',
+						fragment: {
+							create: {
+								sandboxUrl: sandboxUrl,
+								title: newProjectName,
+								files: result.state.data.files,
+							},
 						},
 					},
-				},
-			})
+				}),
+			])
 		})
 
 		return {
