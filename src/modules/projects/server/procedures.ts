@@ -1,5 +1,4 @@
 import z from 'zod'
-import { generateSlug } from 'random-word-slugs'
 import { inngest } from '@/inngest/client'
 import { prisma } from '@/lib/db'
 import { protectedProcedure, createTRPCRouter } from '@/trpc/init'

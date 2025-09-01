@@ -1,9 +1,41 @@
-// Terms of Service Page Component
+import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+	metadataBase: new URL(APP_URL),
+
+	title: 'Terms',
+	description: APP_DESCRIPTION,
+
+	openGraph: {
+		title: APP_NAME,
+		description: APP_DESCRIPTION,
+		url: APP_URL,
+		siteName: APP_NAME,
+		images: [
+			{
+				url: '/og-image.png',
+				width: 1200,
+				height: 630,
+				alt: `Preview image for ${APP_NAME}`,
+			},
+		],
+		locale: 'en_US',
+		type: 'website',
+	},
+
+	twitter: {
+		card: 'summary_large_image',
+		title: APP_NAME,
+		description: APP_DESCRIPTION,
+		images: ['/og-image.png'],
+	},
+}
+
 export default function TermsOfServicePage() {
 	return (
 		<div className='bg-background text-foreground antialiased'>
 			<div className='container mx-auto max-w-4xl px-4 py-20 sm:py-28 lg:py-36'>
-				{/* --- Header --- */}
 				<header className='text-center'>
 					<h1 className='text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground'>
 						Terms of Service
@@ -13,7 +45,6 @@ export default function TermsOfServicePage() {
 					</p>
 				</header>
 
-				{/* --- Main Content --- */}
 				<main className='mt-16 prose prose-neutral dark:prose-invert prose-lg max-w-none prose-headings:font-bold prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80'>
 					<p>
 						These Terms of Service (&quot;Terms&quot;) govern your access to and
