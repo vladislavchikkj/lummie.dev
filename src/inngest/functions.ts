@@ -33,6 +33,12 @@ export const codeAgentFunction = inngest.createFunction(
     const sandboxId = await step.run("get-sandbox-id", async () => {
       const sandbox = await Sandbox.create("luci-ai-nextjs");
       await sandbox.setTimeout(SANDBOX_TIMEOUT);
+
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: { sandboxId: sandbox.sandboxId },
+      });
+
       return sandbox.sandboxId;
     });
 
@@ -297,5 +303,118 @@ export const codeAgentFunction = inngest.createFunction(
       files: allSandboxFiles,
       summary: result.state.data.summary,
     };
+  }
+);
+
+export const updateProjectFunction = inngest.createFunction(
+  { id: "code-agent-update", concurrency: 1 }, // Добавим concurrency для отладки
+  { event: "code-agent/update" },
+  async ({ event, step }) => {
+    console.log(
+      `[START] Function 'code-agent-update' started for project ${event.data.projectId}`
+    );
+    const { projectId, filesToUpdate } = event.data;
+
+    // Шаг 1: Получаем sandboxId из базы данных
+    const project = await step.run("get-project-sandbox-id", async () => {
+      console.log(`[STEP 1] Getting sandboxId for project ${projectId}`);
+      const result = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { sandboxId: true },
+      });
+      console.log(`[STEP 1] Found sandboxId: ${result?.sandboxId}`);
+      return result;
+    });
+
+    if (!project?.sandboxId) {
+      console.error(`[ERROR] Project ${projectId} does not have a sandboxId.`);
+      throw new Error(`Sandbox ID not found for project ${projectId}`);
+    }
+
+    const { sandboxId } = project;
+    console.log(`Successfully retrieved sandboxId: ${sandboxId}`);
+
+    // Шаг 2: Подключаемся к существующему sandbox и обновляем файлы
+    await step.run("update-files-in-sandbox", async () => {
+      try {
+        console.log(`[STEP 2] Trying to get sandbox with ID: ${sandboxId}`);
+        const sandbox = await getSandbox(sandboxId); // <--- СКОРЕЕ ВСЕГО, ЗАВИСАЕТ ЗДЕСЬ
+        console.log(
+          `[STEP 2] Successfully connected to sandbox. Writing files...`
+        );
+
+        for (const file of filesToUpdate) {
+          await sandbox.files.write(file.path, file.content);
+          console.log(`[STEP 2] Wrote file: ${file.path}`);
+        }
+        console.log("[STEP 2] Finished writing files.");
+      } catch (error) {
+        console.error(
+          "[CRITICAL] Failed inside 'update-files-in-sandbox' step!",
+          error
+        );
+        throw error; // Обязательно пробрасываем ошибку дальше
+      }
+    });
+
+    console.log("Files updated in sandbox. Now listing all files.");
+
+    // Шаг 3: Получаем обновленное дерево файлов из sandbox
+    const allSandboxFiles = await step.run(
+      "list-all-updated-sandbox-files",
+      async () => {
+        console.log("[STEP 3] Listing all sandbox files.");
+        const sandbox = await getSandbox(sandboxId);
+        const files = await getAllSandboxTextFiles(sandbox);
+        console.log("[STEP 3] Successfully listed all files.");
+        return files;
+      }
+    );
+
+    // Шаг 4: Обновляем файлы в последнем сообщении (Fragment) в базе данных
+    await step.run("update-fragment-in-db", async () => {
+      const latestMessageWithFragment = await prisma.message.findFirst({
+        where: {
+          projectId: projectId,
+          fragment: {
+            isNot: null,
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          fragment: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (latestMessageWithFragment?.fragment?.id) {
+        await prisma.fragment.update({
+          where: {
+            id: latestMessageWithFragment.fragment.id,
+          },
+          data: {
+            files: allSandboxFiles,
+          },
+        });
+      } else {
+        console.warn(`No fragment found to update for project ${projectId}`);
+      }
+    });
+
+    // Шаг 5 (опционально): Обновляем статус проекта
+    await step.run("update-project-status", async () => {
+      await prisma.project.update({
+        where: { id: projectId },
+        data: { status: "COMPLETED" },
+      });
+    });
+
+    console.log("[END] Function finished successfully.");
+    return { success: true, message: `Project ${projectId} updated.` };
   }
 );
