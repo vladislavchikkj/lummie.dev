@@ -19,7 +19,6 @@ import {
 import { useTRPC } from '@/trpc/client'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
 
-// ProjectName component with English text
 const ProjectName = ({
 	project,
 }: {
@@ -50,7 +49,6 @@ export const ProjectsList = () => {
 	const trpc = useTRPC()
 	const { user } = useUser()
 
-	// State for search and sort
 	const [searchQuery, setSearchQuery] = useState('')
 	const [sortBy, setSortBy] = useState('latest')
 
@@ -64,18 +62,15 @@ export const ProjectsList = () => {
 		},
 	})
 
-	// Memoized filtering and sorting logic
 	const filteredAndSortedProjects = useMemo(() => {
 		if (!projects) return []
 
-		// 1. Filter by search query
 		const filtered = projects.filter(project =>
 			(project.name || 'Untitled Project')
 				.toLowerCase()
 				.includes(searchQuery.toLowerCase())
 		)
 
-		// 2. Sort
 		switch (sortBy) {
 			case 'oldest':
 				return filtered.sort(
@@ -107,7 +102,7 @@ export const ProjectsList = () => {
 				<h2 className='text-2xl font-semibold'>
 					{user?.firstName}&apos;s Workspace
 				</h2>
-				{/* Control Panel: Search and Sort */}
+
 				<div className='flex items-center gap-x-2'>
 					<div className='relative w-full sm:w-64'>
 						<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />

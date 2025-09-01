@@ -1,38 +1,40 @@
-'use client'
+import { Metadata } from 'next'
+import PricingView from './pricing-view'
+import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
 
-import { PricingTable } from '@clerk/nextjs'
-import Logo from '@/components/ui/logo'
-import { dark } from '@clerk/themes'
-import { useCurrentTheme } from '@/hooks/use-current-theme'
-import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect'
+export const metadata: Metadata = {
+	metadataBase: new URL(APP_URL),
 
-const Page = () => {
-	const currentTheme = useCurrentTheme()
+	title: 'Pricing',
+	description: APP_DESCRIPTION,
 
-	return (
-		<div className='flex flex-col max-w-3xl mx-auto w-full'>
-			<div className='z-5'>
-				<BackgroundRippleEffect />
-			</div>
-			<section className='relative z-10 space-y-6'>
-				<div className='flex flex-col items-center'>
-					<Logo width={50} height={30} className='hidden md:block' />
-				</div>
-				<h1 className='text-xl md:text-3xl font-bold text-center'>Pricing</h1>
-				<p className='text-muted-foreground text-center text-sm md:text-base'>
-					Choose the plan that works best for you
-				</p>
-				<PricingTable
-					appearance={{
-						baseTheme: currentTheme === 'dark' ? dark : undefined,
-						elements: {
-							pricingTableCard: 'border! shadow-none! rounded-lg!',
-						},
-					}}
-				/>
-			</section>
-		</div>
-	)
+	openGraph: {
+		title: APP_NAME,
+		description: APP_DESCRIPTION,
+		url: APP_URL,
+		siteName: APP_NAME,
+		images: [
+			{
+				url: '/og-image.png',
+				width: 1200,
+				height: 630,
+				alt: `Preview image for ${APP_NAME}`,
+			},
+		],
+		locale: 'en_US',
+		type: 'website',
+	},
+
+	twitter: {
+		card: 'summary_large_image',
+		title: APP_NAME,
+		description: APP_DESCRIPTION,
+		images: ['/og-image.png'],
+	},
 }
 
-export default Page
+const PricingPage = () => {
+	return <PricingView />
+}
+
+export default PricingPage
