@@ -3,13 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     const { files } = (await req.json()) as {
       files: { path: string; content: string }[];
     };
-    const { projectId } = params;
+    const { projectId } = await params;
 
     if (!projectId || !files || files.length === 0) {
       return NextResponse.json(

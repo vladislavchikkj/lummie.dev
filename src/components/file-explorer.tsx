@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -6,8 +6,7 @@ import {
 } from "./ui/resizable";
 import { Hint } from "./hint";
 import { Button } from "./ui/button";
-import { CopyCheckIcon, CopyIcon } from "lucide-react";
-import { CodeView } from "./code-view";
+import { CopyCheckIcon, CopyIcon, UploadCloudIcon } from "lucide-react";
 import { convertFilesToTreeItems } from "@/lib/utils";
 import { TreeView } from "./tree-view";
 import {
@@ -19,6 +18,9 @@ import {
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
 import { TreeItem } from "@/types";
+import { toast } from "sonner";
+import { CodeEditor } from "./code-editor";
+import { ScrollArea } from "./ui/scroll-area";
 
 type FileCollection = {
   [path: string]: string;
@@ -110,21 +112,29 @@ const sortTreeRecursively = (items: TreeItem[]): TreeItem[] => {
       const sortedChildren = sortTreeRecursively(children);
       return [folderName, ...sortedChildren];
     }
-
     return item;
   });
 };
 
 interface FileExplorerProps {
   files: FileCollection;
+  projectId: string;
 }
 
-export const FileExplorer = ({ files }: FileExplorerProps) => {
+export const FileExplorer = ({ files, projectId }: FileExplorerProps) => {
   const [copied, setCopied] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<string | null>(() => {
-    const fileKeys = Object.keys(files);
-    return fileKeys.length > 0 ? fileKeys[0] : null;
-  });
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+
+  const [editedFiles, setEditedFiles] = useState<FileCollection>(files);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    setEditedFiles(files);
+
+    if (selectedFile && files[selectedFile] === undefined) {
+      setSelectedFile(null);
+    }
+  }, [files, selectedFile]);
 
   const treeData = useMemo(() => {
     const unsortedTree = convertFilesToTreeItems(files) as TreeItem[];
@@ -142,45 +152,112 @@ export const FileExplorer = ({ files }: FileExplorerProps) => {
 
   const handleCopy = useCallback(() => {
     if (selectedFile) {
-      navigator.clipboard.writeText(files[selectedFile]);
+      navigator.clipboard.writeText(editedFiles[selectedFile]);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
       }, 2000);
     }
-  }, [selectedFile, files]);
+  }, [selectedFile, editedFiles]);
+
+  // Обработчик изменений в редакторе
+  const handleCodeChange = useCallback(
+    (newContent: string | undefined) => {
+      if (selectedFile && typeof newContent === "string") {
+        setEditedFiles((prev) => ({
+          ...prev,
+          [selectedFile]: newContent,
+        }));
+      }
+    },
+    [selectedFile]
+  );
+
+  const handleUpdateSandbox = async () => {
+    const filesToUpdate = Object.keys(editedFiles)
+      .filter((path) => files[path] !== editedFiles[path])
+      .map((path) => ({
+        path,
+        content: editedFiles[path],
+      }));
+
+    if (filesToUpdate.length === 0) {
+      toast.info("No changes to update.");
+      return;
+    }
+
+    setIsUpdating(true);
+    const promise = fetch(`/api/project/${projectId}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ files: filesToUpdate }),
+    });
+
+    toast.promise(promise, {
+      loading: "Starting sandbox update...",
+      success: () => {
+        return "Update process started successfully!";
+      },
+      error: "Failed to update sandbox.",
+      finally: () => {
+        setIsUpdating(false);
+      },
+    });
+  };
+
+  const hasChanges = useMemo(() => {
+    return JSON.stringify(files) !== JSON.stringify(editedFiles);
+  }, [files, editedFiles]);
 
   return (
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel defaultSize={30} minSize={30} className="bg-sidebar">
-        <TreeView
-          data={treeData}
-          value={selectedFile}
-          onSelect={handleFileSelect}
-        />
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel defaultSize={30} minSize={20} className="bg-sidebar">
+        <ScrollArea className="h-full">
+          <TreeView
+            data={treeData}
+            value={selectedFile}
+            onSelect={handleFileSelect}
+          />
+        </ScrollArea>
       </ResizablePanel>
       <ResizableHandle className="hover:bg-primary transition-colors" />
       <ResizablePanel defaultSize={70} minSize={50}>
-        {selectedFile && files[selectedFile] ? (
+        {selectedFile && editedFiles[selectedFile] !== undefined ? (
           <div className="h-full w-full flex flex-col">
             <div className="border-b bg-sidebar px-4 py-2 flex justify-between items-center gap-x-2">
               <FileBreadcrumb filePath={selectedFile} />
-              <Hint text="Copy to clipboard" side="bottom">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="ml-auto"
-                  onClick={handleCopy}
-                  disabled={copied}
-                >
-                  {copied ? <CopyCheckIcon /> : <CopyIcon />}
-                </Button>
-              </Hint>
+              <div className="flex items-center gap-x-2 ml-auto">
+                <Hint text="Update Sandbox" side="bottom">
+                  <Button
+                    variant="default"
+                    size="icon"
+                    onClick={handleUpdateSandbox}
+                    disabled={!hasChanges || isUpdating}
+                  >
+                    <UploadCloudIcon className="w-5 h-5" />
+                  </Button>
+                </Hint>
+                <Hint text="Copy to clipboard" side="bottom">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopy}
+                    disabled={copied}
+                  >
+                    {copied ? (
+                      <CopyCheckIcon className="w-5 h-5" />
+                    ) : (
+                      <CopyIcon className="w-5 h-5" />
+                    )}
+                  </Button>
+                </Hint>
+              </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <CodeView
-                code={files[selectedFile]}
+              <CodeEditor
+                code={editedFiles[selectedFile]}
                 lang={getLanguageFromExtension(selectedFile)}
+                onChange={handleCodeChange}
               />
             </div>
           </div>
