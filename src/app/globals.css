@@ -84,6 +84,15 @@
       opacity: 0.4;
     }
   }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
 }
 
 :root {
@@ -209,4 +218,8 @@
 .cl-drawerRoot {
   position: relative !important;
   z-index: 10;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
 }
