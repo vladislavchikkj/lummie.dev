@@ -5,22 +5,22 @@ import { SignUp } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 
 export default function Page() {
-	const currentTheme = useCurrentTheme()
+  const currentTheme = useCurrentTheme()
 
-	return (
-		<div className='flex flex-col max-w-3xl mx-auto w-full'>
-			<section className='space-y-6'>
-				<div className='flex flex-col items-center'>
-					<SignUp
-						appearance={{
-							baseTheme: currentTheme === 'dark' ? dark : undefined,
-							elements: {
-								cardBox: 'border! shadow-none! rounded-lg!',
-							},
-						}}
-					/>
-				</div>
-			</section>
-		</div>
-	)
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col">
+      <section className="space-y-6">
+        <div className="flex flex-col items-center">
+          <SignUp
+            appearance={{
+              baseTheme: currentTheme === 'dark' ? dark : undefined,
+              elements: {
+                cardBox: 'border! shadow-none! rounded-lg!',
+              },
+            }}
+          />
+        </div>
+      </section>
+    </div>
+  )
 }
