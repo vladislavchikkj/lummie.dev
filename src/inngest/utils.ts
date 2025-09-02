@@ -7,6 +7,13 @@ const ROOT_PATH = "/home/user";
 
 const IGNORE_DIRS = new Set([".next", ".git", ".cache", "node_modules"]);
 
+const IGNORE_FILES = new Set([
+  ".bash_logout",
+  ".bashrc",
+  ".profile",
+  ".wh.nextjs-app",
+]);
+
 const TEXT_FILE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -24,10 +31,10 @@ const TEXT_FILE_EXTENSIONS = new Set([
   ".bash",
   ".txt",
   ".svg",
-  ".env",
+  // ".env",
   ".dockerfile",
-  ".gitignore",
-  ".npmrc",
+  // ".gitignore",
+  // ".npmrc",
   ".eslintrc",
   ".prettierrc",
 ]);
@@ -63,9 +70,11 @@ export async function getAllSandboxTextFiles(
   const findProcess = await sandbox.commands.run(`find ${ROOT_PATH} -type f`);
   const allPaths = findProcess.stdout.split("\n").filter(Boolean);
 
-  const filteredPaths = allPaths.filter(
-    (p) => !p.split("/").some((part) => IGNORE_DIRS.has(part))
-  );
+  const filteredPaths = allPaths.filter((p) => {
+    const filename = path.basename(p);
+    const isInIgnoredDir = p.split("/").some((part) => IGNORE_DIRS.has(part));
+    return !isInIgnoredDir && !IGNORE_FILES.has(filename);
+  });
 
   const fileReadPromises = filteredPaths.map(async (fullPath) => {
     try {
