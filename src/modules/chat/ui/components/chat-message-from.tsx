@@ -22,10 +22,11 @@ const formSchema = z.object({
 
 type Props = {
   rootChat: boolean,
-  onSubmit?: (message: string) => void
+  onSubmit?: (message: string) => void,
+  isStreaming?: boolean
 }
 
-export const ChatMessageFrom = ({rootChat, onSubmit}: Props) => {
+export const ChatMessageFrom = ({rootChat, onSubmit, isStreaming}: Props) => {
   console.log('ChatMessageFrom rendered with rootChat:', rootChat);
   const router = useRouter();
   const trpc = useTRPC();
@@ -35,15 +36,14 @@ export const ChatMessageFrom = ({rootChat, onSubmit}: Props) => {
       value: '',
     },
   })
-
+  const isPending = false ; // TODO change to actual pending state
   const [isFocused, setIsFocused] = useState(false);
-  const isPending = false; // Fake pending state for demonstration
 
   const createChatMutation = useMutation(
     trpc.chat.createChat.mutationOptions({
-      onSuccess: ({chatId, initialMessage}) => {
+      onSuccess: ({chatId}) => {
         console.log('Chat created with ID:', chatId);
-        router.push(`/chat/${chatId}?initialMessage=${encodeURIComponent(initialMessage)}`);
+        router.push(`/chat/${chatId}`);
       },
       onError: (error) => {
         console.error('Error creating chat:', error);

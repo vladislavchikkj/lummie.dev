@@ -1,39 +1,35 @@
-import {z} from "zod";
 import OpenAI from "openai";
-import {prisma} from '@/lib/db'
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
 
-import {createTRPCRouter, protectedProcedure} from "@/trpc/init";
+import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import {
   createChatInputSchema,
   GetManyInput,
-  getManyInputSchema, SendMessageInput,
-  sendMessageInputSchema
+  getManyInputSchema,
+  sendMessageInputSchema,
 } from "@/modules/chat/constants/types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 20 * 1000, // 20 seconds timeout
-  maxRetries: 1
 });
-
-
-  interface Message
-{
-  chatId: string;
-  content: string;
-  role: "USER" | "ASSISTANT";
-  type: string;
-}
 
 export const chatRouter = createTRPCRouter({
   createChat: protectedProcedure
     .input(createChatInputSchema)
     .mutation(async ({input, ctx}) => {
-      console.log("Creating chat with initial message:", input.content);
       const chat = await prisma.chat.create({
         data: {userId: ctx.auth.userId || "unknown"},
       });
-      return {chatId: chat.id, initialMessage: input.content};
+      await prisma.chatMessage.create({
+        data: {
+          chatId: chat.id,
+          content: input.content,
+          role: "USER",
+          type: "TEXT",
+        },
+      });
+      return {chatId: chat.id};
     }),
 
   getMany: protectedProcedure
@@ -47,77 +43,65 @@ export const chatRouter = createTRPCRouter({
 
   sendMessage: protectedProcedure
     .input(sendMessageInputSchema)
-    .mutation(async function ({input}: { input: SendMessageInput }) {
-      console.log("Received message:", input.content);
-      const userMessage = await prisma.chatMessage.create({
-        data: {
-          chatId: input.chatId,
-          content: input.content,
-          role: "USER",
-          type: "TEXT",
-        },
-      });
+    .mutation(async function* ({input}) {
+      try {
+        await prisma.chatMessage.create({
+          data: {
+            chatId: input.chatId,
+            content: input.content,
+            role: "USER",
+            type: "TEXT",
+          },
+        });
 
-      const response = await openai.responses.create({
-        model: 'gpt-4o-mini',
-        instructions: 'You are a coding assistant',
-        input: input.content,
-      });
-      console.log('Response ', response)
-      const assistantContent = "TEST";
+        const history = await prisma.chatMessage.findMany({
+          where: {chatId: input.chatId},
+          orderBy: {createdAt: "desc"},
+          take: 1,
+        });
 
+        const messagesForApi = history.map((msg) => {
+            console.log("PREF Mapping message for API:", msg);
+            return {
+              role: msg.role.toLowerCase() as "user" | "assistant",
+              content: msg.content,
+            }
+          }
+        );
 
-      const assistantMessage = await prisma.chatMessage.create({
-        data: {
-          chatId: input.chatId,
-          content: response.output_text,
-          role: "ASSISTANT",
-          type: 'TEXT',
-        },
-      });
-      return {type: "complete", data: assistantMessage}; // Сигнал завершения
+        const stream = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: messagesForApi,
+          stream: true,
+        });
+
+        let assistantContent = "";
+        for await (const chunk of stream) {
+          const delta = chunk.choices[0]?.delta?.content || "";
+          console.log("Received chunk:", delta);
+          if (delta) {
+            assistantContent += delta;
+            yield delta;
+          }
+        }
+        console.log("Full assistant content:", assistantContent);
+        if (assistantContent) {
+          await prisma.chatMessage.create({
+            data: {
+              chatId: input.chatId,
+              content: assistantContent,
+              role: "ASSISTANT",
+              type: "TEXT",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Streaming mutation error:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "An unexpected error occurred while processing your message.",
+        });
+      }
     }),
 });
-
-// sendMessage: protectedProcedure
-//   .input(sendMessageInputSchema)
-//   .mutation(async function* ({input}: { input: SendMessageInput }) {
-//     console.log("Received message:", input.content);
-//     const userMessage = await prisma.chatMessage.create({
-//       data: {
-//         chatId: input.chatId,
-//         content: input.content,
-//         role: "USER",
-//         type: "TEXT",
-//       },
-//     });
-//     yield {type: "user_saved", data: userMessage}; // Подтверждение сохранения
-//
-//     const stream = await openai.chat.completions.create({
-//       model: "gpt-4o-mini",
-//       messages: [
-//         {role: "user", content: input.content}, // Только текущее сообщение
-//       ],
-//       stream: true,
-//     });
-//
-//     let assistantContent = "";
-//     // TODO Double check on validity of stream and prop access
-//     for await (const chunk of stream) {
-//       const delta = chunk.choices[0]?.delta?.content || "";
-//       if (delta) {
-//         assistantContent += delta;
-//         yield {type: "stream_chunk", data: delta}; // Отправляем часть клиенту
-//       }
-//     }
-//
-//     const assistantMessage = await prisma.chatMessage.create({
-//       data: {
-//         chatId: input.chatId,
-//         content: assistantContent,
-//         role: "ASSISTANT",
-//         type: "TEXT",
-//       },
-//     });
-//     yield {type: "complete", data: assistantMessage}; // Сигнал завершения
-//   }),
