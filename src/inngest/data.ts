@@ -1,48 +1,48 @@
-import { prisma } from "@/lib/db";
-import { TextMessage, type Message } from "@inngest/agent-kit";
+import { prisma } from '@/lib/db'
+import { TextMessage, type Message } from '@inngest/agent-kit'
 
 export async function getPreviousMessages(
   projectId: string
 ): Promise<Message[]> {
   const messages = await prisma.message.findMany({
     where: { projectId },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: 5,
-  });
+  })
 
   return messages
     .map(
       (message): TextMessage => ({
-        type: "text",
-        role: message.role === "ASSISTANT" ? "assistant" : "user",
+        type: 'text',
+        role: message.role === 'ASSISTANT' ? 'assistant' : 'user',
         content: message.content,
       })
     )
-    .reverse();
+    .reverse()
 }
 
 export async function saveErrorResult(projectId: string) {
   await prisma.project.update({
     where: { id: projectId },
-    data: { status: "ERROR" },
-  });
+    data: { status: 'ERROR' },
+  })
 
   await prisma.message.create({
     data: {
       projectId: projectId,
-      content: "Something went wrong. Please try again",
-      role: "ASSISTANT",
-      type: "ERROR",
+      content: 'Something went wrong. Please try again',
+      role: 'ASSISTANT',
+      type: 'ERROR',
     },
-  });
+  })
 }
 
 interface SaveSuccessResultArgs {
-  projectId: string;
-  newProjectName: string;
-  responseText: string;
-  sandboxUrl: string;
-  allSandboxFiles: { [path: string]: string };
+  projectId: string
+  newProjectName: string
+  responseText: string
+  sandboxUrl: string
+  allSandboxFiles: { [path: string]: string }
 }
 
 export async function saveSuccessResult(args: SaveSuccessResultArgs) {
@@ -52,22 +52,22 @@ export async function saveSuccessResult(args: SaveSuccessResultArgs) {
     responseText,
     sandboxUrl,
     allSandboxFiles,
-  } = args;
+  } = args
 
   return await prisma.$transaction([
     prisma.project.update({
       where: { id: projectId },
       data: {
         name: newProjectName,
-        status: "COMPLETED",
+        status: 'COMPLETED',
       },
     }),
     prisma.message.create({
       data: {
         projectId: projectId,
         content: responseText,
-        role: "ASSISTANT",
-        type: "RESULT",
+        role: 'ASSISTANT',
+        type: 'RESULT',
         fragment: {
           create: {
             sandboxUrl: sandboxUrl,
@@ -77,7 +77,7 @@ export async function saveSuccessResult(args: SaveSuccessResultArgs) {
         },
       },
     }),
-  ]);
+  ])
 }
 
 export async function updateFragmentFilesInDb(
@@ -89,18 +89,18 @@ export async function updateFragmentFilesInDb(
       projectId: projectId,
       fragment: { isNot: null },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     select: {
       fragment: { select: { id: true } },
     },
-  });
+  })
 
   if (latestMessageWithFragment?.fragment?.id) {
     await prisma.fragment.update({
       where: { id: latestMessageWithFragment.fragment.id },
       data: { files: allSandboxFiles },
-    });
+    })
   } else {
-    console.warn(`No fragment found to update for project ${projectId}`);
+    console.warn(`No fragment found to update for project ${projectId}`)
   }
 }

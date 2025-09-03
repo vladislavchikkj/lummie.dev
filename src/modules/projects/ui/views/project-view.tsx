@@ -1,47 +1,65 @@
-"use client";
+'use client'
 
-import { Suspense, useState } from "react";
+import { Suspense, useState } from 'react'
 
-import { Fragment } from "@/generated/prisma";
+import { Fragment } from '@/generated/prisma'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from '@/components/ui/resizable'
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { MessagesContainer } from "../components/messages-container";
-import { ProjectHeader } from "../components/project-header";
-import { FragmentWeb } from "../components/fragment-web";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CodeIcon, CrownIcon, EyeIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { FileExplorer } from "@/components/file-explorer";
-import { useAuth } from "@clerk/nextjs";
-import { ErrorBoundary } from "react-error-boundary";
-import { UserMenu } from "@/modules/home/ui/components/navbar/user-menu";
+import { Skeleton } from '@/components/ui/skeleton'
+import { MessagesContainer } from '../components/messages-container'
+import { ProjectHeader } from '../components/project-header'
+import { FragmentWeb } from '../components/fragment-web'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CodeIcon, CrownIcon, EyeIcon, FileCode2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { FileExplorer } from '@/components/file-explorer/file-explorer'
+import { useAuth } from '@clerk/nextjs'
+import { ErrorBoundary } from 'react-error-boundary'
+import { UserMenu } from '@/modules/home/ui/components/navbar/user-menu'
+import Logo from '@/components/ui/logo'
 
 interface Props {
-  projectId: string;
+  projectId: string
 }
 
 const ProjectHeaderSkeleton = () => (
-  <div className="flex items-center gap-3 p-3 border-b">
+  <div className="flex items-center gap-3 border-b p-3">
     <Skeleton className="h-6 w-6 rounded-lg" />
     <div className="flex flex-col gap-2">
       <Skeleton className="h-2 w-32 rounded-xs" />
       <Skeleton className="h-2 w-20 rounded-xs" />
     </div>
   </div>
-);
+)
+
+const PreviewPlaceholder = () => (
+  <div className="bg-background text-muted-foreground flex h-full w-full flex-col items-center justify-center rounded-lg">
+    <Logo width={70} height={70} className="opacity-50" />
+    <p className="animate-shimmer mt-6 bg-[linear-gradient(110deg,#939393,45%,#e0e0e0,55%,#939393)] bg-[length:200%_100%] bg-clip-text text-center text-lg font-medium text-transparent">
+      Preview will be ready soon...
+    </p>
+  </div>
+)
+
+const CodePlaceholder = () => (
+  <div className="bg-background text-muted-foreground flex h-full w-full flex-col items-center justify-center rounded-lg">
+    <FileCode2 size={64} strokeWidth={1.5} />
+    <p className="mt-4 text-center text-lg font-medium">Code not found</p>
+    <p className="mt-1 text-sm">Select a fragment to see its files</p>
+  </div>
+)
 
 export const ProjectView = ({ projectId }: Props) => {
-  const { has } = useAuth();
-  const hasProAccess = has?.({ plan: "pro" });
+  const { has } = useAuth()
+  const hasProAccess = has?.({ plan: 'pro' })
 
-  const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
-  const [tabState, setTabState] = useState<"preview" | "code">("preview");
+  const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
+  const [tabState, setTabState] = useState<'preview' | 'code'>('preview')
 
   return (
     <div className="h-screen">
@@ -49,8 +67,9 @@ export const ProjectView = ({ projectId }: Props) => {
         <ResizablePanel
           defaultSize={35}
           minSize={20}
-          className="flex flex-col min-h-0"
+          className="flex min-h-0 flex-col"
         >
+          {/* Left panel unchanged */}
           <ErrorBoundary fallback={<p>Header error</p>}>
             <Suspense fallback={<ProjectHeaderSkeleton />}>
               <ProjectHeader projectId={projectId} />
@@ -71,13 +90,13 @@ export const ProjectView = ({ projectId }: Props) => {
         <ResizableHandle className="hover:bg-primary transition-colors" />
         <ResizablePanel defaultSize={65} minSize={50}>
           <Tabs
-            className="h-full flex flex-col gap-y-0"
+            className="flex h-full flex-col gap-y-0"
             defaultValue="preview"
             value={tabState}
-            onValueChange={(value) => setTabState(value as "preview" | "code")}
+            onValueChange={(value) => setTabState(value as 'preview' | 'code')}
           >
-            <div className="w-full flex items-center p-2 border-b gap-x-2 h-12">
-              <TabsList className="h-8 p-0 border rounded-md">
+            <div className="flex h-12 w-full items-center gap-x-2 border-b p-2">
+              <TabsList className="h-8 rounded-md border p-0">
                 <TabsTrigger value="preview" className="rounded-md">
                   <EyeIcon /> <span>Demo</span>
                 </TabsTrigger>
@@ -96,20 +115,28 @@ export const ProjectView = ({ projectId }: Props) => {
                 <UserMenu />
               </div>
             </div>
-            <TabsContent value="preview">
-              {!!activeFragment && <FragmentWeb data={activeFragment} />}
+
+            {/* --- IMPROVED DISPLAY LOGIC --- */}
+            <TabsContent value="preview" className="min-h-0 flex-1">
+              {activeFragment ? (
+                <FragmentWeb data={activeFragment} />
+              ) : (
+                <PreviewPlaceholder />
+              )}
             </TabsContent>
             <TabsContent value="code" className="min-h-0 flex-1">
-              {!!activeFragment?.files && (
+              {activeFragment?.files ? (
                 <FileExplorer
                   files={activeFragment.files as { [path: string]: string }}
                   projectId={projectId}
                 />
+              ) : (
+                <CodePlaceholder />
               )}
             </TabsContent>
           </Tabs>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
-  );
-};
+  )
+}
