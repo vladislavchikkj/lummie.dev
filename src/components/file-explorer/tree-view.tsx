@@ -1,4 +1,3 @@
-// src/components/tree-view.tsx
 import { TreeItem } from '@/types'
 import {
   Sidebar,
@@ -23,7 +22,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 
-// Импортируем компоненты контекстного меню
 import {
   ContextMenu,
   ContextMenuContent,
@@ -32,7 +30,7 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
 import {
-  FileIcon as FilePlusIcon, // Переименуем для избежания конфликта
+  FileIcon as FilePlusIcon,
   FolderPlusIcon,
   PenLineIcon,
   Trash2Icon,
@@ -47,7 +45,7 @@ interface TreeViewProps {
     path: string,
     newPath?: string,
     itemType?: 'file' | 'folder'
-  ) => void // Новое свойство
+  ) => void
 }
 
 export const TreeView = ({
@@ -56,7 +54,6 @@ export const TreeView = ({
   onSelect,
   onFileOperation,
 }: TreeViewProps) => {
-  // Добавляем onFileOperation
   return (
     <SidebarProvider>
       <Sidebar
@@ -67,12 +64,9 @@ export const TreeView = ({
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {/* Добавляем ContextMenuTrigger вокруг всего содержимого TreeView, чтобы можно было создавать в корне */}
                 <ContextMenu>
                   <ContextMenuTrigger asChild>
-                    <div className="text-muted-foreground p-2 text-sm">
-                      {/* Опционально: можно добавить сюда "Создать файл/папку" в корне */}
-                    </div>
+                    <div className="text-muted-foreground p-2 text-sm"></div>
                   </ContextMenuTrigger>
                   <ContextMenuContent>
                     <ContextMenuItem
@@ -99,7 +93,7 @@ export const TreeView = ({
                     selectedValue={value}
                     onSelect={onSelect}
                     parentPath=""
-                    onFileOperation={onFileOperation} // Передаем дальше
+                    onFileOperation={onFileOperation}
                   />
                 ))}
               </SidebarMenu>
@@ -121,7 +115,7 @@ interface TreeProps {
     path: string,
     newPath?: string,
     itemType?: 'file' | 'folder'
-  ) => void // Новое свойство
+  ) => void
 }
 
 const Tree = ({
@@ -221,7 +215,7 @@ const Tree = ({
                 selectedValue={selectedValue}
                 onSelect={onSelect}
                 parentPath={currentPath}
-                onFileOperation={onFileOperation} // Передаем дальше
+                onFileOperation={onFileOperation}
               />
             ))}
           </SidebarMenuSub>
