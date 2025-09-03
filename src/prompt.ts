@@ -42,6 +42,39 @@ Environment:
 File Safety Rules:
 - ALWAYS add "use client" to the TOP, THE FIRST LINE of app/page.tsx and any other relevant files which use browser APIs or react hooks
 
+SSR and Hydration Safety Rules (MANDATORY):
+- To prevent React Hydration Errors, you MUST ensure the initial UI rendered on the server is identical to the initial UI rendered on the client.
+- NEVER initialize state using non-deterministic or client-only values directly in \`useState\`. This includes:
+  - \`Math.random()\`
+  - \`new Date()\`, \`Date.now()\`
+  - \`window\`, \`localStorage\`, \`navigator\`, or any other browser-specific API.
+- THE CORRECT PATTERN:
+  1. Initialize state with a static, default value (e.g., \`null\`, \`[]\`, \`""\`).
+  2. Use a \`useEffect\` hook with an empty dependency array \`[]\` to set the dynamic or client-specific value. This code will only run in the browser after hydration is complete.
+- Example of the correct pattern:
+  \`\`\`tsx
+  "use client";
+  import { useState, useEffect } from 'react';
+
+  function MyComponent() {
+    // Correct: Initialize with a static value (null).
+    const [clientValue, setClientValue] = useState<number | null>(null);
+
+    // Correct: Set the dynamic value only on the client, after the component mounts.
+    useEffect(() => {
+      setClientValue(Math.random());
+    }, []); // Empty dependency array ensures this runs only once on the client.
+
+    // Handle the initial null state while waiting for the client-side value.
+    if (clientValue === null) {
+      return <div>Loading...</div>;
+    }
+
+    return <div>Your random number is: {clientValue}</div>;
+  }
+  \`\`\`
+- Failing to follow this pattern for client-side dynamic data will cause critical hydration errors.
+
 Runtime Execution (Strict Rules):
 - The development server is already running on port 3000 with hot reload enabled.
 - You MUST NEVER run commands like:

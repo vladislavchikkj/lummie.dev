@@ -5,32 +5,32 @@ import { dehydrate, HydrationBoundary } from '@tanstack/react-query'
 import { Suspense } from 'react'
 
 interface Props {
-	params: Promise<{
-		projectId: string
-	}>
+  params: Promise<{
+    projectId: string
+  }>
 }
 
 const Page = async ({ params }: Props) => {
-	const { projectId } = await params
+  const { projectId } = await params
 
-	const queryClient = getQueryClient()
-	void queryClient.prefetchQuery(
-		trpc.messages.getMany.queryOptions({ projectId })
-	)
-	void queryClient.prefetchQuery(
-		trpc.projects.getOne.queryOptions({ id: projectId })
-	)
+  const queryClient = getQueryClient()
+  void queryClient.prefetchQuery(
+    trpc.messages.getMany.queryOptions({ projectId })
+  )
+  void queryClient.prefetchQuery(
+    trpc.projects.getOne.queryOptions({ id: projectId })
+  )
 
-	return (
-		<HydrationBoundary state={dehydrate(queryClient)}>
-			{/* need to create error page */}
-			<ErrorBoundary fallback={<div>Something went wrong</div>}>
-				<Suspense fallback={<div>Loading...</div>}>
-					<ProjectView projectId={projectId} />
-				</Suspense>
-			</ErrorBoundary>
-		</HydrationBoundary>
-	)
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      {/* need to create error page */}
+      <ErrorBoundary fallback={<div>Something went wrong</div>}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ProjectView projectId={projectId} />
+        </Suspense>
+      </ErrorBoundary>
+    </HydrationBoundary>
+  )
 }
 
 export default Page

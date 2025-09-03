@@ -2,179 +2,179 @@ import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-	metadataBase: new URL(APP_URL),
+  metadataBase: new URL(APP_URL),
 
-	title: 'Terms',
-	description: APP_DESCRIPTION,
+  title: 'Terms',
+  description: APP_DESCRIPTION,
 
-	openGraph: {
-		title: APP_NAME,
-		description: APP_DESCRIPTION,
-		url: APP_URL,
-		siteName: APP_NAME,
-		images: [
-			{
-				url: '/og-image.png',
-				width: 1200,
-				height: 630,
-				alt: `Preview image for ${APP_NAME}`,
-			},
-		],
-		locale: 'en_US',
-		type: 'website',
-	},
+  openGraph: {
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    url: APP_URL,
+    siteName: APP_NAME,
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: `Preview image for ${APP_NAME}`,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
 
-	twitter: {
-		card: 'summary_large_image',
-		title: APP_NAME,
-		description: APP_DESCRIPTION,
-		images: ['/og-image.png'],
-	},
+  twitter: {
+    card: 'summary_large_image',
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    images: ['/og-image.png'],
+  },
 }
 
 export default function TermsOfServicePage() {
-	return (
-		<div className='bg-background text-foreground antialiased'>
-			<div className='container mx-auto max-w-4xl px-4 py-20 sm:py-28 lg:py-36'>
-				<header className='text-center'>
-					<h1 className='text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground'>
-						Terms of Service
-					</h1>
-					<p className='mt-4 text-muted-foreground'>
-						Effective Date: August 29, 2025
-					</p>
-				</header>
+  return (
+    <div className="bg-background text-foreground antialiased">
+      <div className="container mx-auto max-w-4xl px-4 py-20 sm:py-28 lg:py-36">
+        <header className="text-center">
+          <h1 className="text-foreground text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Terms of Service
+          </h1>
+          <p className="text-muted-foreground mt-4">
+            Effective Date: August 29, 2025
+          </p>
+        </header>
 
-				<main className='mt-16 prose prose-neutral dark:prose-invert prose-lg max-w-none prose-headings:font-bold prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80'>
-					<p>
-						These Terms of Service (&quot;Terms&quot;) govern your access to and
-						use of the lummie.dev platform and any related services
-						(collectively, the &quot;Services&quot;), provided by lummie.dev
-						(&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or
-						&quot;our&quot;). By accessing or using our Services, you agree to
-						be bound by these Terms. If you do not agree to these Terms, you may
-						not use the Services.
-					</p>
+        <main className="prose prose-neutral dark:prose-invert prose-lg prose-headings:font-bold prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 mt-16 max-w-none">
+          <p>
+            These Terms of Service (&quot;Terms&quot;) govern your access to and
+            use of the lummie.dev platform and any related services
+            (collectively, the &quot;Services&quot;), provided by lummie.dev
+            (&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or
+            &quot;our&quot;). By accessing or using our Services, you agree to
+            be bound by these Terms. If you do not agree to these Terms, you may
+            not use the Services.
+          </p>
 
-					<h2>1. User Accounts</h2>
-					<p>
-						To access certain features of our Services, you may be required to
-						create an account. You are responsible for safeguarding your account
-						information, including your password, and for all activities that
-						occur under your account. You agree to notify us immediately of any
-						unauthorized use of your account.
-					</p>
+          <h2>1. User Accounts</h2>
+          <p>
+            To access certain features of our Services, you may be required to
+            create an account. You are responsible for safeguarding your account
+            information, including your password, and for all activities that
+            occur under your account. You agree to notify us immediately of any
+            unauthorized use of your account.
+          </p>
 
-					<h2>2. Use of Services</h2>
-					<p>
-						You agree to use the Services only for lawful purposes and in
-						accordance with these Terms. You agree not to use the Services:
-					</p>
-					<ul>
-						<li>
-							In any way that violates any applicable federal, state, local, or
-							international law or regulation.
-						</li>
-						<li>
-							To generate code that is malicious, deceptive, or intended to
-							harm, exploit, or violate the privacy of others.
-						</li>
-						<li>
-							To infringe upon the intellectual property rights of others.
-						</li>
-						<li>
-							To attempt to gain unauthorized access to, interfere with, damage,
-							or disrupt any parts of the Services, the server on which the
-							Services are stored, or any server, computer, or database
-							connected to the Services.
-						</li>
-					</ul>
+          <h2>2. Use of Services</h2>
+          <p>
+            You agree to use the Services only for lawful purposes and in
+            accordance with these Terms. You agree not to use the Services:
+          </p>
+          <ul>
+            <li>
+              In any way that violates any applicable federal, state, local, or
+              international law or regulation.
+            </li>
+            <li>
+              To generate code that is malicious, deceptive, or intended to
+              harm, exploit, or violate the privacy of others.
+            </li>
+            <li>
+              To infringe upon the intellectual property rights of others.
+            </li>
+            <li>
+              To attempt to gain unauthorized access to, interfere with, damage,
+              or disrupt any parts of the Services, the server on which the
+              Services are stored, or any server, computer, or database
+              connected to the Services.
+            </li>
+          </ul>
 
-					<h2>3. Intellectual Property Rights</h2>
-					<p>
-						<strong>Your Content:</strong> You retain all ownership rights to
-						the natural language prompts you submit to the Services (&quot;Your
-						Content&quot;).
-					</p>
-					<p>
-						<strong>Generated Code:</strong> Subject to your compliance with
-						these Terms, you shall own the code generated by the Services based
-						on Your Content (&quot;Generated Code&quot;). You are solely
-						responsible for reviewing, testing, and ensuring the security and
-						compliance of the Generated Code. The Company makes no warranties or
-						representations regarding the Generated Code, including its
-						functionality, security, or freedom from third-party intellectual
-						property claims.
-					</p>
-					<p>
-						<strong>Our Services:</strong> The Services and their entire
-						contents, features, and functionality (including but not limited to
-						all information, software, text, displays, images, video, and audio,
-						and the design, selection, and arrangement thereof) are owned by the
-						Company, its licensors, or other providers of such material and are
-						protected by international copyright, trademark, patent, trade
-						secret, and other intellectual property or proprietary rights laws.
-					</p>
+          <h2>3. Intellectual Property Rights</h2>
+          <p>
+            <strong>Your Content:</strong> You retain all ownership rights to
+            the natural language prompts you submit to the Services (&quot;Your
+            Content&quot;).
+          </p>
+          <p>
+            <strong>Generated Code:</strong> Subject to your compliance with
+            these Terms, you shall own the code generated by the Services based
+            on Your Content (&quot;Generated Code&quot;). You are solely
+            responsible for reviewing, testing, and ensuring the security and
+            compliance of the Generated Code. The Company makes no warranties or
+            representations regarding the Generated Code, including its
+            functionality, security, or freedom from third-party intellectual
+            property claims.
+          </p>
+          <p>
+            <strong>Our Services:</strong> The Services and their entire
+            contents, features, and functionality (including but not limited to
+            all information, software, text, displays, images, video, and audio,
+            and the design, selection, and arrangement thereof) are owned by the
+            Company, its licensors, or other providers of such material and are
+            protected by international copyright, trademark, patent, trade
+            secret, and other intellectual property or proprietary rights laws.
+          </p>
 
-					<h2>4. Termination</h2>
-					<p>
-						We may terminate or suspend your access to our Services immediately,
-						without prior notice or liability, for any reason whatsoever,
-						including without limitation if you breach the Terms. Upon
-						termination, your right to use the Services will immediately cease.
-					</p>
+          <h2>4. Termination</h2>
+          <p>
+            We may terminate or suspend your access to our Services immediately,
+            without prior notice or liability, for any reason whatsoever,
+            including without limitation if you breach the Terms. Upon
+            termination, your right to use the Services will immediately cease.
+          </p>
 
-					<h2>5. Disclaimer of Warranties</h2>
-					<p>
-						The Services are provided on an &quot;AS IS&quot; and &quot;AS
-						AVAILABLE&quot; basis. The Company makes no representations or
-						warranties of any kind, express or implied, as to the operation of
-						their services, or the information, content, or materials included
-						therein. You expressly agree that your use of the services is at
-						your sole risk. We do not warrant that the Generated Code will be
-						error-free, secure, or fit for a particular purpose.
-					</p>
+          <h2>5. Disclaimer of Warranties</h2>
+          <p>
+            The Services are provided on an &quot;AS IS&quot; and &quot;AS
+            AVAILABLE&quot; basis. The Company makes no representations or
+            warranties of any kind, express or implied, as to the operation of
+            their services, or the information, content, or materials included
+            therein. You expressly agree that your use of the services is at
+            your sole risk. We do not warrant that the Generated Code will be
+            error-free, secure, or fit for a particular purpose.
+          </p>
 
-					<h2>6. Limitation of Liability</h2>
-					<p>
-						In no event shall the Company, nor its directors, employees,
-						partners, agents, suppliers, or affiliates, be liable for any
-						indirect, incidental, special, consequential or punitive damages,
-						including without limitation, loss of profits, data, use, goodwill,
-						or other intangible losses, resulting from (i) your access to or use
-						of or inability to access or use the Services; (ii) any conduct or
-						content of any third party on the Services; (iii) any content,
-						including Generated Code, obtained from the Services; and (iv)
-						unauthorized access, use or alteration of your transmissions or
-						content, whether based on warranty, contract, tort (including
-						negligence) or any other legal theory.
-					</p>
+          <h2>6. Limitation of Liability</h2>
+          <p>
+            In no event shall the Company, nor its directors, employees,
+            partners, agents, suppliers, or affiliates, be liable for any
+            indirect, incidental, special, consequential or punitive damages,
+            including without limitation, loss of profits, data, use, goodwill,
+            or other intangible losses, resulting from (i) your access to or use
+            of or inability to access or use the Services; (ii) any conduct or
+            content of any third party on the Services; (iii) any content,
+            including Generated Code, obtained from the Services; and (iv)
+            unauthorized access, use or alteration of your transmissions or
+            content, whether based on warranty, contract, tort (including
+            negligence) or any other legal theory.
+          </p>
 
-					<h2>7. Governing Law</h2>
-					<p>
-						These Terms shall be governed and construed in accordance with the
-						laws of the State of Delaware, United States, without regard to its
-						conflict of law provisions.
-					</p>
+          <h2>7. Governing Law</h2>
+          <p>
+            These Terms shall be governed and construed in accordance with the
+            laws of the State of Delaware, United States, without regard to its
+            conflict of law provisions.
+          </p>
 
-					<h2>8. Changes to These Terms</h2>
-					<p>
-						We reserve the right, at our sole discretion, to modify or replace
-						these Terms at any time. We will alert you about any changes by
-						updating the &quot;Effective Date&quot; of these Terms. Your
-						continued use of the Services following the posting of any changes
-						to these Terms constitutes acceptance of those changes.
-					</p>
+          <h2>8. Changes to These Terms</h2>
+          <p>
+            We reserve the right, at our sole discretion, to modify or replace
+            these Terms at any time. We will alert you about any changes by
+            updating the &quot;Effective Date&quot; of these Terms. Your
+            continued use of the Services following the posting of any changes
+            to these Terms constitutes acceptance of those changes.
+          </p>
 
-					<h2>9. Contact Us</h2>
-					<p>
-						Should you have any questions regarding these Terms, please contact
-						us at:
-						<br />
-						<a href='mailto:legal@lummie.dev'>legal@lummie.dev</a>
-					</p>
-				</main>
-			</div>
-		</div>
-	)
+          <h2>9. Contact Us</h2>
+          <p>
+            Should you have any questions regarding these Terms, please contact
+            us at:
+            <br />
+            <a href="mailto:legal@lummie.dev">legal@lummie.dev</a>
+          </p>
+        </main>
+      </div>
+    </div>
+  )
 }

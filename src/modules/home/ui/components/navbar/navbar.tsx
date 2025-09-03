@@ -13,59 +13,59 @@ import { UserMenu } from './user-menu'
 import { MobileNav } from './mobile-nav'
 
 const navItems = [
-	{ href: 'https://discord.gg/VevBCcQy23', label: 'Community' },
-	{ href: '/enterprise', label: 'Enterprise' },
-	{ href: '/resources', label: 'Resources' },
-	{ href: '/pricing', label: 'Pricing' },
+  { href: 'https://discord.gg/VevBCcQy23', label: 'Community' },
+  { href: '/enterprise', label: 'Enterprise' },
+  { href: '/resources', label: 'Resources' },
+  { href: '/pricing', label: 'Pricing' },
 ]
 
 // Skeleton component for auth controls
 const AuthSkeleton = () => {
-	return (
-		<div className='flex items-center gap-2 min-w-[100px]'>
-			<Skeleton className='h-8 w-8 rounded-full' />
-			<Skeleton className='h-8 w-8 rounded-full' />
-			<Skeleton className='h-8 w-8' />
-		</div>
-	)
+  return (
+    <div className="flex min-w-[100px] items-center gap-2">
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <Skeleton className="h-8 w-8" />
+    </div>
+  )
 }
 
 export const Navbar = () => {
-	const isScrolled = useScroll()
-	const pathname = usePathname()
-	const { isLoaded } = useAuth()
+  const isScrolled = useScroll()
+  const pathname = usePathname()
+  const { isLoaded } = useAuth()
 
-	return (
-		<header
-			className={cn(
-				'p-4 bg-transparent fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent',
-				isScrolled &&
-					'bg-background/95 border-border backdrop-blur-xl shadow-sm'
-			)}
-		>
-			<div className='max-w-7xl mx-auto w-full flex justify-between items-center'>
-				<LogoLink />
-				<DesktopNav pathname={pathname} navItems={navItems} />
-				<div className='hidden md:flex items-center gap-3 min-w-[100px]'>
-					{!isLoaded ? (
-						<AuthSkeleton />
-					) : (
-						<>
-							<SignedOut>
-								<AuthControls />
-							</SignedOut>
-							<SignedIn>
-								<UserMenu />
-							</SignedIn>
-						</>
-					)}
-				</div>
-				<div className='md:hidden'>
-					<Sheet>
-						<MobileNav pathname={pathname} navItems={navItems} />
-					</Sheet>
-				</div>
-			</div>
-		</header>
-	)
+  return (
+    <header
+      className={cn(
+        'fixed top-0 right-0 left-0 z-50 border-b border-transparent bg-transparent p-4 transition-all duration-300',
+        isScrolled &&
+          'bg-background/95 border-border shadow-sm backdrop-blur-xl'
+      )}
+    >
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
+        <LogoLink />
+        <DesktopNav pathname={pathname} navItems={navItems} />
+        <div className="hidden min-w-[100px] items-center gap-3 md:flex">
+          {!isLoaded ? (
+            <AuthSkeleton />
+          ) : (
+            <>
+              <SignedOut>
+                <AuthControls />
+              </SignedOut>
+              <SignedIn>
+                <UserMenu />
+              </SignedIn>
+            </>
+          )}
+        </div>
+        <div className="md:hidden">
+          <Sheet>
+            <MobileNav pathname={pathname} navItems={navItems} />
+          </Sheet>
+        </div>
+      </div>
+    </header>
+  )
 }
