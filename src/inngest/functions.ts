@@ -1,294 +1,151 @@
-import { Sandbox } from '@e2b/code-interpreter'
+import { Sandbox } from "@e2b/code-interpreter";
+import { createNetwork, createState } from "@inngest/agent-kit";
+import { inngest } from "./client";
+import { prisma } from "@/lib/db";
+import { SANDBOX_TIMEOUT } from "./types";
+import { getAllSandboxTextFiles, getSandbox, parseAgentOutput } from "./utils";
 import {
-	createAgent,
-	createNetwork,
-	createTool,
-	openai,
-	type Tool,
-	type Message,
-	createState,
-} from '@inngest/agent-kit'
-
-import z from 'zod'
-import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from '@/prompt'
-import { inngest } from './client'
+  AgentState,
+  createCodingAgent,
+  fragmentTitleGenerator,
+  responseGenerator,
+} from "./agents";
 import {
-	getSandbox,
-	lastAssistantTextMessageContent,
-	parseAgentOutput,
-} from './utils'
-import { prisma } from '@/lib/db'
-import { SANDBOX_TIMEOUT } from './types'
-
-interface AgentState {
-	summary: string
-	files: { [path: string]: string }
-}
+  getPreviousMessages,
+  saveErrorResult,
+  saveSuccessResult,
+  updateFragmentFilesInDb,
+} from "./data";
 
 export const codeAgentFunction = inngest.createFunction(
-	{ id: 'code-agent' },
-	{ event: 'code-agent/run' },
-	async ({ event, step }) => {
-		const sandboxId = await step.run('get-sandbox-id', async () => {
-			const sandbox = await Sandbox.create('luci-ai-nextjs')
-			await sandbox.setTimeout(SANDBOX_TIMEOUT)
-			return sandbox.sandboxId
-		})
+  { id: "code-agent" },
+  { event: "code-agent/run" },
+  async ({ event, step }) => {
+    const sandboxId = await step.run("get-sandbox-id", async () => {
+      const sandbox = await Sandbox.create("luci-ai-nextjs");
+      await sandbox.setTimeout(SANDBOX_TIMEOUT);
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: { sandboxId: sandbox.sandboxId },
+      });
+      return sandbox.sandboxId;
+    });
 
-		const previousMessages = await step.run(
-			'get-previous-messages',
-			async () => {
-				const formattedMessages: Message[] = []
+    const previousMessages = await step.run("get-previous-messages", () =>
+      getPreviousMessages(event.data.projectId)
+    );
 
-				const messages = await prisma.message.findMany({
-					where: {
-						projectId: event.data.projectId,
-					},
-					orderBy: {
-						createdAt: 'desc',
-					},
-					take: 5,
-				})
+    const state = createState<AgentState>(
+      { summary: "", files: {} },
+      { messages: previousMessages }
+    );
 
-				for (const message of messages) {
-					formattedMessages.push({
-						type: 'text',
-						role: message.role === 'ASSISTANT' ? 'assistant' : 'user',
-						content: message.content,
-					})
-				}
+    const codeAgent = createCodingAgent(sandboxId);
 
-				return formattedMessages.reverse()
-			}
-		)
+    const network = await createNetwork<AgentState>({
+      name: "coding-agent-network",
+      agents: [codeAgent],
+      maxIter: 15,
+      defaultState: state,
+      router: async ({ network }) => {
+        if (network.state.data.summary) return;
+        return codeAgent;
+      },
+    });
 
-		const state = createState<AgentState>(
-			{
-				summary: '',
-				files: {},
-			},
-			{
-				messages: previousMessages,
-			}
-		)
+    const result = await network.run(event.data.value, { state });
 
-		const codeAgent = createAgent<AgentState>({
-			name: 'code-agent',
-			system: PROMPT,
-			model: openai({
-				model: 'gpt-4.1',
-				defaultParameters: {
-					temperature: 0.1,
-				},
-			}),
-			tools: [
-				createTool({
-					name: 'terminal',
-					description: 'An expert coding agent',
-					parameters: z.object({
-						command: z.string(),
-					}),
-					handler: async ({ command }, { step }) => {
-						return await step?.run('terminal', async () => {
-							const buffers = { stdout: '', stderr: '' }
-							try {
-								const sandbox = await getSandbox(sandboxId)
-								const result = await sandbox.commands.run(command, {
-									onStdout: (data: string) => {
-										buffers.stdout += data
-									},
-									onStderr: (data: string) => {
-										buffers.stderr += data
-									},
-								})
-								return result.stdout
-							} catch (e) {
-								console.error(
-									`Command failed: ${e} \nstdout: ${buffers.stdout} \nstderr: ${buffers.stderr}`
-								)
-								return `Command failed: ${e} \nstdout: ${buffers.stdout} \nstderr: ${buffers.stderr}`
-							}
-						})
-					},
-				}),
-				createTool({
-					name: 'createOrUpdateFiles',
-					description: 'Create or update files in the sandbox',
-					parameters: z.object({
-						files: z.array(
-							z.object({
-								path: z.string(),
-								content: z.string(),
-							})
-						),
-					}),
-					handler: async (
-						{ files },
-						{ step, network }: Tool.Options<AgentState>
-					) => {
-						const newFiles = await step?.run(
-							'createOrUpdateFiles',
-							async () => {
-								try {
-									const updatedFiles = network.state.data.files || {}
-									const sandbox = await getSandbox(sandboxId)
-									for (const file of files) {
-										await sandbox.files.write(file.path, file.content)
-										updatedFiles[file.path] = file.content
-									}
-									return updatedFiles
-								} catch (e) {
-									return 'Error: ' + e
-								}
-							}
-						)
-						if (typeof newFiles === 'object') {
-							network.state.data.files = newFiles
-						}
-					},
-				}),
-				createTool({
-					name: 'readFiles',
-					description: 'Read files from the sandbox',
-					parameters: z.object({
-						files: z.array(z.string()),
-					}),
-					handler: async ({ files }, { step }) => {
-						return await step?.run('readFiles', async () => {
-							try {
-								const sandbox = await getSandbox(sandboxId)
-								const context = []
-								for (const file of files) {
-									const content = await sandbox.files.read(file)
-									context.push({ path: file, content })
-								}
-								return JSON.stringify(context)
-							} catch (e) {
-								return 'Error: ' + e
-							}
-						})
-					},
-				}),
-			],
-			lifecycle: {
-				onResponse: async ({ result, network }) => {
-					const lastAssistantMessageText =
-						lastAssistantTextMessageContent(result)
+    const allSandboxFiles = await step.run(
+      "list-all-sandbox-files",
+      async () => {
+        const sandbox = await getSandbox(sandboxId);
+        return await getAllSandboxTextFiles(sandbox);
+      }
+    );
 
-					if (lastAssistantMessageText && network) {
-						if (lastAssistantMessageText.includes('<task_summary>')) {
-							network.state.data.summary = lastAssistantMessageText
-						}
-					}
+    const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
+      result.state.data.summary
+    );
+    const { output: responseOutput } = await responseGenerator.run(
+      result.state.data.summary
+    );
 
-					return result
-				},
-			},
-		})
+    const isError =
+      !result.state.data.summary || Object.keys(allSandboxFiles).length === 0;
 
-		const network = await createNetwork<AgentState>({
-			name: 'coding-agent-network',
-			agents: [codeAgent],
-			maxIter: 15,
-			defaultState: state,
-			router: async ({ network }) => {
-				const summary = network.state.data.summary
-				if (summary) {
-					return
-				}
-				return codeAgent
-			},
-		})
+    const sandboxUrl = await step.run("get-sandbox-url", async () => {
+      const sandbox = await getSandbox(sandboxId);
+      const host = await sandbox.getHost(3000);
+      return `https://${host}`;
+    });
 
-		const result = await network.run(event.data.value, { state })
+    await step.run("save-result", async () => {
+      if (isError) {
+        return await saveErrorResult(event.data.projectId);
+      }
+      return await saveSuccessResult({
+        projectId: event.data.projectId,
+        newProjectName: parseAgentOutput(fragmentTitleOutput),
+        responseText: parseAgentOutput(responseOutput),
+        sandboxUrl: sandboxUrl,
+        allSandboxFiles: allSandboxFiles,
+      });
+    });
 
-		const fragmentTitleGenetator = createAgent({
-			name: 'fragment-title-generator',
-			description: 'A fragment title generator',
-			system: FRAGMENT_TITLE_PROMPT,
-			model: openai({
-				model: 'gpt-4o',
-			}),
-		})
+    return {
+      url: sandboxUrl,
+      title: "Fragment",
+      files: allSandboxFiles,
+      summary: result.state.data.summary,
+    };
+  }
+);
 
-		const responseGenerator = createAgent({
-			name: 'response-generator',
-			description: 'A response generator',
-			system: RESPONSE_PROMPT,
-			model: openai({
-				model: 'gpt-4o',
-			}),
-		})
+export const updateProjectFunction = inngest.createFunction(
+  { id: "code-agent-update", concurrency: 1 },
+  { event: "code-agent/update" },
+  async ({ event, step }) => {
+    const { projectId, filesToUpdate } = event.data;
 
-		const { output: fragmentTitleOutput } = await fragmentTitleGenetator.run(
-			result.state.data.summary
-		)
-		const { output: responseOutput } = await responseGenerator.run(
-			result.state.data.summary
-		)
+    const project = await step.run("get-project-sandbox-id", async () => {
+      return await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { sandboxId: true },
+      });
+    });
 
-		const isError =
-			!result.state.data.summary ||
-			Object.keys(result.state.data.files || {}).length === 0
+    if (!project?.sandboxId) {
+      throw new Error(`Sandbox ID not found for project ${projectId}`);
+    }
 
-		const sandboxUrl = await step.run('get-sandbox-url', async () => {
-			const sandbox = await getSandbox(sandboxId)
-			const host = await sandbox.getHost(3000)
-			return `https://${host}`
-		})
+    const { sandboxId } = project;
 
-		await step.run('save-result', async () => {
-			if (isError) {
-				await prisma.project.update({
-					where: { id: event.data.projectId },
-					data: { status: 'ERROR' },
-				})
+    await step.run("update-files-in-sandbox", async () => {
+      const sandbox = await getSandbox(sandboxId);
+      for (const file of filesToUpdate) {
+        await sandbox.files.write(file.path, file.content);
+      }
+    });
 
-				return await prisma.message.create({
-					data: {
-						projectId: event.data.projectId,
-						content: 'Something went wrong. Please try again',
-						role: 'ASSISTANT',
-						type: 'ERROR',
-					},
-				})
-			}
+    const allSandboxFiles = await step.run(
+      "list-all-updated-sandbox-files",
+      async () => {
+        const sandbox = await getSandbox(sandboxId);
+        return await getAllSandboxTextFiles(sandbox);
+      }
+    );
 
-			const newProjectName = parseAgentOutput(fragmentTitleOutput)
+    await step.run("update-fragment-in-db", async () => {
+      await updateFragmentFilesInDb(projectId, allSandboxFiles);
+    });
 
-			return await prisma.$transaction([
-				prisma.project.update({
-					where: {
-						id: event.data.projectId,
-					},
-					data: {
-						name: newProjectName,
-						status: 'COMPLETED',
-					},
-				}),
-				prisma.message.create({
-					data: {
-						projectId: event.data.projectId,
-						content: parseAgentOutput(responseOutput),
-						role: 'ASSISTANT',
-						type: 'RESULT',
-						fragment: {
-							create: {
-								sandboxUrl: sandboxUrl,
-								title: newProjectName,
-								files: result.state.data.files,
-							},
-						},
-					},
-				}),
-			])
-		})
+    await step.run("update-project-status", async () => {
+      await prisma.project.update({
+        where: { id: projectId },
+        data: { status: "COMPLETED" },
+      });
+    });
 
-		return {
-			url: sandboxUrl,
-			title: 'Fragment',
-			files: result.state.data.files,
-			summary: result.state.data.summary,
-		}
-	}
-)
+    return { success: true, message: `Project ${projectId} updated.` };
+  }
+);
