@@ -21,7 +21,7 @@ interface Props {
 
 const items = [
   { title: 'Home', href: '/', icon: Home },
-  { title: 'New Chat', href: '/', icon: Hash },
+  { title: 'New Chat', href: '/chat', icon: Hash },
 ]
 
 const Layout = ({ children }: Props) => {

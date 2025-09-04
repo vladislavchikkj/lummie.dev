@@ -10,6 +10,7 @@ export const getManyInputSchema = z.object({
 export const sendMessageInputSchema = z.object({
   chatId: ChatId,
   content: ChatMessage,
+  isFirst: z.boolean().optional(),
 })
 
 export const createChatInputSchema = z.object({
