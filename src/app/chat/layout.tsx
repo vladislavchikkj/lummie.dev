@@ -25,7 +25,6 @@ const items = [
 ]
 
 const Layout = ({ children }: Props) => {
-  console.log('Layout chat', children)
   return (
     <main className="flex min-h-screen flex-col">
       <main className="flex flex-1">
