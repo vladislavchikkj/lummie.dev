@@ -95,7 +95,6 @@ export const ChatMessageFrom = ({ rootChat, onSubmit, isStreaming }: Props) => {
           />
           <div className="flex items-end justify-between gap-x-2 pt-2">
             <Button
-              disabled={false}
               className={cn(
                 'group size-8 rounded-full border border-gray-300 bg-white transition-colors hover:border-gray-300 hover:bg-gray-100'
               )}

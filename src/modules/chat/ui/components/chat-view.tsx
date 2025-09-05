@@ -4,7 +4,7 @@ import { ChatMessagesContainer } from '@/modules/chat/ui/components/chat-message
 import { ChatMessageFrom } from '@/modules/chat/ui/components/chat-message-from'
 import { useTRPC } from '@/trpc/client'
 import { useState, useEffect, useMemo } from 'react'
-import { ChatMessage } from '@/modules/chat/constants/types'
+import { ChatMessageEntity } from '@/modules/chat/constants/types'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   CHAT_ERROR_MESSAGE_FRAGMENT,
@@ -15,7 +15,7 @@ import {
 type Props = { chatId: string }
 
 export const ChatView = ({ chatId }: Props) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [messages, setMessages] = useState<ChatMessageEntity[]>([])
   const [streamingContent, setStreamingContent] = useState<string>('')
   const [isStreaming, setIsStreaming] = useState<boolean>(false)
   const trpc = useTRPC()
@@ -55,7 +55,7 @@ export const ChatView = ({ chatId }: Props) => {
 
   const onSubmit = async (message: string, firstMsg: boolean = false) => {
     if (isStreaming || !message.trim()) return
-    const userMsg: ChatMessage = {
+    const userMsg: ChatMessageEntity = {
       role: CHAT_ROLES.USER,
       content: message,
       chatId,
@@ -85,6 +85,11 @@ export const ChatView = ({ chatId }: Props) => {
       setStreamingContent('')
     } catch (error) {
       console.error('Stream processing failed:', error)
+      setIsStreaming(false)
+      // Append error message if there's partial content
+      if (streamingContent) {
+        setStreamingContent((prev) => prev + CHAT_ERROR_MESSAGE_FRAGMENT)
+      }
     }
   }
 

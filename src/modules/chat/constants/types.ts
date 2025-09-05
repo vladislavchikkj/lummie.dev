@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const ChatId = z.string()
-export const ChatMessage = z.string().min(1).max(10000)
+export const ChatMessageSchema = z.string().min(1).max(10000)
 
 export const getManyInputSchema = z.object({
   chatId: ChatId,
@@ -9,18 +9,18 @@ export const getManyInputSchema = z.object({
 
 export const sendMessageInputSchema = z.object({
   chatId: ChatId,
-  content: ChatMessage,
+  content: ChatMessageSchema,
   isFirst: z.boolean().optional(),
 })
 
 export const createChatInputSchema = z.object({
-  content: ChatMessage,
+  content: ChatMessageSchema,
 })
 
 export type GetManyInput = z.infer<typeof getManyInputSchema>
 export type SendMessageInput = z.infer<typeof sendMessageInputSchema>
 
-export interface ChatMessage {
+export interface ChatMessageEntity {
   chatId: string
 
   content: string

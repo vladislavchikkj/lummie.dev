@@ -26,7 +26,7 @@ const items = [
 
 const Layout = ({ children }: Props) => {
   return (
-    <main className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <main className="flex flex-1">
         <SidebarProvider>
           {/*TODO change with ChatSideBar */}
@@ -63,7 +63,7 @@ const Layout = ({ children }: Props) => {
           {children}
         </SidebarProvider>
       </main>
-    </main>
+    </div>
   )
 }
 
