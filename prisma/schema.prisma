@@ -63,6 +63,7 @@ model ChatMessage {
   content   String
   role      MessageRole
   type      String
+  isFirst   Boolean     @default(false)
   createdAt DateTime    @default(now())
   chat      Chat        @relation(fields: [chatId], references: [id])
 }
