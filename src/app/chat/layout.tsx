@@ -29,7 +29,7 @@ const Layout = ({ children }: Props) => {
     <div className="flex min-h-screen flex-col">
       <main className="flex flex-1">
         <SidebarProvider>
-          {/*TODO change with ChatSideBar */}
+          {/* TODO: Replace with ChatSideBar */}
           <Sidebar>
             <SidebarContent>
               <SidebarGroup>
@@ -42,9 +42,7 @@ const Layout = ({ children }: Props) => {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {items.map((item) => (
-                      // eslint-disable-next-line react/jsx-no-undef
                       <SidebarMenuItem key={item.title}>
-                        {/* eslint-disable-next-line react/jsx-no-undef */}
                         <SidebarMenuButton asChild>
                           <Link href={item.href}>
                             <item.icon />
@@ -60,7 +58,7 @@ const Layout = ({ children }: Props) => {
           </Sidebar>
 
           <SidebarTrigger />
-          {children}
+          <div className="flex-1">{children}</div>
         </SidebarProvider>
       </main>
     </div>

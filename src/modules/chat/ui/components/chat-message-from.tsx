@@ -5,10 +5,10 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormField } from '@/components/ui/form'
 import TextareaAutosize from 'react-textarea-autosize'
-import React, { useState } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ArrowUpIcon, Plus, Square } from 'lucide-react'
+import { ArrowUp, Square } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTRPC } from '@/trpc/client'
 import { useMutation } from '@tanstack/react-query'
@@ -16,7 +16,7 @@ import { useMutation } from '@tanstack/react-query'
 const formSchema = z.object({
   value: z
     .string()
-    .min(1, { message: 'Value is required' })
+    .min(1, { message: ' ' })
     .max(10000, { message: 'Value is too long' }),
 })
 
@@ -24,9 +24,15 @@ type Props = {
   rootChat: boolean
   onSubmit?: (message: string) => void
   isStreaming?: boolean
+  onStop?: () => void
 }
 
-export const ChatMessageFrom = ({ rootChat, onSubmit, isStreaming }: Props) => {
+export const ChatMessageFrom = ({
+  rootChat,
+  onSubmit,
+  isStreaming,
+  onStop,
+}: Props) => {
   const router = useRouter()
   const trpc = useTRPC()
   const form = useForm<z.infer<typeof formSchema>>({
@@ -35,8 +41,6 @@ export const ChatMessageFrom = ({ rootChat, onSubmit, isStreaming }: Props) => {
       value: '',
     },
   })
-  const isPending = false // TODO change to actual pending state
-  const [isFocused, setIsFocused] = useState(false)
 
   const createChatMutation = useMutation(
     trpc.chat.createChat.mutationOptions({
@@ -49,78 +53,79 @@ export const ChatMessageFrom = ({ rootChat, onSubmit, isStreaming }: Props) => {
     })
   )
 
+  const isPending = createChatMutation.isPending
+
   const formSubmit = (data: z.infer<typeof formSchema>) => {
+    if (isStreaming) return
     if (rootChat) {
       createChatMutation.mutate({ content: data.value })
-    } else {
-      if (onSubmit) {
-        onSubmit(data.value)
-      }
+    } else if (onSubmit) {
+      onSubmit(data.value)
     }
     form.reset()
   }
 
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    if (isStreaming && onStop) {
+      onStop()
+    } else {
+      form.handleSubmit(formSubmit)()
+    }
+  }
+
   return (
-    <Form {...form}>
-      <div className={'min-h-[120px] p-10 pt-0'}>
-        <form
-          className={cn(
-            'bg-sidebar dark:bg-sidebar relative rounded-xl border p-4 pt-1 transition-all',
-            isFocused && 'shadow-xs'
-          )}
-          onSubmit={form.handleSubmit(formSubmit)}
-        >
-          <FormField
-            control={form.control}
-            name="value"
-            render={({ field }) => (
-              <TextareaAutosize
-                {...field}
-                disabled={isPending}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                minRows={2}
-                maxRows={8}
-                className="w-full resize-none border-none bg-transparent pt-4 outline-none"
-                placeholder="What would you like to build?"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' /*&& (e.ctrlKey || e.metaKey)*/) {
-                    // TODO Uncomment to enable Ctrl+Enter submission
-                    e.preventDefault()
-                    form.handleSubmit(formSubmit)()
-                  }
-                }}
-              />
-            )}
-          />
-          <div className="flex items-end justify-between gap-x-2 pt-2">
-            <Button
-              className={cn(
-                'group size-8 rounded-full border border-gray-300 bg-white transition-colors hover:border-gray-300 hover:bg-gray-100'
+    <div className="bg-background/80 w-full pt-2 pb-4 backdrop-blur-sm">
+      <div className="mx-auto max-w-3xl px-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(formSubmit)} className="w-full">
+            <FormField
+              control={form.control}
+              name="value"
+              render={({ field }) => (
+                <div className="relative flex w-full items-center overflow-hidden rounded-full border bg-zinc-100/80 dark:bg-zinc-900/80">
+                  <TextareaAutosize
+                    {...field}
+                    disabled={isPending || isStreaming}
+                    rows={1}
+                    maxRows={8}
+                    className="min-h-[52px] w-full flex-1 resize-none bg-transparent py-3.5 pr-16 pl-6 text-base outline-none"
+                    placeholder="How can Lummie help?"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        if (!isStreaming && form.formState.isValid) {
+                          form.handleSubmit(formSubmit)()
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={
+                      isPending || (!form.formState.isValid && !isStreaming)
+                    }
+                    onClick={handleButtonClick}
+                    className={cn(
+                      'absolute top-1/2 right-2.5 size-9 -translate-y-1/2 rounded-full'
+                    )}
+                  >
+                    {isStreaming ? (
+                      <Square className="size-4" />
+                    ) : (
+                      <ArrowUp className="size-4" />
+                    )}
+                    <span className="sr-only">
+                      {isStreaming ? 'Stop generating' : 'Send message'}
+                    </span>
+                  </Button>
+                </div>
               )}
-            >
-              <Plus className="text-black" />
-            </Button>
-            <div className="flex flex-row items-center justify-center gap-2">
-              <div className="text-muted-foreground font-mono text-[10px]">
-                <kbd className="bg-muted text-muted-foreground pointer-events-none ml-auto inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium select-none">
-                  <span>&#8984;</span>Enter
-                </kbd>
-                &nbsp;to submit
-              </div>
-              <Button
-                disabled={isPending || isStreaming}
-                className={cn(
-                  'size-8 rounded-full transition-transform hover:scale-105',
-                  false && 'bg-muted-foreground border'
-                )}
-              >
-                {isStreaming ? <Square className="size-4" /> : <ArrowUpIcon />}
-              </Button>
-            </div>
-          </div>
-        </form>
+            />
+          </form>
+        </Form>
       </div>
-    </Form>
+    </div>
   )
 }

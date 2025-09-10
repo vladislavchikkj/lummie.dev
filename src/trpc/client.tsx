@@ -8,7 +8,8 @@ import { useState } from 'react'
 import { makeQueryClient } from './query-client'
 import type { AppRouter } from './routers/_app'
 import superjson from 'superjson'
-export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>()
+export const { TRPCProvider, useTRPC, useTRPCClient } =
+  createTRPCContext<AppRouter>()
 let browserQueryClient: QueryClient
 function getQueryClient() {
   if (typeof window === 'undefined') {
@@ -34,26 +35,26 @@ export function TRPCReactProvider(
     children: React.ReactNode
   }>
 ) {
-	// NOTE: Avoid useState when initializing the query client if you don't
-	//       have a suspense boundary between this and the code that may
-	//       suspend because React will throw away the client on the initial
-	//       render if it suspends and there is no boundary
-	const queryClient = getQueryClient()
-	const [trpcClient] = useState(() =>
-		createTRPCClient<AppRouter>({
-			links: [
-				httpBatchStreamLink({
-					transformer: superjson,
-					url: getUrl(),
-				}),
-			],
-		})
-	)
-	return (
-		<QueryClientProvider client={queryClient}>
-			<TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-				{props.children}
-			</TRPCProvider>
-		</QueryClientProvider>
-	)
+  // NOTE: Avoid useState when initializing the query client if you don't
+  //       have a suspense boundary between this and the code that may
+  //       suspend because React will throw away the client on the initial
+  //       render if it suspends and there is no boundary
+  const queryClient = getQueryClient()
+  const [trpcClient] = useState(() =>
+    createTRPCClient<AppRouter>({
+      links: [
+        httpBatchStreamLink({
+          transformer: superjson,
+          url: getUrl(),
+        }),
+      ],
+    })
+  )
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+        {props.children}
+      </TRPCProvider>
+    </QueryClientProvider>
+  )
 }

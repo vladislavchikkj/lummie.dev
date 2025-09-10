@@ -1,7 +1,8 @@
-import { cn } from '@/lib/utils'
-import Logo from '@/components/ui/logo'
-import { format } from 'date-fns'
 import React from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import { ChatCodeBlock } from './chat-code-block'
 
 type Props = {
   content: string
@@ -9,24 +10,26 @@ type Props = {
 
 export const ChatModelMessage = ({ content }: Props) => {
   return (
-    <div className={cn('group flex flex-col px-2 pb-4')}>
-      <div className="mb-2 flex items-center gap-2 pl-2">
-        <Logo width={20} height={20} className="shrink-0" />
-        <span className="text-sm font-medium">Lummie</span>
-        <span className="text-muted-foreground text-xs transition-opacity group-hover:opacity-100">
-          {format(new Date(), "HH:mm 'on' MMM dd, yyyy")}
-        </span>
-      </div>
-      <div className="flex flex-col gap-y-4 pl-8.5">
-        <span>{content}</span>
-        {/*{fragment && type === 'RESULT' && (*/}
-        {/*    <FragmentCard*/}
-        {/*        fragment={fragment}*/}
-        {/*        isActiveFragment={isActiveFragment}*/}
-        {/*        onFragmentClick={onFragmentClick}*/}
-        {/*    />*/}
-        {/*)}*/}
-      </div>
+    <div className="prose prose-neutral prose-sm dark:prose-invert max-w-none break-words">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={{
+          code({ node, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || '')
+            const codeText = String(children).replace(/\n$/, '')
+            return match ? (
+              <ChatCodeBlock lang={match[1]} code={codeText} />
+            ) : (
+              <code className="not-prose rounded bg-gray-200 px-1.5 py-1 font-mono text-sm dark:bg-zinc-700">
+                {children}
+              </code>
+            )
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   )
 }
