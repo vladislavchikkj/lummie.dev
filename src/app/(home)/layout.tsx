@@ -56,7 +56,7 @@ interface Props {
 
 const Layout = ({ children }: Props) => {
   return (
-    <main className="relative flex min-h-screen flex-col">
+    <main className="relative flex min-h-screen w-full flex-col">
       <Navbar />
       <div className="relative flex min-h-screen w-full flex-col items-start justify-center overflow-auto">
         <div className="w-full">{children}</div>

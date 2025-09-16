@@ -11,6 +11,7 @@ import { DesktopNav } from './desktop-nav'
 import { AuthControls } from './auth-controls'
 import { UserMenu } from './user-menu'
 import { MobileNav } from './mobile-nav'
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 
 const navItems = [
   { href: 'https://discord.gg/VevBCcQy23', label: 'Community' },
@@ -34,17 +35,20 @@ export const Navbar = () => {
   const isScrolled = useScroll()
   const pathname = usePathname()
   const { isLoaded } = useAuth()
+  const { toggleSidebar } = useSidebar()
 
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 left-0 z-50 border-b border-transparent bg-transparent p-4 transition-all duration-300',
+        'fixed top-0 right-0 left-0 z-50 border-b border-transparent bg-transparent px-4 py-2 transition-all duration-300',
         isScrolled &&
           'bg-background/95 border-border shadow-sm backdrop-blur-xl'
       )}
     >
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
-        <LogoLink />
+      <div className="mx-auto flex w-full items-center justify-between">
+        <div onClick={toggleSidebar}>
+          <LogoLink />
+        </div>
         <DesktopNav pathname={pathname} navItems={navItems} />
         <div className="hidden min-w-[100px] items-center gap-3 md:flex">
           {!isLoaded ? (

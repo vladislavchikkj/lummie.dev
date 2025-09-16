@@ -7,6 +7,8 @@ import { ThemeProvider } from 'next-themes'
 import { ClerkProvider } from '@clerk/nextjs'
 import CookieConsent from '@/components/cookie-consent'
 import { APP_NAME } from './constants'
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -60,7 +62,11 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <Toaster />
-              {children}
+
+              <SidebarProvider>
+                <AppSidebar />
+                <main className="h-full w-full ring-0">{children}</main>
+              </SidebarProvider>
               <CookieConsent />
             </ThemeProvider>
           </body>
