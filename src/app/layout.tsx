@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes'
 import { ClerkProvider } from '@clerk/nextjs'
 import CookieConsent from '@/components/cookie-consent'
 import { APP_NAME } from './constants'
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 
 const geistSans = Geist({

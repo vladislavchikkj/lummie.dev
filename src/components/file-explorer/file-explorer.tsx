@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+
 import {
   ResizableHandle,
   ResizablePanel,
@@ -8,6 +9,9 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { CodeEditor } from '@/components/code-editor'
 import { TreeView } from './tree-view'
+import { EditorHeader } from './editor-header'
+import { EditorPlaceholder } from './editor-placeholder'
+import { FileOperationDialog } from './file-operation-dialog'
 
 import { FileCollection, TreeItem } from '@/types'
 import {
@@ -16,9 +20,6 @@ import {
   sortTreeRecursively,
 } from '@/lib/utils'
 import { useFileOperations } from '@/hooks/use-file-operations'
-import { EditorHeader } from './editor-header'
-import { EditorPlaceholder } from './editor-placeholder'
-import { FileOperationDialog } from './file-operation-dialog'
 
 interface FileExplorerProps {
   files: FileCollection
@@ -31,7 +32,6 @@ export const FileExplorer = ({ files, projectId }: FileExplorerProps) => {
   const [editedFiles, setEditedFiles] = useState<FileCollection>(files)
   const [isUpdatingSandbox, setIsUpdatingSandbox] = useState(false)
 
-  // Используем наш кастомный хук для всей логики диалогового окна
   const fileOps = useFileOperations({ projectId })
 
   useEffect(() => {
@@ -77,6 +77,7 @@ export const FileExplorer = ({ files, projectId }: FileExplorerProps) => {
   }, [files, editedFiles])
 
   const handleUpdateSandbox = async () => {
+    // Логика без изменений
     const filesToUpdate = Object.keys(editedFiles)
       .filter((path) => files[path] !== editedFiles[path])
       .map((path) => ({ path, content: editedFiles[path] }))
@@ -105,8 +106,8 @@ export const FileExplorer = ({ files, projectId }: FileExplorerProps) => {
   return (
     <>
       <ResizablePanelGroup direction="horizontal" className="h-full">
-        <ResizablePanel defaultSize={30} minSize={20} className="bg-sidebar">
-          <ScrollArea className="h-full">
+        <ResizablePanel defaultSize={30} minSize={20} className="bg-muted/30">
+          <ScrollArea className="h-full p-2">
             <TreeView
               data={treeData}
               value={selectedFile}
@@ -117,7 +118,12 @@ export const FileExplorer = ({ files, projectId }: FileExplorerProps) => {
             />
           </ScrollArea>
         </ResizablePanel>
-        <ResizableHandle className="hover:bg-primary transition-colors" />
+
+        <ResizableHandle
+          className="hover:bg-border w-2 bg-transparent transition-colors"
+          withHandle
+        />
+
         <ResizablePanel defaultSize={70} minSize={50}>
           {selectedFile && editedFiles[selectedFile] !== undefined ? (
             <div className="flex h-full w-full flex-col">

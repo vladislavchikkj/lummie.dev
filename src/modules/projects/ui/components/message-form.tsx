@@ -78,10 +78,11 @@ export const MessageForm = ({ projectId }: Props) => {
           msBeforeNext={usage.msBeforeNext}
         />
       )}
+      {/* <<< ИЗМЕНЕНИЕ: Убрали transition-all отсюда */}
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn(
-          'bg-sidebar dark:bg-sidebar relative rounded-xl border p-4 pt-1 transition-all',
+          'bg-sidebar dark:bg-sidebar relative rounded-xl border p-4 pt-1 transition-shadow', // Оставим только transition-shadow для тени
           isFocused && 'shadow-xs',
           showUsage && 'rounded-t-none'
         )}
@@ -97,7 +98,8 @@ export const MessageForm = ({ projectId }: Props) => {
               onBlur={() => setIsFocused(false)}
               minRows={2}
               maxRows={8}
-              className="w-full resize-none border-none bg-transparent pt-4 outline-none"
+              // <<< ИЗМЕНЕНИЕ: Добавили классы анимации непосредственно сюда
+              className="w-full resize-none border-none bg-transparent pt-4 transition-all duration-200 ease-in-out outline-none"
               placeholder="What would you like to build?"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {

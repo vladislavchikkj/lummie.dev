@@ -5,6 +5,7 @@ import { MessageCard } from './message-card'
 import { MessageForm } from './message-form'
 import { Fragment } from '@/generated/prisma'
 import { MessageLoading } from './message-loading'
+import { cn } from '@/lib/utils'
 
 interface Props {
   projectId: string
@@ -25,7 +26,6 @@ export const MessagesContainer = ({
     trpc.messages.getMany.queryOptions(
       { projectId: projectId },
       {
-        //TODO: Temporary live message updates
         refetchInterval: 5000,
       }
     )
@@ -52,31 +52,43 @@ export const MessagesContainer = ({
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
 
+  const isCenteredLayout = !activeFragment
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="pt-2 pr-1">
-          {messages.map((message) => (
-            <MessageCard
-              key={message.id}
-              content={message.content}
-              role={message.role}
-              fragment={message.fragment}
-              createdAt={message.createdAt}
-              isActiveFragment={activeFragment?.id === message.fragment?.id}
-              onFragmentClick={() => {
-                setActiveFragment(message.fragment)
-              }}
-              type={message.type}
-            />
-          ))}
-          {isLastMessageUser && <MessageLoading />}
-          <div ref={bottomRef} />
+      <div
+        className={cn(
+          'flex min-h-0 w-full flex-1 flex-col',
+          isCenteredLayout && 'mx-auto max-w-4xl'
+        )}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="pt-2 pr-1">
+            {messages.map((message) => (
+              <MessageCard
+                key={message.id}
+                content={message.content}
+                role={message.role}
+                fragment={message.fragment}
+                createdAt={message.createdAt}
+                isActiveFragment={activeFragment?.id === message.fragment?.id}
+                onFragmentClick={() => {
+                  setActiveFragment(message.fragment)
+                }}
+                type={message.type}
+              />
+            ))}
+            {isLastMessageUser && <MessageLoading />}
+            <div ref={bottomRef} />
+          </div>
         </div>
-      </div>
-      <div className="relative p-3 pt-1">
-        <div className="to-background pointer-events-none absolute -top-6 right-0 left-0 h-6 bg-gradient-to-b from-transparent" />
-        <MessageForm projectId={projectId} />
+        <div className="relative p-3 pt-1">
+          <div className="to-background pointer-events-none absolute -top-6 right-0 left-0 h-6 bg-gradient-to-b from-transparent" />
+          <MessageForm
+            key={activeFragment ? 'narrow' : 'wide'}
+            projectId={projectId}
+          />
+        </div>
       </div>
     </div>
   )

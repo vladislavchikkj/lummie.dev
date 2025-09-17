@@ -1,6 +1,5 @@
 import { APP_NAME } from '@/app/constants'
 import Logo from '@/components/ui/logo'
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
 const ShimmerMessages = () => {
