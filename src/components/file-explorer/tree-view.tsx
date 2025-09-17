@@ -1,14 +1,11 @@
 import { TreeItem } from '@/types'
 import {
-  Sidebar,
-  SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  SidebarProvider,
 } from '@/components/ui/sidebar'
 import {
   ChevronRightIcon,
@@ -55,53 +52,48 @@ export const TreeView = ({
   onFileOperation,
 }: TreeViewProps) => {
   return (
-    <SidebarProvider>
-      <Sidebar
-        collapsible="none"
-        className="flex h-full w-full flex-col border-none"
-      >
-        <SidebarContent className="min-h-0 flex-1">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <ContextMenu>
-                  <ContextMenuTrigger asChild>
-                    <div className="text-muted-foreground p-2 text-sm"></div>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuItem
-                      onClick={() =>
-                        onFileOperation('create', '', undefined, 'file')
-                      }
-                    >
-                      <FilePlusIcon className="mr-2 h-4 w-4" /> New File
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onClick={() =>
-                        onFileOperation('create', '', undefined, 'folder')
-                      }
-                    >
-                      <FolderPlusIcon className="mr-2 h-4 w-4" /> New Folder
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
+    <div className="flex h-full w-full flex-col border-none">
+      <div className="min-h-0 flex-1">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <ContextMenu>
+                <ContextMenuTrigger asChild>
+                  <div className="text-muted-foreground p-2 text-sm"></div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    onClick={() =>
+                      onFileOperation('create', '', undefined, 'file')
+                    }
+                  >
+                    <FilePlusIcon className="mr-2 h-4 w-4" /> New File
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() =>
+                      onFileOperation('create', '', undefined, 'folder')
+                    }
+                  >
+                    <FolderPlusIcon className="mr-2 h-4 w-4" /> New Folder
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
 
-                {data.map((item, index) => (
-                  <Tree
-                    key={index}
-                    item={item}
-                    selectedValue={value}
-                    onSelect={onSelect}
-                    parentPath=""
-                    onFileOperation={onFileOperation}
-                  />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </SidebarProvider>
+              {data.map((item, index) => (
+                <Tree
+                  key={index}
+                  item={item}
+                  selectedValue={value}
+                  onSelect={onSelect}
+                  parentPath=""
+                  onFileOperation={onFileOperation}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </div>
+    </div>
   )
 }
 

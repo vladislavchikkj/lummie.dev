@@ -2,8 +2,6 @@ import {
   Search,
   Folder,
   Clock,
-  LayoutGrid,
-  Globe,
   ChevronRight,
   ChevronDown,
   MoreHorizontal,
@@ -24,23 +22,11 @@ const mainNavItems = [
   { title: 'Search', icon: Search },
   { title: 'Projects', icon: Folder },
   { title: 'Recent Chats', icon: Clock },
-  { title: 'Design Systems', icon: LayoutGrid },
-  { title: 'Community', icon: Globe },
 ]
 
 const recentChats = [
-  { title: 'Hello', active: true },
-  { title: 'Hello there', active: false },
-  { title: 'Update footer component', active: false },
-  { title: 'Open in v0', active: true },
-  { title: 'Parallax landing page', active: false },
-  { title: 'Next.js 404 page', active: false },
-  { title: 'Shadcn ui documentation', active: false },
-  { title: 'resizable-demo', active: false },
-  { title: 'Mathjax formula formatting', active: false },
-  { title: 'Screen Switcher', active: false },
-  { title: 'GPT Model Used', active: false },
-  { title: 'GPT Model', active: false },
+  { title: 'Hello world', active: true },
+  { title: 'Some project', active: false },
 ]
 
 export function AppSidebar() {
