@@ -33,6 +33,7 @@ import { ProjectHeader } from '../components/project-header'
 import { FragmentWeb } from '../components/fragment-web'
 import { FileExplorer } from '@/components/file-explorer/file-explorer'
 import { Separator } from '@/components/ui/separator'
+import { Navbar } from '@/modules/home/ui/components/navbar/navbar'
 
 interface Props {
   projectId: string
@@ -88,33 +89,14 @@ export const ProjectView = ({ projectId }: Props) => {
   }
 
   return (
-    <div className="bg-background flex h-dvh flex-col">
-      <header className="flex h-14 shrink-0 items-center justify-between px-4">
-        <ErrorBoundary
-          fallback={<p className="text-destructive text-sm">Header Error</p>}
-        >
-          <Suspense fallback={<ProjectHeaderSkeleton />}>
-            <ProjectHeader projectId={projectId} />
-          </Suspense>
-        </ErrorBoundary>
-
-        <div className="flex items-center gap-x-3">
-          {!hasProAccess && (
-            <Button asChild size="sm">
-              <Link href="/pricing">
-                <Crown className="mr-2 size-4" /> Upgrade
-              </Link>
-            </Button>
-          )}
-          <UserMenu />
-        </div>
-      </header>
+    <div className="flex h-dvh flex-col pt-14">
+      <Navbar showDesktopNav={false} applyScrollStyles={false} />
 
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
           defaultSize={activeFragment ? 35 : 100}
           minSize={25}
-          className="flex min-h-0 flex-col"
+          className="relative flex min-h-0 flex-col" // <--- ИЗМЕНЕНИЕ 1
         >
           <ErrorBoundary
             fallback={<p className="text-destructive p-2">Messages Error</p>}
@@ -127,6 +109,9 @@ export const ProjectView = ({ projectId }: Props) => {
               />
             </Suspense>
           </ErrorBoundary>
+
+          {/* ИЗМЕНЕНИЕ 2: Добавлен div для тени */}
+          <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
         {activeFragment && (
@@ -142,14 +127,11 @@ export const ProjectView = ({ projectId }: Props) => {
                 }
               >
                 <div className="flex h-14 flex-none items-center justify-between gap-x-2 rounded-tl-lg border-t border-b border-l px-2">
-                  <TabsList className="bg-muted h-9 rounded-md p-1">
-                    <TabsTrigger
-                      value="preview"
-                      className="h-full px-3 text-sm"
-                    >
+                  <TabsList className="h-9 rounded-md border bg-transparent p-1">
+                    <TabsTrigger value="preview" className="h-full text-sm">
                       <EyeIcon className="size-4" />
                     </TabsTrigger>
-                    <TabsTrigger value="code" className="h-full px-3 text-sm">
+                    <TabsTrigger value="code" className="h-full text-sm">
                       <CodeIcon className="size-4" />
                     </TabsTrigger>
                   </TabsList>
@@ -203,18 +185,19 @@ export const ProjectView = ({ projectId }: Props) => {
                       </Hint>
                     </div>
                   )}
+                  <div className="flex h-full w-fit items-center justify-center gap-2">
+                    <Separator orientation="vertical" className="h-6" />
 
-                  <Separator orientation="vertical" className="h-6" />
-
-                  <Hint text="Close Panel" side="bottom">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setActiveFragment(null)}
-                    >
-                      <XIcon className="size-4" />
-                    </Button>
-                  </Hint>
+                    <Hint text="Close Panel" side="bottom">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setActiveFragment(null)}
+                      >
+                        <XIcon className="size-4" />
+                      </Button>
+                    </Hint>
+                  </div>
                 </div>
 
                 <TabsContent
