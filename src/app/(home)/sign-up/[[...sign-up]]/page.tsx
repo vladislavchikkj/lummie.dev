@@ -10,7 +10,7 @@ export default function Page() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col">
       <section className="space-y-6">
-        <div className="flex flex-col items-center">
+        <div className="flex min-h-[520px] flex-col items-center justify-center">
           <SignUp
             appearance={{
               baseTheme: currentTheme === 'dark' ? dark : undefined,

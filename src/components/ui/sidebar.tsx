@@ -123,10 +123,10 @@ function SidebarProvider({
         {!isMobile && (
           <div
             aria-hidden="true"
-            className="group fixed inset-y-0 left-0 z-40 flex w-8 cursor-pointer items-center justify-center"
+            className="group fixed inset-y-0 left-0 z-40 flex w-4 cursor-pointer items-center justify-end"
             onMouseEnter={() => setOpen(true)}
           >
-            <div className="// При наведении становится чуть шире h-18 w-1.5 rounded-full bg-neutral-300/80 transition-all duration-300 ease-in-out group-hover:w-2 group-hover:scale-y-105 group-hover:bg-neutral-400 dark:bg-neutral-700/80 dark:group-hover:bg-neutral-500" />
+            <div className="h-18 w-1.5 rounded-full bg-neutral-300/80 transition-all duration-300 ease-in-out group-hover:w-2 group-hover:scale-y-105 group-hover:bg-neutral-400 dark:bg-neutral-700/80 dark:group-hover:bg-neutral-500" />
           </div>
         )}
         <div
