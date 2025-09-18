@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Footer } from '@/modules/home/ui/components/footer'
 import { Navbar } from '@/modules/home/ui/components/navbar/navbar'
 import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
+import { Particles } from '@/components/ui/particles'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -59,6 +60,13 @@ const Layout = ({ children }: Props) => {
     <main className="relative flex min-h-screen w-full flex-col">
       <Navbar />
       <div className="relative flex min-h-screen w-full flex-col items-start justify-center overflow-auto">
+        <Particles
+          className="absolute inset-0"
+          quantity={100}
+          ease={80}
+          color="#ffffff"
+          refresh
+        />
         <div className="w-full">{children}</div>
       </div>
       <Footer />
