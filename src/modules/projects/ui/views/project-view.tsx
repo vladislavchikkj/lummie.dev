@@ -5,7 +5,6 @@ import {
   ExternalLinkIcon,
   RefreshCcwIcon,
   CodeIcon,
-  Crown,
   EyeIcon,
   FileCode2,
   Construction,
@@ -13,8 +12,6 @@ import {
 } from 'lucide-react'
 import { Suspense, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import Link from 'next/link'
-import { useAuth } from '@clerk/nextjs'
 
 import { Fragment } from '@/generated/prisma'
 import {
@@ -23,13 +20,10 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Hint } from '@/components/hint'
 
-import { UserMenu } from '@/modules/home/ui/components/navbar/user-menu'
 import { MessagesContainer } from '../components/messages-container'
-import { ProjectHeader } from '../components/project-header'
 import { FragmentWeb } from '../components/fragment-web'
 import { FileExplorer } from '@/components/file-explorer/file-explorer'
 import { Separator } from '@/components/ui/separator'
@@ -38,16 +32,6 @@ import { Navbar } from '@/modules/home/ui/components/navbar/navbar'
 interface Props {
   projectId: string
 }
-
-const ProjectHeaderSkeleton = () => (
-  <div className="flex items-center gap-3">
-    <Skeleton className="h-6 w-6 rounded-lg" />
-    <div className="flex flex-col gap-2">
-      <Skeleton className="h-4 w-32" />
-      <Skeleton className="h-3 w-20" />
-    </div>
-  </div>
-)
 
 const PreviewPlaceholder = () => (
   <div className="bg-muted/40 text-muted-foreground flex h-full w-full flex-col items-center justify-center rounded-lg border border-dashed">
@@ -68,9 +52,6 @@ const CodePlaceholder = () => (
 )
 
 export const ProjectView = ({ projectId }: Props) => {
-  const { has } = useAuth()
-  const hasProAccess = has?.({ plan: 'pro' })
-
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
   const [tabState, setTabState] = useState<'preview' | 'code'>('preview')
 
@@ -110,7 +91,6 @@ export const ProjectView = ({ projectId }: Props) => {
             </Suspense>
           </ErrorBoundary>
 
-          {/* ИЗМЕНЕНИЕ 2: Добавлен div для тени */}
           <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
