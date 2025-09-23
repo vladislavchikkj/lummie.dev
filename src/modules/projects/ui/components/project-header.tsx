@@ -26,6 +26,7 @@ export const ProjectHeader = ({ projectId }: Props) => {
       className="px-0! py-0! hover:bg-transparent!"
     >
       <Logo width={28} height={28} />
+      <span className="mx-2 font-medium">{project?.name}</span>
       <ChevronDown className="h-4 w-4" />
     </Button>
   )
