@@ -19,7 +19,7 @@ interface DesktopNavProps {
 }
 
 export const DesktopNav = ({ pathname, navItems }: DesktopNavProps) => (
-  <nav className="hidden items-center gap-8 md:flex">
+  <nav className="hidden items-center gap-2 md:flex">
     {navItems.map((item) =>
       item.label === 'Resources' ? (
         <DropdownMenu key={item.href}>

@@ -1,24 +1,19 @@
-import { format } from 'date-fns'
-import { Card } from '@/components/ui/card'
 import { Fragment, MessageRole, MessageType } from '@/generated/prisma'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
-import { ChevronRightIcon, Code2Icon } from 'lucide-react'
-import Logo from '@/components/ui/logo'
-
-interface UserMessageProps {
-  content: string
-}
-
-const UserMessage = ({ content }: UserMessageProps) => {
-  return (
-    <div className="flex justify-end pr-2 pb-4 pl-10">
-      <Card className="bg-muted max-w-[80%] rounded-lg border-none p-3 break-words shadow-none">
-        {content}
-      </Card>
-    </div>
-  )
-}
+import {
+  ChevronRightIcon,
+  Code2Icon,
+  Copy,
+  RefreshCw,
+  ThumbsDown,
+  ThumbsUp,
+  Upload,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Message, MessageContent } from '@/components/ui/shadcn-io/ai/message'
+import { Response } from '@/components/ui/shadcn-io/ai/response'
+import { Tool } from '@/components/ui/shadcn-io/ai/tool'
+import { Reasoning } from '@/components/ui/shadcn-io/ai/reasoning'
 
 interface FragmentCardProps {
   fragment: Fragment
@@ -54,47 +49,44 @@ const FragmentCard = ({
   )
 }
 
-interface AssistantMessageProps {
+interface AssistantMessageActionsProps {
   content: string
-  fragment: Fragment | null
-  createdAt: Date
-  isActiveFragment: boolean
-  onFragmentClick: (fragment: Fragment) => void
-  type: MessageType
 }
 
-const AssistantMessage = ({
-  content,
-  fragment,
-  createdAt,
-  isActiveFragment,
-  onFragmentClick,
-  type,
-}: AssistantMessageProps) => {
+const AssistantMessageActions = ({ content }: AssistantMessageActionsProps) => {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content).catch((err) => {
+      console.error('Failed to copy text: ', err)
+    })
+  }
+
   return (
-    <div
-      className={cn(
-        'group flex flex-col px-2 pb-4',
-        type === 'ERROR' && 'text-red-700 dark:text-red-500'
-      )}
-    >
-      <div className="mb-2 flex items-center gap-2 pl-2">
-        <Logo width={20} height={20} className="shrink-0" />
-        <span className="text-sm font-medium">Lummie</span>
-        <span className="text-muted-foreground text-xs opacity-0 transition-opacity group-hover:opacity-100">
-          {format(createdAt, "HH:mm 'on' MMM dd, yyyy")}
-        </span>
-      </div>
-      <div className="flex flex-col gap-y-4 pl-8.5">
-        <span>{content}</span>
-        {fragment && type === 'RESULT' && (
-          <FragmentCard
-            fragment={fragment}
-            isActiveFragment={isActiveFragment}
-            onFragmentClick={onFragmentClick}
-          />
-        )}
-      </div>
+    <div className="text-muted-foreground flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <Button variant="ghost" size="icon" className="h-8 w-8">
+        <RefreshCw className="h-4 w-4" />
+        <span className="sr-only">Regenerate response</span>
+      </Button>
+      <Button variant="ghost" size="icon" className="h-8 w-8">
+        <ThumbsUp className="h-4 w-4" />
+        <span className="sr-only">Good response</span>
+      </Button>
+      <Button variant="ghost" size="icon" className="h-8 w-8">
+        <ThumbsDown className="h-4 w-4" />
+        <span className="sr-only">Bad response</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={handleCopy}
+      >
+        <Copy className="h-4 w-4" />
+        <span className="sr-only">Copy</span>
+      </Button>
+      <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Upload className="h-4 w-4" />
+        <span className="sr-only">Share</span>
+      </Button>
     </div>
   )
 }
@@ -113,23 +105,38 @@ export const MessageCard = ({
   content,
   role,
   fragment,
-  createdAt,
   isActiveFragment,
   onFragmentClick,
   type,
 }: MessageCardProps) => {
-  if (role === 'ASSISTANT') {
-    return (
-      <AssistantMessage
-        content={content}
-        fragment={fragment}
-        createdAt={createdAt}
-        isActiveFragment={isActiveFragment}
-        onFragmentClick={onFragmentClick}
-        type={type}
-      />
-    )
-  }
+  const messageRole = role.toLowerCase() as 'user' | 'assistant'
 
-  return <UserMessage content={content} />
+  return (
+    <Message from={messageRole} key={Math.random().toString()}>
+      {' '}
+      <MessageContent>
+        {role === 'ASSISTANT' ? (
+          <>
+            <Response>{content}</Response>{' '}
+            {/* Для assistant используем Response */}
+            {fragment && type === 'RESULT' && (
+              <Tool>
+                <FragmentCard
+                  fragment={fragment}
+                  isActiveFragment={isActiveFragment}
+                  onFragmentClick={onFragmentClick}
+                />
+              </Tool>
+            )}
+            {type !== 'ERROR' && <AssistantMessageActions content={content} />}
+            {type === 'ERROR' && (
+              <Reasoning isStreaming={false}> Error details</Reasoning>
+            )}
+          </>
+        ) : (
+          content
+        )}
+      </MessageContent>
+    </Message>
+  )
 }

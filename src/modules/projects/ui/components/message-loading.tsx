@@ -1,6 +1,4 @@
-import { APP_NAME } from '@/app/constants'
-import Logo from '@/components/ui/logo'
-import Image from 'next/image'
+import { Message, MessageContent } from '@/components/ui/shadcn-io/ai/message'
 import { useState, useEffect } from 'react'
 
 const ShimmerMessages = () => {
@@ -37,14 +35,10 @@ const ShimmerMessages = () => {
 
 export const MessageLoading = () => {
   return (
-    <div className="flex flex-col px-2 pb-4">
-      <div className="mb-2 flex items-center gap-2 pl-2">
-        <Logo width={20} height={20} className="shrink-0" />
-        <span className="text-sm font-medium">{APP_NAME}</span>
-      </div>
-      <div className="flex flex-col gap-y-4 pl-8.5">
+    <Message from="assistant">
+      <MessageContent>
         <ShimmerMessages />
-      </div>
-    </div>
+      </MessageContent>
+    </Message>
   )
 }

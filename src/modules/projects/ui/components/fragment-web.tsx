@@ -1,66 +1,56 @@
-import { Hint } from '@/components/hint'
-import { Button } from '@/components/ui/button'
-import { Fragment } from '@/generated/prisma'
-import { ExternalLinkIcon, RefreshCcwIcon } from 'lucide-react'
-import { useState } from 'react'
+'use client'
 
-interface Props {
+import { useState, useEffect } from 'react'
+import { Loader2, Slash } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+import { Fragment } from '@/generated/prisma'
+
+const LoadingOverlay = () => (
+  <div className="bg-background/80 absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 backdrop-blur-sm">
+    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+  </div>
+)
+
+const ErrorState = () => (
+  <div className="bg-muted/30 text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-4 text-sm">
+    <div className="flex items-center gap-2">
+      <Slash className="h-4 w-4" />
+      <span>URL для предпросмотра не найден.</span>
+    </div>
+  </div>
+)
+
+interface FragmentWebProps {
   data: Fragment
+  refreshKey: number
 }
 
-export function FragmentWeb({ data }: Props) {
-  const [copied, setCopied] = useState(false)
-  const [fragmentKey, setFragmentKey] = useState(0)
+export function FragmentWeb({ data, refreshKey }: FragmentWebProps) {
+  const [isLoading, setIsLoading] = useState(true)
 
-  const onRefresh = () => {
-    setFragmentKey((prev) => prev + 1)
-  }
+  useEffect(() => {
+    setIsLoading(true)
+  }, [data.sandboxUrl, refreshKey])
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(data.sandboxUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  if (!data.sandboxUrl) {
+    return <ErrorState />
   }
 
   return (
-    <div className="flex h-full w-full flex-col">
-      <div className="bg-sidebar flex items-center gap-x-2 border-b p-2">
-        <Hint text="Refresh" side="bottom" align="start">
-          <Button size="sm" variant="outline" onClick={onRefresh}>
-            <RefreshCcwIcon />
-          </Button>
-        </Hint>
-        <Hint text="Copy to copy" side="bottom">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleCopy}
-            disabled={!data.sandboxUrl || copied}
-            className="flex-1 justify-start text-start font-normal"
-          >
-            <span className="truncate">{data.sandboxUrl}</span>
-          </Button>
-        </Hint>
-        <Hint text="Open in a new tab" side="bottom" align="start">
-          <Button
-            size="sm"
-            disabled={!data.sandboxUrl}
-            variant="outline"
-            onClick={() => {
-              if (!data.sandboxUrl) return
-              window.open(data.sandboxUrl, '_blank')
-            }}
-          >
-            <ExternalLinkIcon />
-          </Button>
-        </Hint>
-      </div>
+    <div className="bg-background relative h-full w-full overflow-hidden">
+      {isLoading && <LoadingOverlay />}
+
       <iframe
-        key={fragmentKey}
-        className="h-full w-full"
-        sandbox="allow-forms allow-scripts allow-same-origin"
-        loading="lazy"
+        key={`${data.id}-${refreshKey}`}
+        className={cn(
+          'h-full w-full border-0 transition-opacity duration-300',
+          isLoading ? 'opacity-0' : 'opacity-100'
+        )}
         src={data.sandboxUrl}
+        title="Fragment Preview"
+        sandbox="allow-forms allow-scripts allow-same-origin"
+        onLoad={() => setIsLoading(false)}
       />
     </div>
   )

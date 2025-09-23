@@ -5,13 +5,26 @@ import path from 'path'
 
 const ROOT_PATH = '/home/user'
 
-const IGNORE_DIRS = new Set(['.next', '.git', '.cache', 'node_modules'])
+const IGNORE_DIRS = new Set([
+  '.next',
+  '.git',
+  '.npm',
+  '.cache',
+  'node_modules',
+  'components',
+  'nextjs-app',
+  'build',
+  'dist',
+])
 
 const IGNORE_FILES = new Set([
   '.bash_logout',
   '.bashrc',
   '.profile',
   '.wh.nextjs-app',
+  'package-lock.json',
+  'yarn.lock',
+  '.npm',
 ])
 
 const TEXT_FILE_EXTENSIONS = new Set([
@@ -31,10 +44,10 @@ const TEXT_FILE_EXTENSIONS = new Set([
   '.bash',
   '.txt',
   '.svg',
-  // ".env",
+  '.env',
   '.dockerfile',
-  // ".gitignore",
-  // ".npmrc",
+  '.gitignore',
+  '.npmrc',
   '.eslintrc',
   '.prettierrc',
 ])
@@ -67,7 +80,9 @@ const isLikelyTextFile = (filePath: string, content: string): boolean => {
 export async function getAllSandboxTextFiles(
   sandbox: Sandbox
 ): Promise<{ [path: string]: string }> {
-  const findProcess = await sandbox.commands.run(`find ${ROOT_PATH} -type f`)
+  const findProcess = await sandbox.commands.run(
+    `find ${ROOT_PATH} -type f -size -2M`
+  )
   const allPaths = findProcess.stdout.split('\n').filter(Boolean)
 
   const filteredPaths = allPaths.filter((p) => {

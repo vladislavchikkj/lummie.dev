@@ -32,6 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { RotatingText } from '@/components/ui/rotating-text'
 
 const formSchema = z.object({
   value: z
@@ -111,22 +112,41 @@ export const ProjectForm = () => {
             control={form.control}
             name="value"
             render={({ field }) => (
-              <TextareaAutosezi
-                {...field}
-                disabled={isPending}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                minRows={2}
-                maxRows={8}
-                className="w-full resize-none border-none bg-transparent pt-4 outline-none"
-                placeholder="What would you like to build?"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault()
-                    form.handleSubmit(onSubmit)()
-                  }
-                }}
-              />
+              // 1. Создаем относительный контейнер
+              <div className="relative">
+                <TextareaAutosezi
+                  {...field}
+                  disabled={isPending}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  minRows={2}
+                  maxRows={8}
+                  className="w-full resize-none border-none bg-transparent pt-4 outline-none placeholder:text-transparent"
+                  placeholder=" "
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault()
+                      form.handleSubmit(onSubmit)()
+                    }
+                  }}
+                />
+
+                {!field.value && (
+                  <div className="pointer-events-none absolute top-3 left-0">
+                    <RotatingText
+                      className="text-muted-foreground text-base"
+                      duration={3000}
+                      transition={{ ease: 'easeInOut' }}
+                      text={[
+                        'What would you like to build?',
+                        'Describe your idea...',
+                        'A landing page for a new SaaS...',
+                        'A blog post about AI...',
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           />
           <div className="flex items-end justify-between gap-x-2 pt-2">

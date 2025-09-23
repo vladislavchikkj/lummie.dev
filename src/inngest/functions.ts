@@ -55,14 +55,6 @@ export const codeAgentFunction = inngest.createFunction(
 
     const result = await network.run(event.data.value, { state })
 
-    const allSandboxFiles = await step.run(
-      'list-all-sandbox-files',
-      async () => {
-        const sandbox = await getSandbox(sandboxId)
-        return await getAllSandboxTextFiles(sandbox)
-      }
-    )
-
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
       result.state.data.summary
     )
@@ -70,8 +62,13 @@ export const codeAgentFunction = inngest.createFunction(
       result.state.data.summary
     )
 
-    const isError =
-      !result.state.data.summary || Object.keys(allSandboxFiles).length === 0
+    const isError = !result.state.data.summary
+    if (isError) {
+      await step.run('save-error-result', () =>
+        saveErrorResult(event.data.projectId)
+      )
+      return { error: 'Failed to generate summary.' }
+    }
 
     const sandboxUrl = await step.run('get-sandbox-url', async () => {
       const sandbox = await getSandbox(sandboxId)
@@ -79,11 +76,16 @@ export const codeAgentFunction = inngest.createFunction(
       return `https://${host}`
     })
 
-    await step.run('save-result', async () => {
-      if (isError) {
-        return await saveErrorResult(event.data.projectId)
+    await step.run('process-and-save-files', async () => {
+      const sandbox = await getSandbox(sandboxId)
+      const allSandboxFiles = await getAllSandboxTextFiles(sandbox)
+
+      if (Object.keys(allSandboxFiles).length === 0) {
+        await saveErrorResult(event.data.projectId)
+        throw new Error('No text files found in the sandbox.')
       }
-      return await saveSuccessResult({
+
+      await saveSuccessResult({
         projectId: event.data.projectId,
         newProjectName: parseAgentOutput(fragmentTitleOutput),
         responseText: parseAgentOutput(responseOutput),
@@ -93,9 +95,8 @@ export const codeAgentFunction = inngest.createFunction(
     })
 
     return {
+      message: 'Project processed successfully',
       url: sandboxUrl,
-      title: 'Fragment',
-      files: allSandboxFiles,
       summary: result.state.data.summary,
     }
   }
@@ -120,26 +121,17 @@ export const updateProjectFunction = inngest.createFunction(
 
     const { sandboxId } = project
 
-    await step.run('update-files-in-sandbox', async () => {
+    await step.run('update-files-and-db', async () => {
       const sandbox = await getSandbox(sandboxId)
+
       for (const file of filesToUpdate) {
         await sandbox.files.write(file.path, file.content)
       }
-    })
 
-    const allSandboxFiles = await step.run(
-      'list-all-updated-sandbox-files',
-      async () => {
-        const sandbox = await getSandbox(sandboxId)
-        return await getAllSandboxTextFiles(sandbox)
-      }
-    )
+      const allSandboxFiles = await getAllSandboxTextFiles(sandbox)
 
-    await step.run('update-fragment-in-db', async () => {
       await updateFragmentFilesInDb(projectId, allSandboxFiles)
-    })
 
-    await step.run('update-project-status', async () => {
       await prisma.project.update({
         where: { id: projectId },
         data: { status: 'COMPLETED' },
@@ -172,7 +164,7 @@ export const manageProjectFilesFunction = inngest.createFunction(
 
     const { sandboxId } = project
 
-    await step.run('execute-file-operations', async () => {
+    await step.run('execute-file-operations-and-update-db', async () => {
       const sandbox = await getSandbox(sandboxId)
       for (const op of operations) {
         switch (op.type) {
@@ -191,21 +183,11 @@ export const manageProjectFilesFunction = inngest.createFunction(
             break
         }
       }
-    })
 
-    const allSandboxFiles = await step.run(
-      'list-all-updated-sandbox-files',
-      async () => {
-        const sandbox = await getSandbox(sandboxId)
-        return await getAllSandboxTextFiles(sandbox)
-      }
-    )
+      const allSandboxFiles = await getAllSandboxTextFiles(sandbox)
 
-    await step.run('update-fragment-in-db-after-management', async () => {
       await updateFragmentFilesInDb(projectId, allSandboxFiles)
-    })
 
-    await step.run('touch-project-updated-at', async () => {
       await prisma.project.update({
         where: { id: projectId },
         data: { updatedAt: new Date() },
