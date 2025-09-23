@@ -1,9 +1,7 @@
-// src/modules/projects/ui/components/messages-container.tsx
-
 import { useEffect, useRef } from 'react'
 import { useTRPC } from '@/trpc/client'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ReasoningLoading } from './reasoning-loading' // <-- Измененный импорт
+import { ReasoningLoading } from './reasoning-loading'
 import { cn } from '@/lib/utils'
 
 import { MessageCard } from './message-card'
@@ -92,7 +90,6 @@ export const MessagesContainer = ({
             />
           ))}
 
-          {/* Замена старого компонента на новый */}
           {isLastMessageUser && <ReasoningLoading />}
 
           <div ref={bottomRef} />

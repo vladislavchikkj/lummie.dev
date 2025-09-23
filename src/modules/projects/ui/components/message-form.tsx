@@ -78,11 +78,6 @@ export const MessageForm = ({ projectId }: Props) => {
           onClose={() => setIsUsageVisible(false)}
         />
       )}
-      {/* - Использован 'focus-within' для подсветки рамки при фокусе на любом дочернем элементе. Это современнее, чем state.
-        - Увеличены отступы (p-4) для более "воздушного" вида.
-        - Использованы стандартные цвета 'bg-background' и 'border-input' для лучшей интеграции с темой.
-        - Добавлен 'transition-all' для плавных анимаций.
-      */}
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn(
@@ -99,9 +94,6 @@ export const MessageForm = ({ projectId }: Props) => {
               disabled={isPending}
               minRows={1}
               maxRows={8}
-              // - Убран 'pr-12', так как кнопки теперь позиционированы абсолютно.
-              // - Добавлен 'pb-14', чтобы текст не залезал под кнопки.
-              // - 'focus-visible:ring-0' убирает стандартное кольцо фокуса на самом textarea, так как оно теперь на всей форме.
               className="placeholder:text-muted-foreground w-full resize-none border-none bg-transparent text-base outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
               placeholder="How can Lummie help?"
               onKeyDown={(e) => {
@@ -113,12 +105,8 @@ export const MessageForm = ({ projectId }: Props) => {
             />
           )}
         />
-        {/*
-          - Этот блок абсолютно позиционирован в правом нижнем углу.
-          - Это делает верстку более надежной и независимой от контента.
-        */}
+
         <div className="absolute right-3 bottom-3 flex items-center gap-x-2">
-          {/* Иконка-кнопка для добавления файлов. Более интерактивна. */}
           <Button
             type="button"
             variant="ghost"
