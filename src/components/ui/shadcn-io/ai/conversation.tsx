@@ -1,3 +1,4 @@
+// src/components/ui/shadcn-io/ai/conversation.tsx
 'use client'
 
 import { Button } from '@/components/ui/button'
@@ -9,9 +10,10 @@ import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom'
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>
 
+// ✨ ИЗМЕНЕНИЕ: Убираем 'relative flex-1' и просто говорим компоненту занимать всю высоту родителя.
 export const Conversation = ({ className, ...props }: ConversationProps) => (
   <StickToBottom
-    className={cn('relative flex-1', className)}
+    className={cn('h-full', className)} // Теперь здесь h-full, а не flex-1
     initial="smooth"
     resize="smooth"
     role="log"

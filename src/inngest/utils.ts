@@ -8,6 +8,7 @@ const ROOT_PATH = '/home/user'
 const IGNORE_DIRS = new Set([
   '.next',
   '.git',
+  '.npm',
   '.cache',
   'node_modules',
   'components',
@@ -23,6 +24,7 @@ const IGNORE_FILES = new Set([
   '.wh.nextjs-app',
   'package-lock.json',
   'yarn.lock',
+  '.npm',
 ])
 
 const TEXT_FILE_EXTENSIONS = new Set([
@@ -42,10 +44,10 @@ const TEXT_FILE_EXTENSIONS = new Set([
   '.bash',
   '.txt',
   '.svg',
-  // ".env",
+  '.env',
   '.dockerfile',
-  // ".gitignore",
-  // ".npmrc",
+  '.gitignore',
+  '.npmrc',
   '.eslintrc',
   '.prettierrc',
 ])

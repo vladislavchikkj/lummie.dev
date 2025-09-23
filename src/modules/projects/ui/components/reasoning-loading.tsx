@@ -2,75 +2,161 @@
 
 import { Message, MessageContent } from '@/components/ui/shadcn-io/ai/message'
 import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from '@/components/ui/shadcn-io/ai/reasoning'
-import { useCallback, useEffect, useState } from 'react'
+  Task,
+  TaskContent,
+  TaskItem,
+  TaskItemFile,
+  TaskTrigger,
+} from '@/components/ui/shadcn-io/ai/task'
+import {
+  SiReact,
+  SiTailwindcss,
+  SiTypescript,
+} from '@icons-pack/react-simple-icons'
+import { nanoid } from 'nanoid'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-const reasoningSteps = [
-  'Let me think about this step by step.',
-  '\n\nFirst, I need to understand the request.',
-  '\n\nThe user wants to see the generation process for their website.',
-  '\n\nI will break this down into several tasks: planning the structure, generating components, styling, and assembling the final page.',
-  '\n\nThis seems like a solid plan. I will now begin the generation process.',
-].join('')
+const ALL_POSSIBLE_TASKS = [
+  { value: 'Analyzing project requirements...' },
+  { value: 'Scanning project structure...' },
+  { value: 'Identifying key components...' },
+  {
+    value: (
+      <span className="inline-flex items-center gap-1">
+        Reading{' '}
+        <TaskItemFile>
+          <SiTypescript className="size-4" color="#3178C6" />
+          <span>tsconfig.json</span>
+        </TaskItemFile>
+      </span>
+    ),
+  },
+  { value: 'Planning UI/UX flow...' },
+  { value: 'Generating component skeletons...' },
+  {
+    value: (
+      <span className="inline-flex items-center gap-1">
+        Creating{' '}
+        <TaskItemFile>
+          <SiReact className="size-4" color="#149ECA" />
+          <span>layout.tsx</span>
+        </TaskItemFile>
+      </span>
+    ),
+  },
+  {
+    value: (
+      <span className="inline-flex items-center gap-1">
+        Applying styles from{' '}
+        <TaskItemFile>
+          <SiTailwindcss className="size-4" color="#38BDF8" />
+          <span>tailwind.config.js</span>
+        </TaskItemFile>
+      </span>
+    ),
+  },
+  { value: 'Assembling main page...' },
+  { value: 'Finalizing structure...' },
+  { value: 'Optimizing imports...' },
+  { value: 'Running preliminary checks...' },
+  { value: 'Configuring routing...' },
+  { value: 'Setting up data fetching...' },
+]
+
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const newArray = [...array]
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+  }
+  return newArray
+}
+
+type TaskType = {
+  key: string
+  value: React.ReactNode
+  isExiting?: boolean
+}
 
 export const ReasoningLoading = () => {
-  const [content, setContent] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
-  const [currentTokenIndex, setCurrentTokenIndex] = useState(0)
-  const [tokens, setTokens] = useState<string[]>([])
+  const MAX_TASKS_VISIBLE = 3
+  const [tasks, setTasks] = useState<TaskType[]>([])
+  const [phase, setPhase] = useState<'INITIAL_FILL' | 'FADING_OUT' | 'CYCLING'>(
+    'INITIAL_FILL'
+  )
 
-  const chunkIntoTokens = useCallback((text: string): string[] => {
-    const tokens: string[] = []
-    let i = 0
-    while (i < text.length) {
-      const chunkSize = Math.floor(Math.random() * 3) + 4
-      tokens.push(text.slice(i, i + chunkSize))
-      i += chunkSize
+  const taskQueue = useMemo(
+    () =>
+      shuffleArray(ALL_POSSIBLE_TASKS).map((task) => ({
+        ...task,
+        key: nanoid(),
+      })),
+    []
+  )
+
+  const indexRef = useRef(0)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    const cleanup = () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
     }
-    return tokens
-  }, [])
 
-  useEffect(() => {
-    const tokenizedSteps = chunkIntoTokens(reasoningSteps)
-    setTokens(tokenizedSteps)
-    setContent('')
-    setCurrentTokenIndex(0)
-    setIsStreaming(true)
-  }, [chunkIntoTokens])
+    if (phase === 'INITIAL_FILL') {
+      const initialTasks = taskQueue.slice(0, MAX_TASKS_VISIBLE)
+      indexRef.current = initialTasks.length
+      setTasks(initialTasks)
 
-  useEffect(() => {
-    if (!isStreaming || currentTokenIndex >= tokens.length) {
-      if (isStreaming) {
-        setIsStreaming(false)
+      timerRef.current = setTimeout(() => {
+        setPhase('FADING_OUT')
+      }, 3000)
+    }
+
+    if (phase === 'FADING_OUT') {
+      setTasks((prevTasks) => prevTasks.map((t) => ({ ...t, isExiting: true })))
+
+      timerRef.current = setTimeout(() => {
+        setPhase('CYCLING')
+        setTasks([])
+      }, 500)
+    }
+
+    if (phase === 'CYCLING') {
+      const scheduleNextTask = () => {
+        const delay = Math.random() * 2000 + 1000
+        timerRef.current = setTimeout(() => {
+          setTasks((prevTasks) => {
+            const nextTaskToAdd = taskQueue[indexRef.current]
+            indexRef.current = (indexRef.current + 1) % taskQueue.length
+
+            const updatedTasks = [...prevTasks, nextTaskToAdd]
+            if (updatedTasks.length > MAX_TASKS_VISIBLE) {
+              return updatedTasks.slice(1)
+            }
+            return updatedTasks
+          })
+          scheduleNextTask()
+        }, delay)
       }
-      return
+      scheduleNextTask()
     }
-    const timer = setTimeout(() => {
-      setContent((prev) => prev + tokens[currentTokenIndex])
-      setCurrentTokenIndex((prev) => prev + 1)
-    }, 25)
 
-    return () => clearTimeout(timer)
-  }, [isStreaming, currentTokenIndex, tokens])
+    return cleanup
+  }, [phase, taskQueue])
 
   return (
     <Message from="assistant">
       <MessageContent>
-        <Reasoning
-          className="w-full"
-          isStreaming={isStreaming}
-          defaultOpen={true}
-        >
-          <ReasoningTrigger>
-            <div className="flex items-center gap-2">
-              <p className="text-muted-foreground animate-pulse">Thinking...</p>
-            </div>
-          </ReasoningTrigger>
-          <ReasoningContent>{content}</ReasoningContent>
-        </Reasoning>
+        <Task className="w-full">
+          <TaskTrigger title="Generating Project..." />
+          <TaskContent>
+            {tasks.map((task) => (
+              <TaskItem key={task.key} data-exiting={task.isExiting}>
+                {task.value}
+              </TaskItem>
+            ))}
+          </TaskContent>
+        </Task>
       </MessageContent>
     </Message>
   )

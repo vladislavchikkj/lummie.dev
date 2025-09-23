@@ -77,7 +77,7 @@ export const ProjectView = ({ projectId }: Props) => {
         <ResizablePanel
           defaultSize={activeFragment ? 35 : 100}
           minSize={25}
-          className="relative flex min-h-0 flex-col" // <--- ИЗМЕНЕНИЕ 1
+          className="relative flex min-h-0 flex-col overflow-hidden"
         >
           <ErrorBoundary
             fallback={<p className="text-destructive p-2">Messages Error</p>}
