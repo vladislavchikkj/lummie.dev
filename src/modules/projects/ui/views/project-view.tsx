@@ -10,7 +10,14 @@ import {
   Construction,
   XIcon,
 } from 'lucide-react'
-import { Suspense, useState } from 'react'
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import { Fragment } from '@/generated/prisma'
@@ -28,6 +35,10 @@ import { FragmentWeb } from '../components/fragment-web'
 import { FileExplorer } from '@/components/file-explorer/file-explorer'
 import { Separator } from '@/components/ui/separator'
 import { Navbar } from '@/modules/home/ui/components/navbar/navbar'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { useTRPC, useTRPCClient } from '@/trpc/client'
+import { MessageForm } from '@/modules/projects/ui/components/message-form'
+import { TRPCClientError } from '@trpc/client'
 
 interface Props {
   projectId: string
@@ -51,15 +62,150 @@ const CodePlaceholder = () => (
   </div>
 )
 
+export const CHAT_ROLES = {
+  USER: 'USER' as const,
+  ASSISTANT: 'ASSISTANT' as const,
+}
+
+export const CHAT_MESSAGE_TYPES = {
+  ERROR: 'ERROR' as const,
+  RESULT: 'RESULT' as const,
+}
+
+export interface ChatMessageEntity {
+  id: string
+  content: string
+  role: 'USER' | 'ASSISTANT'
+  type: 'RESULT' | 'ERROR'
+  createdAt: Date
+  fragment: Fragment | null
+  isFirst?: boolean
+}
+
+type DisplayedMessageEntity = ChatMessageEntity & { isStreaming?: boolean }
+
 export const ProjectView = ({ projectId }: Props) => {
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
   const [tabState, setTabState] = useState<'preview' | 'code'>('preview')
+  const [assistantMessageType, setAssistantMessageType] = useState<
+    'CHAT' | 'PROJECT'
+  >('CHAT')
 
   const [copied, setCopied] = useState(false)
   const [fragmentKey, setFragmentKey] = useState(0)
 
+  const hasSubmittedFirstMessage = useRef(false)
+  const lastMessageWithFragmentIdRef = useRef<string | null>(null)
+
+  const [messages, setMessages] = useState<ChatMessageEntity[]>([])
+  const [streamingContent, setStreamingContent] = useState<string>('')
+  const [isStreaming, setIsStreaming] = useState<boolean>(false)
+  const [pendingUserMessage, setPendingUserMessage] =
+    useState<ChatMessageEntity | null>(null)
+
+  const trpc = useTRPC()
+  const trpcClient = useTRPCClient()
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const { data: initialMessages, refetch } = useSuspenseQuery(
+    trpc.messages.getMany.queryOptions(
+      { projectId: projectId },
+      {
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+        refetchInterval: 5000,
+      }
+    )
+  )
+
+  const onSubmit = useCallback(
+    async (message: string, isFirstMessage: boolean = false) => {
+      if (isStreaming || !message.trim()) return
+
+      abortControllerRef.current = new AbortController()
+
+      const userMsg: ChatMessageEntity = {
+        role: CHAT_ROLES.USER,
+        content: message,
+        id: projectId,
+        createdAt: new Date(),
+        fragment: null,
+        type: CHAT_MESSAGE_TYPES.RESULT,
+      }
+
+      if (!isFirstMessage) {
+        setPendingUserMessage(userMsg)
+      }
+
+      setIsStreaming(true)
+      setStreamingContent('')
+
+      try {
+        const stream = await trpcClient.projects.handleUserMessage.mutate(
+          {
+            projectId: projectId,
+            value: message,
+            isFirst: isFirstMessage,
+          },
+          {
+            signal: abortControllerRef.current.signal,
+          }
+        )
+
+        for await (const { content, type } of stream) {
+          setAssistantMessageType((prev) => {
+            if (type !== prev) {
+              return type
+            }
+            return prev
+          })
+          setStreamingContent((prev) => prev + content)
+        }
+      } catch (error) {
+        const isAbortError =
+          error instanceof TRPCClientError &&
+          (error.data?.code === 'CLIENT_CLOSED_REQUEST' ||
+            error.cause?.name === 'AbortError')
+
+        if (!isAbortError) {
+          console.error('Streaming error:', error)
+        }
+      } finally {
+        setIsStreaming(false)
+        abortControllerRef.current = null
+        setAssistantMessageType('PROJECT')
+        await refetch()
+
+        setPendingUserMessage(null)
+        setStreamingContent('')
+      }
+    },
+    [projectId, isStreaming, refetch, trpcClient.projects.handleUserMessage]
+  )
+
+  useEffect(() => {
+    if (initialMessages) {
+      const lastMessage = initialMessages[initialMessages.length - 1]
+      const isUserFirstMsg =
+        lastMessage?.isFirst && lastMessage.role === CHAT_ROLES.USER
+      if (isUserFirstMsg && !hasSubmittedFirstMessage.current) {
+        setMessages(initialMessages.slice(0, -1))
+        onSubmit(lastMessage.content, true)
+        hasSubmittedFirstMessage.current = true
+      } else {
+        setMessages(initialMessages)
+      }
+    }
+  }, [initialMessages, onSubmit])
+
   const onRefreshPreview = () => {
     setFragmentKey((prev) => prev + 1)
+  }
+
+  const handleStopStreaming = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
   }
 
   const handleCopyUrl = () => {
@@ -68,6 +214,41 @@ export const ProjectView = ({ projectId }: Props) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const displayedMessages = useMemo((): DisplayedMessageEntity[] => {
+    const allMessages: DisplayedMessageEntity[] = [...messages]
+
+    if (pendingUserMessage) {
+      allMessages.push(pendingUserMessage)
+    }
+
+    if (streamingContent || isStreaming) {
+      allMessages.push({
+        id: projectId,
+        createdAt: new Date(),
+        fragment: null,
+        role: CHAT_ROLES.ASSISTANT,
+        content: streamingContent || '',
+        type: CHAT_MESSAGE_TYPES.RESULT,
+        isStreaming: true,
+      })
+    }
+    return allMessages
+  }, [messages, pendingUserMessage, streamingContent, isStreaming, projectId])
+
+  useEffect(() => {
+    const lastMessageWithFragment = displayedMessages.findLast(
+      (message) => !!message.fragment
+    )
+
+    if (
+      lastMessageWithFragment?.fragment &&
+      lastMessageWithFragment.id !== lastMessageWithFragmentIdRef.current
+    ) {
+      setActiveFragment(lastMessageWithFragment.fragment)
+      lastMessageWithFragmentIdRef.current = lastMessageWithFragment.id
+    }
+  }, [displayedMessages, setActiveFragment])
 
   return (
     <div className="flex h-dvh flex-col pt-14">
@@ -87,7 +268,18 @@ export const ProjectView = ({ projectId }: Props) => {
                 projectId={projectId}
                 activeFragment={activeFragment}
                 setActiveFragment={setActiveFragment}
-              />
+                messages={displayedMessages || []}
+                projectCreating={assistantMessageType !== 'CHAT'}
+              >
+                <MessageForm
+                  key={activeFragment ? 'narrow' : 'wide'}
+                  projectId={projectId}
+                  onStop={handleStopStreaming}
+                  isStreaming={isStreaming}
+                  // onSubmit={() => {}}
+                  onSubmit={onSubmit}
+                />
+              </MessagesContainer>
             </Suspense>
           </ErrorBoundary>
 

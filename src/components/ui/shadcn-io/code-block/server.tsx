@@ -4,20 +4,20 @@ import {
   transformerNotationFocus,
   transformerNotationHighlight,
   transformerNotationWordHighlight,
-} from '@shikijs/transformers';
-import type { HTMLAttributes } from 'react';
+} from '@shikijs/transformers'
+import type { HTMLAttributes } from 'react'
 import {
   type BundledLanguage,
   type CodeOptionsMultipleThemes,
   codeToHtml,
-} from 'shiki';
+} from 'shiki'
 
 export type CodeBlockContentProps = HTMLAttributes<HTMLDivElement> & {
-  themes?: CodeOptionsMultipleThemes['themes'];
-  language?: BundledLanguage;
-  children: string;
-  syntaxHighlighting?: boolean;
-};
+  themes?: CodeOptionsMultipleThemes['themes']
+  language?: BundledLanguage
+  children: string
+  syntaxHighlighting?: boolean
+}
 
 export const CodeBlockContent = async ({
   children,
@@ -51,7 +51,7 @@ export const CodeBlockContent = async ({
           }),
         ],
       })
-    : children;
+    : children
 
   return (
     <div
@@ -59,5 +59,5 @@ export const CodeBlockContent = async ({
       dangerouslySetInnerHTML={{ __html: html }}
       {...props}
     />
-  );
-};
+  )
+}

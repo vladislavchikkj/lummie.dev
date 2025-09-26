@@ -1,11 +1,8 @@
-import { useEffect, useRef } from 'react'
-import { useTRPC } from '@/trpc/client'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { ReactNode } from 'react'
 import { ReasoningLoading } from './reasoning-loading'
 import { cn } from '@/lib/utils'
 
 import { MessageCard } from './message-card'
-import { MessageForm } from './message-form'
 import { Fragment } from '@/generated/prisma'
 import {
   Conversation,
@@ -17,42 +14,28 @@ interface Props {
   projectId: string
   activeFragment: Fragment | null
   setActiveFragment: (fragment: Fragment | null) => void
+  messages: {
+    id: string
+    content: string
+    role: 'USER' | 'ASSISTANT'
+    type: 'RESULT' | 'ERROR'
+    createdAt: Date
+    fragment: Fragment | null
+  }[]
+  children: ReactNode
+  projectCreating: boolean
 }
 
 export const MessagesContainer = ({
   projectId,
   activeFragment,
   setActiveFragment,
+  children,
+  projectCreating,
+  messages,
 }: Props) => {
-  const trpc = useTRPC()
-  const lastMessageWithFragmentIdRef = useRef<string | null>(null)
-
-  const { data: messages } = useSuspenseQuery(
-    trpc.messages.getMany.queryOptions(
-      { projectId: projectId },
-      {
-        refetchInterval: 5000,
-      }
-    )
-  )
-
-  useEffect(() => {
-    const lastMessageWithFragment = messages.findLast(
-      (message) => !!message.fragment
-    )
-
-    if (
-      lastMessageWithFragment?.fragment &&
-      lastMessageWithFragment.id !== lastMessageWithFragmentIdRef.current
-    ) {
-      setActiveFragment(lastMessageWithFragment.fragment)
-      lastMessageWithFragmentIdRef.current = lastMessageWithFragment.id
-    }
-  }, [messages, setActiveFragment])
-
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
-
   const isCenteredLayout = !activeFragment
 
   return (
@@ -79,8 +62,7 @@ export const MessagesContainer = ({
                 type={message.type}
               />
             ))}
-
-            {isLastMessageUser && <ReasoningLoading />}
+            {isLastMessageUser && projectCreating && <ReasoningLoading />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
@@ -89,10 +71,7 @@ export const MessagesContainer = ({
       <div className="relative shrink-0 p-3 pt-1">
         <div className="to-background pointer-events-none absolute -top-6 right-0 left-0 h-6 bg-gradient-to-b from-transparent" />
         <div className={cn(isCenteredLayout && 'mx-auto max-w-3xl')}>
-          <MessageForm
-            key={activeFragment ? 'narrow' : 'wide'}
-            projectId={projectId}
-          />
+          {children}
         </div>
       </div>
     </div>
