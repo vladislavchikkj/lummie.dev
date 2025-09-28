@@ -18,11 +18,13 @@ import {
   User,
   Settings,
   LogOut,
-  Gift,
   MessageSquareDot,
 } from 'lucide-react'
 import { UserControl } from '@/components/user-control'
 import { cn } from '@/lib/utils'
+import type { UserResource } from '@clerk/types'
+import { NotificationsPopover } from './notifications-popover'
+import { BonusPopover } from './bonus-popover'
 
 interface UserMenuMobileProps {
   theme: string
@@ -64,8 +66,6 @@ const UserMenuMobile = ({ theme, setTheme }: UserMenuMobileProps) => {
   )
 }
 
-import type { UserResource } from '@clerk/types'
-
 const UserMenuDesktop = ({
   user,
   theme,
@@ -79,22 +79,8 @@ const UserMenuDesktop = ({
 }) => {
   return (
     <div className="flex items-center gap-0.5">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="hover:bg-accent relative rounded-full"
-        aria-label="Notifications"
-      >
-        <Gift className="h-5 w-5" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="hover:bg-accent relative rounded-full"
-        aria-label="Notifications"
-      >
-        <MessageSquareDot className="h-5 w-5" />
-      </Button>
+      <NotificationsPopover />
+      <BonusPopover />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
