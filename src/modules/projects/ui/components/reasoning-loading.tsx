@@ -103,13 +103,26 @@ export const ReasoningLoading = () => {
     }
 
     if (phase === 'INITIAL_FILL') {
-      const initialTasks = taskQueue.slice(0, MAX_TASKS_VISIBLE)
-      indexRef.current = initialTasks.length
-      setTasks(initialTasks)
+      const addTaskSequentially = (taskIndex: number) => {
+        if (taskIndex >= MAX_TASKS_VISIBLE) {
+          timerRef.current = setTimeout(() => {
+            setPhase('FADING_OUT')
+          }, 2000)
+          return
+        }
 
-      timerRef.current = setTimeout(() => {
-        setPhase('FADING_OUT')
-      }, 3000)
+        const delay = Math.random() * 1500 + 800
+        timerRef.current = setTimeout(() => {
+          setTasks((prevTasks) => {
+            const newTask = taskQueue[taskIndex]
+            indexRef.current = taskIndex + 1
+            return [...prevTasks, newTask]
+          })
+          addTaskSequentially(taskIndex + 1)
+        }, delay)
+      }
+
+      addTaskSequentially(0)
     }
 
     if (phase === 'FADING_OUT') {
@@ -118,12 +131,12 @@ export const ReasoningLoading = () => {
       timerRef.current = setTimeout(() => {
         setPhase('CYCLING')
         setTasks([])
-      }, 500)
+      }, 800)
     }
 
     if (phase === 'CYCLING') {
       const scheduleNextTask = () => {
-        const delay = Math.random() * 2000 + 1000
+        const delay = Math.random() * 3000 + 2000
         timerRef.current = setTimeout(() => {
           setTasks((prevTasks) => {
             const nextTaskToAdd = taskQueue[indexRef.current]
