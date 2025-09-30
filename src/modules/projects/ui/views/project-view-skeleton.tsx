@@ -14,7 +14,7 @@ const MessageSkeleton = () => (
 
 export const ProjectViewSkeleton = () => {
   return (
-    <div className="flex h-dvh flex-col pt-14">
+    <div className="mx-auto flex h-dvh max-w-3xl flex-col pt-14">
       <Navbar showDesktopNav={false} applyScrollStyles={false} />
 
       <div className="flex-1">
