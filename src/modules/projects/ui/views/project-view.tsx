@@ -102,6 +102,7 @@ export const ProjectView = ({ projectId }: Props) => {
   const [isStreaming, setIsStreaming] = useState<boolean>(false)
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessageEntity | null>(null)
+  const [lastMessageCount, setLastMessageCount] = useState<number>(0)
 
   const trpc = useTRPC()
   const trpcClient = useTRPCClient()
@@ -113,7 +114,7 @@ export const ProjectView = ({ projectId }: Props) => {
       {
         refetchOnMount: false,
         refetchOnWindowFocus: false,
-        refetchInterval: 5000,
+        refetchInterval: isStreaming ? false : 5000,
       }
     )
   )
@@ -127,7 +128,7 @@ export const ProjectView = ({ projectId }: Props) => {
       const userMsg: ChatMessageEntity = {
         role: CHAT_ROLES.USER,
         content: message,
-        id: projectId,
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date(),
         fragment: null,
         type: CHAT_MESSAGE_TYPES.RESULT,
@@ -188,15 +189,28 @@ export const ProjectView = ({ projectId }: Props) => {
       const lastMessage = initialMessages[initialMessages.length - 1]
       const isUserFirstMsg =
         lastMessage?.isFirst && lastMessage.role === CHAT_ROLES.USER
+
       if (isUserFirstMsg && !hasSubmittedFirstMessage.current) {
         setMessages(initialMessages.slice(0, -1))
+        setLastMessageCount(initialMessages.length - 1)
         onSubmit(lastMessage.content, true)
         hasSubmittedFirstMessage.current = true
       } else {
-        setMessages(initialMessages)
+        // Обновляем сообщения только если:
+        // 1. Не идет стриминг ИЛИ
+        // 2. Количество сообщений изменилось (новые сообщения появились)
+        const shouldUpdate =
+          !isStreaming ||
+          (initialMessages.length !== lastMessageCount &&
+            initialMessages.length > lastMessageCount)
+
+        if (shouldUpdate) {
+          setMessages(initialMessages)
+          setLastMessageCount(initialMessages.length)
+        }
       }
     }
-  }, [initialMessages, onSubmit])
+  }, [initialMessages, onSubmit, isStreaming, lastMessageCount])
 
   const onRefreshPreview = () => {
     setFragmentKey((prev) => prev + 1)
@@ -224,7 +238,7 @@ export const ProjectView = ({ projectId }: Props) => {
 
     if (streamingContent || isStreaming) {
       allMessages.push({
-        id: projectId,
+        id: `streaming-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date(),
         fragment: null,
         role: CHAT_ROLES.ASSISTANT,
@@ -234,7 +248,7 @@ export const ProjectView = ({ projectId }: Props) => {
       })
     }
     return allMessages
-  }, [messages, pendingUserMessage, streamingContent, isStreaming, projectId])
+  }, [messages, pendingUserMessage, streamingContent, isStreaming])
 
   useEffect(() => {
     const lastMessageWithFragment = displayedMessages.findLast(
