@@ -279,11 +279,11 @@ export const ProjectView = ({ projectId }: Props) => {
           >
             <Suspense fallback={null}>
               <MessagesContainer
-                projectId={projectId}
                 activeFragment={activeFragment}
                 setActiveFragment={setActiveFragment}
                 messages={displayedMessages || []}
                 projectCreating={assistantMessageType !== 'CHAT'}
+                isStreaming={isStreaming}
               >
                 <MessageForm
                   key={activeFragment ? 'narrow' : 'wide'}

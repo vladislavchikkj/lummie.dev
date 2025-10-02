@@ -1,5 +1,6 @@
 import { Fragment, MessageRole, MessageType } from '@/generated/prisma'
 import { cn } from '@/lib/utils'
+import { memo } from 'react'
 import {
   ChevronRightIcon,
   Code2Icon,
@@ -51,9 +52,13 @@ const FragmentCard = ({
 
 interface AssistantMessageActionsProps {
   content: string
+  isStreaming?: boolean
 }
 
-const AssistantMessageActions = ({ content }: AssistantMessageActionsProps) => {
+const AssistantMessageActions = ({
+  content,
+  isStreaming = false,
+}: AssistantMessageActionsProps) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(content).catch((err) => {
       console.error('Failed to copy text: ', err)
@@ -61,7 +66,12 @@ const AssistantMessageActions = ({ content }: AssistantMessageActionsProps) => {
   }
 
   return (
-    <div className="text-muted-foreground flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+    <div
+      className={cn(
+        'text-muted-foreground flex items-center gap-1 transition-opacity',
+        isStreaming ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'
+      )}
+    >
       <Button variant="ghost" size="icon" className="h-8 w-8">
         <RefreshCw className="h-4 w-4" />
         <span className="sr-only">Regenerate response</span>
@@ -99,44 +109,55 @@ interface MessageCardProps {
   isActiveFragment: boolean
   onFragmentClick: (fragment: Fragment) => void
   type: MessageType
+  isStreaming?: boolean
 }
 
-export const MessageCard = ({
-  content,
-  role,
-  fragment,
-  isActiveFragment,
-  onFragmentClick,
-  type,
-}: MessageCardProps) => {
-  const messageRole = role.toLowerCase() as 'user' | 'assistant'
+export const MessageCard = memo(
+  ({
+    content,
+    role,
+    fragment,
+    isActiveFragment,
+    onFragmentClick,
+    type,
+    isStreaming = false,
+  }: MessageCardProps) => {
+    const messageRole = role.toLowerCase() as 'user' | 'assistant'
 
-  return (
-    <Message from={messageRole} key={Math.random().toString()}>
-      {' '}
-      <MessageContent>
-        {role === 'ASSISTANT' ? (
-          <>
-            <Response>{content}</Response>{' '}
-            {/* Для assistant используем Response */}
-            {fragment && type === 'RESULT' && (
-              <Tool>
-                <FragmentCard
-                  fragment={fragment}
-                  isActiveFragment={isActiveFragment}
-                  onFragmentClick={onFragmentClick}
+    return (
+      <Message from={messageRole} key={Math.random().toString()}>
+        {' '}
+        <MessageContent>
+          {role === 'ASSISTANT' ? (
+            <>
+              <Response>{content}</Response>{' '}
+              {/* Для assistant используем Response */}
+              {fragment && type === 'RESULT' && (
+                <Tool>
+                  <FragmentCard
+                    fragment={fragment}
+                    isActiveFragment={isActiveFragment}
+                    onFragmentClick={onFragmentClick}
+                  />
+                </Tool>
+              )}
+              {type !== 'ERROR' && (
+                <AssistantMessageActions
+                  content={content}
+                  isStreaming={isStreaming}
                 />
-              </Tool>
-            )}
-            {type !== 'ERROR' && <AssistantMessageActions content={content} />}
-            {type === 'ERROR' && (
-              <Reasoning isStreaming={false}> Error details</Reasoning>
-            )}
-          </>
-        ) : (
-          content
-        )}
-      </MessageContent>
-    </Message>
-  )
-}
+              )}
+              {type === 'ERROR' && (
+                <Reasoning isStreaming={false}> Error details</Reasoning>
+              )}
+            </>
+          ) : (
+            content
+          )}
+        </MessageContent>
+      </Message>
+    )
+  }
+)
+
+MessageCard.displayName = 'MessageCard'

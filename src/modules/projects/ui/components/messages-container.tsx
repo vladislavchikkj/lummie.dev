@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useRef, useMemo, useCallback } from 'react'
 import { ReasoningLoading } from './reasoning-loading'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/shadcn-io/ai/conversation'
 
 interface Props {
-  projectId: string
   activeFragment: Fragment | null
   setActiveFragment: (fragment: Fragment | null) => void
   messages: {
@@ -24,23 +23,60 @@ interface Props {
   }[]
   children: ReactNode
   projectCreating: boolean
+  isStreaming?: boolean
 }
 
 export const MessagesContainer = ({
-  projectId,
   activeFragment,
   setActiveFragment,
   children,
   projectCreating,
   messages,
+  isStreaming = false,
 }: Props) => {
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
   const isCenteredLayout = !activeFragment
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Мемоизируем обработчик клика для фрагментов
+  const handleFragmentClick = useCallback(
+    (fragment: Fragment | null) => {
+      setActiveFragment(fragment)
+    },
+    [setActiveFragment]
+  )
+
+  // Автоматическая прокрутка к последнему сообщению
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight
+    }
+  }, [messages.length, projectCreating, isStreaming])
+
+  // Дополнительная прокрутка во время стриминга для плавности
+  useEffect(() => {
+    if (isStreaming) {
+      const interval = setInterval(() => {
+        if (scrollContainerRef.current) {
+          // Используем requestAnimationFrame для плавной прокрутки без ререндеров
+          requestAnimationFrame(() => {
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollTop =
+                scrollContainerRef.current.scrollHeight
+            }
+          })
+        }
+      }, 100) // Прокрутка каждые 100мс во время стриминга
+
+      return () => clearInterval(interval)
+    }
+  }, [isStreaming])
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         <Conversation>
           <ConversationContent
             className={cn(
@@ -48,20 +84,30 @@ export const MessagesContainer = ({
               isCenteredLayout && 'mx-auto max-w-3xl'
             )}
           >
-            {messages.map((message) => (
-              <MessageCard
-                key={message.id}
-                content={message.content}
-                role={message.role}
-                fragment={message.fragment}
-                createdAt={message.createdAt}
-                isActiveFragment={activeFragment?.id === message.fragment?.id}
-                onFragmentClick={() => {
-                  setActiveFragment(message.fragment)
-                }}
-                type={message.type}
-              />
-            ))}
+            {useMemo(
+              () =>
+                messages.map((message, index) => {
+                  const isLastMessage = index === messages.length - 1
+                  const isCurrentlyStreaming = isStreaming && isLastMessage
+
+                  return (
+                    <MessageCard
+                      key={message.id}
+                      content={message.content}
+                      role={message.role}
+                      fragment={message.fragment}
+                      createdAt={message.createdAt}
+                      isActiveFragment={
+                        activeFragment?.id === message.fragment?.id
+                      }
+                      onFragmentClick={handleFragmentClick}
+                      type={message.type}
+                      isStreaming={isCurrentlyStreaming}
+                    />
+                  )
+                }),
+              [messages, isStreaming, activeFragment?.id, handleFragmentClick]
+            )}
             {isLastMessageUser && projectCreating && <ReasoningLoading />}
           </ConversationContent>
           <ConversationScrollButton />
