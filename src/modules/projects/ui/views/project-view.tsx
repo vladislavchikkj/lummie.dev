@@ -103,6 +103,9 @@ export const ProjectView = ({ projectId }: Props) => {
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessageEntity | null>(null)
   const [lastMessageCount, setLastMessageCount] = useState<number>(0)
+  const [wasStreamAborted, setWasStreamAborted] = useState<boolean>(false)
+  const [isAborting, setIsAborting] = useState<boolean>(false)
+  const [streamingCompleted, setStreamingCompleted] = useState<boolean>(false)
 
   const trpc = useTRPC()
   const trpcClient = useTRPCClient()
@@ -121,9 +124,18 @@ export const ProjectView = ({ projectId }: Props) => {
 
   const onSubmit = useCallback(
     async (message: string, isFirstMessage: boolean = false) => {
+      console.log('🚀 onSubmit called:', {
+        message: message.substring(0, 50),
+        isFirstMessage,
+        isStreaming,
+      })
+
       if (isStreaming || !message.trim()) return
 
-      abortControllerRef.current = new AbortController()
+      // Создаем новый AbortController только если предыдущий был очищен
+      if (!abortControllerRef.current) {
+        abortControllerRef.current = new AbortController()
+      }
 
       const userMsg: ChatMessageEntity = {
         role: CHAT_ROLES.USER,
@@ -138,8 +150,16 @@ export const ProjectView = ({ projectId }: Props) => {
         setPendingUserMessage(userMsg)
       }
 
+      console.log('📝 Setting streaming state:', {
+        isStreaming: true,
+        streamingContent: '',
+        wasStreamAborted: false,
+        currentMessagesCount: messages.length,
+      })
       setIsStreaming(true)
       setStreamingContent('')
+      setWasStreamAborted(false)
+      setStreamingCompleted(false)
 
       try {
         const stream = await trpcClient.projects.handleUserMessage.mutate(
@@ -154,71 +174,210 @@ export const ProjectView = ({ projectId }: Props) => {
         )
 
         for await (const { content, type } of stream) {
+          console.log('📦 Stream chunk received:', {
+            content: content.substring(0, 50),
+            type,
+          })
           setAssistantMessageType((prev) => {
             if (type !== prev) {
+              console.log('🔄 Assistant message type changed:', {
+                from: prev,
+                to: type,
+              })
               return type
             }
             return prev
           })
-          setStreamingContent((prev) => prev + content)
+          setStreamingContent((prev) => {
+            const newContent = prev + content
+            console.log('📝 Streaming content updated:', {
+              prevLength: prev.length,
+              newLength: newContent.length,
+              content: newContent.substring(0, 100),
+            })
+            return newContent
+          })
         }
       } catch (error) {
+        // Проверяем различные типы ошибок прерывания
         const isAbortError =
-          error instanceof TRPCClientError &&
-          (error.data?.code === 'CLIENT_CLOSED_REQUEST' ||
-            error.cause?.name === 'AbortError')
+          (error instanceof TRPCClientError &&
+            (error.data?.code === 'CLIENT_CLOSED_REQUEST' ||
+              error.cause?.name === 'AbortError')) ||
+          (error instanceof Error && error.name === 'AbortError') ||
+          (error as { name?: string })?.name === 'AbortError'
 
-        if (!isAbortError) {
+        if (isAbortError) {
+          console.log('🛑 Stream aborted by user:', { wasStreamAborted: true })
+          setWasStreamAborted(true)
+          // Не логируем ошибки прерывания как ошибки
+          console.debug('Stream aborted by user')
+        } else {
           console.error('Streaming error:', error)
         }
       } finally {
-        setIsStreaming(false)
-        abortControllerRef.current = null
-        setAssistantMessageType('PROJECT')
-        await refetch()
+        console.log('🏁 Finally block:', {
+          isStreaming: false,
+          wasStreamAborted,
+          streamingContentLength: streamingContent.length,
+        })
 
-        setPendingUserMessage(null)
-        setStreamingContent('')
+        setIsStreaming(false)
+        setIsAborting(false)
+
+        // Безопасно очищаем abort controller
+        if (abortControllerRef.current) {
+          abortControllerRef.current = null
+        }
+
+        // Не меняем assistantMessageType если стрим был прерван
+        // setAssistantMessageType остается как есть
+
+        // Не делаем refetch сразу - это вызывает перерендер и пропадание стрима
+        // НЕ очищаем pendingUserMessage сразу - он должен оставаться до получения данных с сервера
+
+        // Отмечаем что стрим завершен, но НЕ очищаем streamingContent
+        // чтобы он оставался видимым до получения данных с сервера
+        setStreamingCompleted(true)
+        if (wasStreamAborted) {
+          setWasStreamAborted(false)
+        }
+
+        // Делаем refetch в фоне без блокировки UI
+        // Но с задержкой, чтобы дать время UI обновиться
+        setTimeout(() => {
+          refetch().catch(console.error)
+        }, 100)
       }
     },
-    [projectId, isStreaming, refetch, trpcClient.projects.handleUserMessage]
+    [
+      projectId,
+      isStreaming,
+      refetch,
+      trpcClient.projects.handleUserMessage,
+      wasStreamAborted,
+      streamingContent,
+      messages.length,
+    ]
   )
 
   useEffect(() => {
+    console.log('🔄 useEffect for initialMessages:', {
+      hasInitialMessages: !!initialMessages,
+      initialMessagesLength: initialMessages?.length,
+      isStreaming,
+      lastMessageCount,
+      hasSubmittedFirstMessage: hasSubmittedFirstMessage.current,
+    })
+
     if (initialMessages) {
       const lastMessage = initialMessages[initialMessages.length - 1]
       const isUserFirstMsg =
         lastMessage?.isFirst && lastMessage.role === CHAT_ROLES.USER
 
       if (isUserFirstMsg && !hasSubmittedFirstMessage.current) {
+        console.log(
+          '🚀 Processing first message:',
+          lastMessage.content.substring(0, 50)
+        )
         setMessages(initialMessages.slice(0, -1))
         setLastMessageCount(initialMessages.length - 1)
         onSubmit(lastMessage.content, true)
         hasSubmittedFirstMessage.current = true
       } else {
         // Обновляем сообщения только если:
-        // 1. Не идет стриминг ИЛИ
+        // 1. Не идет стриминг И
         // 2. Количество сообщений изменилось (новые сообщения появились)
+        // 3. И НЕ было прерывания стрима (чтобы избежать лишних обновлений)
         const shouldUpdate =
-          !isStreaming ||
-          (initialMessages.length !== lastMessageCount &&
-            initialMessages.length > lastMessageCount)
+          !isStreaming &&
+          initialMessages.length !== lastMessageCount &&
+          initialMessages.length > lastMessageCount &&
+          !wasStreamAborted
+
+        console.log('📊 Message update decision:', {
+          shouldUpdate,
+          isStreaming,
+          initialMessagesLength: initialMessages.length,
+          lastMessageCount,
+          lengthChanged: initialMessages.length !== lastMessageCount,
+          lengthIncreased: initialMessages.length > lastMessageCount,
+        })
 
         if (shouldUpdate) {
-          setMessages(initialMessages)
-          setLastMessageCount(initialMessages.length)
+          console.log('✅ Updating messages from server:', {
+            oldCount: messages.length,
+            newCount: initialMessages.length,
+            streamingContent: streamingContent.substring(0, 50),
+            wasStreamAborted,
+            streamingCompleted,
+          })
+
+          // Удаляем временные стрим-сообщения перед обновлением
+          const filteredMessages = initialMessages.filter(
+            (msg) => !msg.id.startsWith('temp-streaming-')
+          )
+
+          setMessages(filteredMessages)
+          setLastMessageCount(filteredMessages.length)
+
+          // Очищаем streamingContent и pendingUserMessage после получения данных с сервера
+          if (streamingCompleted) {
+            setStreamingContent('')
+            setStreamingCompleted(false)
+            setPendingUserMessage(null)
+          }
+        } else {
+          console.log('⏸️ Skipping message update due to streaming')
         }
       }
     }
-  }, [initialMessages, onSubmit, isStreaming, lastMessageCount])
+  }, [
+    initialMessages,
+    onSubmit,
+    isStreaming,
+    lastMessageCount,
+    wasStreamAborted,
+    messages.length,
+    streamingContent,
+    streamingCompleted,
+  ])
 
   const onRefreshPreview = () => {
     setFragmentKey((prev) => prev + 1)
   }
 
   const handleStopStreaming = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
+    console.log('🛑 handleStopStreaming called:', {
+      hasAbortController: !!abortControllerRef.current,
+      isAborted: abortControllerRef.current?.signal.aborted,
+      isStreaming,
+      isAborting,
+      streamingContentLength: streamingContent.length,
+    })
+
+    if (
+      abortControllerRef.current &&
+      !abortControllerRef.current.signal.aborted &&
+      isStreaming &&
+      !isAborting
+    ) {
+      console.log('🛑 Aborting stream...')
+      setIsAborting(true)
+      try {
+        abortControllerRef.current.abort()
+        console.log('✅ Stream abort signal sent')
+      } catch (error) {
+        // Игнорируем ошибки при прерывании стрима
+        console.debug('Stream aborted:', error)
+      }
+    } else {
+      console.log('❌ Cannot abort stream:', {
+        hasAbortController: !!abortControllerRef.current,
+        isAborted: abortControllerRef.current?.signal.aborted,
+        isStreaming,
+        isAborting,
+      })
     }
   }
 
@@ -230,25 +389,61 @@ export const ProjectView = ({ projectId }: Props) => {
   }
 
   const displayedMessages = useMemo((): DisplayedMessageEntity[] => {
+    console.log('🎭 displayedMessages recalculated:', {
+      messagesCount: messages.length,
+      pendingUserMessage: !!pendingUserMessage,
+      streamingContent: streamingContent.substring(0, 50),
+      streamingContentLength: streamingContent.length,
+      isStreaming,
+      wasStreamAborted,
+    })
+
     const allMessages: DisplayedMessageEntity[] = [...messages]
 
     if (pendingUserMessage) {
       allMessages.push(pendingUserMessage)
     }
 
-    if (streamingContent || isStreaming) {
-      allMessages.push({
+    // Показываем стриминг контент если:
+    // 1. Идет активный стрим ИЛИ
+    // 2. Есть контент от завершенного стрима (пока не пришли данные с сервера)
+    const shouldShowStreamingContent =
+      streamingContent && (isStreaming || streamingCompleted)
+
+    if (shouldShowStreamingContent) {
+      const streamingMessage = {
         id: `streaming-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date(),
         fragment: null,
         role: CHAT_ROLES.ASSISTANT,
-        content: streamingContent || '',
+        content: streamingContent,
         type: CHAT_MESSAGE_TYPES.RESULT,
-        isStreaming: true,
+        isStreaming: isStreaming, // Показываем анимацию только во время активного стрима
+      }
+      console.log('📤 Adding streaming message to display:', {
+        content: streamingContent.substring(0, 100),
+        isStreaming,
+      })
+      allMessages.push(streamingMessage)
+    } else {
+      console.log('❌ Not showing streaming content:', {
+        hasStreamingContent: !!streamingContent,
+        isStreaming,
+        wasStreamAborted,
+        messagesCount: messages.length,
       })
     }
+
+    console.log('📋 Final displayedMessages count:', allMessages.length)
     return allMessages
-  }, [messages, pendingUserMessage, streamingContent, isStreaming])
+  }, [
+    messages,
+    pendingUserMessage,
+    streamingContent,
+    isStreaming,
+    wasStreamAborted,
+    streamingCompleted,
+  ])
 
   useEffect(() => {
     const lastMessageWithFragment = displayedMessages.findLast(
@@ -282,7 +477,9 @@ export const ProjectView = ({ projectId }: Props) => {
                 activeFragment={activeFragment}
                 setActiveFragment={setActiveFragment}
                 messages={displayedMessages || []}
-                projectCreating={assistantMessageType !== 'CHAT'}
+                projectCreating={
+                  assistantMessageType !== 'CHAT' && !wasStreamAborted
+                }
                 isStreaming={isStreaming}
               >
                 <MessageForm

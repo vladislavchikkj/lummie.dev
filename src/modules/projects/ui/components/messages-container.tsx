@@ -38,6 +38,7 @@ export const MessagesContainer = ({
   const isLastMessageUser = lastMessage?.role === 'USER'
   const isCenteredLayout = !activeFragment
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Мемоизируем обработчик клика для фрагментов
   const handleFragmentClick = useCallback(
@@ -47,13 +48,28 @@ export const MessagesContainer = ({
     [setActiveFragment]
   )
 
-  // Автоматическая прокрутка к последнему сообщению
-  useEffect(() => {
+  // Функция для прокрутки с debounce
+  const scrollToBottom = useCallback(() => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop =
-        scrollContainerRef.current.scrollHeight
+      // Отменяем предыдущий таймаут если он есть
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+
+      // Устанавливаем новый таймаут для прокрутки
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop =
+            scrollContainerRef.current.scrollHeight
+        }
+      }, 50) // Debounce на 50мс
     }
-  }, [messages.length, projectCreating, isStreaming])
+  }, [])
+
+  // Автоматическая прокрутка к последнему сообщению с debounce
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages.length, projectCreating, scrollToBottom])
 
   // Дополнительная прокрутка во время стриминга для плавности
   useEffect(() => {
@@ -63,16 +79,34 @@ export const MessagesContainer = ({
           // Используем requestAnimationFrame для плавной прокрутки без ререндеров
           requestAnimationFrame(() => {
             if (scrollContainerRef.current) {
-              scrollContainerRef.current.scrollTop =
-                scrollContainerRef.current.scrollHeight
+              const container = scrollContainerRef.current
+              const isNearBottom =
+                container.scrollHeight -
+                  container.scrollTop -
+                  container.clientHeight <
+                100
+
+              // Прокручиваем только если пользователь уже внизу
+              if (isNearBottom) {
+                container.scrollTop = container.scrollHeight
+              }
             }
           })
         }
-      }, 100) // Прокрутка каждые 100мс во время стриминга
+      }, 150) // Увеличиваем интервал для более плавной прокрутки
 
       return () => clearInterval(interval)
     }
   }, [isStreaming])
+
+  // Очищаем таймаут при размонтировании
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
 
   return (
     <div className="flex h-full flex-col">
@@ -108,7 +142,9 @@ export const MessagesContainer = ({
                 }),
               [messages, isStreaming, activeFragment?.id, handleFragmentClick]
             )}
-            {isLastMessageUser && projectCreating && <ReasoningLoading />}
+            {isLastMessageUser && projectCreating && !isStreaming && (
+              <ReasoningLoading />
+            )}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
