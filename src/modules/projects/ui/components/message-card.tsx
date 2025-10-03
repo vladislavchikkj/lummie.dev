@@ -127,11 +127,10 @@ export const MessageCard = memo(
     return (
       <Message from={messageRole} key={Math.random().toString()}>
         {' '}
-        <MessageContent>
+        <MessageContent className="flex flex-col">
           {role === 'ASSISTANT' ? (
             <>
-              <Response>{content}</Response>{' '}
-              {/* Для assistant используем Response */}
+              <Response className="flex-1">{content}</Response>{' '}
               {fragment && type === 'RESULT' && (
                 <Tool>
                   <FragmentCard

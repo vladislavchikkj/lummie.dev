@@ -40,7 +40,6 @@ export const MessagesContainer = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Мемоизируем обработчик клика для фрагментов
   const handleFragmentClick = useCallback(
     (fragment: Fragment | null) => {
       setActiveFragment(fragment)
@@ -48,35 +47,29 @@ export const MessagesContainer = ({
     [setActiveFragment]
   )
 
-  // Функция для прокрутки с debounce
   const scrollToBottom = useCallback(() => {
     if (scrollContainerRef.current) {
-      // Отменяем предыдущий таймаут если он есть
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
       }
 
-      // Устанавливаем новый таймаут для прокрутки
       scrollTimeoutRef.current = setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop =
             scrollContainerRef.current.scrollHeight
         }
-      }, 50) // Debounce на 50мс
+      }, 50)
     }
   }, [])
 
-  // Автоматическая прокрутка к последнему сообщению с debounce
   useEffect(() => {
     scrollToBottom()
   }, [messages.length, projectCreating, scrollToBottom])
 
-  // Дополнительная прокрутка во время стриминга для плавности
   useEffect(() => {
     if (isStreaming) {
       const interval = setInterval(() => {
         if (scrollContainerRef.current) {
-          // Используем requestAnimationFrame для плавной прокрутки без ререндеров
           requestAnimationFrame(() => {
             if (scrollContainerRef.current) {
               const container = scrollContainerRef.current
@@ -86,20 +79,18 @@ export const MessagesContainer = ({
                   container.clientHeight <
                 100
 
-              // Прокручиваем только если пользователь уже внизу
               if (isNearBottom) {
                 container.scrollTop = container.scrollHeight
               }
             }
           })
         }
-      }, 150) // Увеличиваем интервал для более плавной прокрутки
+      }, 150)
 
       return () => clearInterval(interval)
     }
   }, [isStreaming])
 
-  // Очищаем таймаут при размонтировании
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) {
@@ -114,7 +105,7 @@ export const MessagesContainer = ({
         <Conversation>
           <ConversationContent
             className={cn(
-              'flex min-h-0 flex-col pt-5',
+              'flex min-h-0 flex-col pt-5 pb-5',
               isCenteredLayout && 'mx-auto max-w-3xl'
             )}
           >
@@ -123,21 +114,34 @@ export const MessagesContainer = ({
                 messages.map((message, index) => {
                   const isLastMessage = index === messages.length - 1
                   const isCurrentlyStreaming = isStreaming && isLastMessage
+                  const isLastAssistantMessage =
+                    isLastMessage && message.role === 'ASSISTANT'
+                  const isLastUserMessage =
+                    isLastMessage && message.role === 'USER'
 
                   return (
-                    <MessageCard
+                    <div
                       key={message.id}
-                      content={message.content}
-                      role={message.role}
-                      fragment={message.fragment}
-                      createdAt={message.createdAt}
-                      isActiveFragment={
-                        activeFragment?.id === message.fragment?.id
-                      }
-                      onFragmentClick={handleFragmentClick}
-                      type={message.type}
-                      isStreaming={isCurrentlyStreaming}
-                    />
+                      className={cn(
+                        'flex flex-col',
+                        isLastAssistantMessage && 'min-h-[max(200px,40cqh)]',
+
+                        isLastUserMessage && 'min-h-[max(200px,40cqh)]'
+                      )}
+                    >
+                      <MessageCard
+                        content={message.content}
+                        role={message.role}
+                        fragment={message.fragment}
+                        createdAt={message.createdAt}
+                        isActiveFragment={
+                          activeFragment?.id === message.fragment?.id
+                        }
+                        onFragmentClick={handleFragmentClick}
+                        type={message.type}
+                        isStreaming={isCurrentlyStreaming}
+                      />
+                    </div>
                   )
                 }),
               [messages, isStreaming, activeFragment?.id, handleFragmentClick]
