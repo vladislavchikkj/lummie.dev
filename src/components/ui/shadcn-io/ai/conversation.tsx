@@ -1,25 +1,53 @@
-// src/components/ui/shadcn-io/ai/conversation.tsx
 'use client'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ArrowDownIcon } from 'lucide-react'
 import type { ComponentProps } from 'react'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom'
 
-export type ConversationProps = ComponentProps<typeof StickToBottom>
+export type ConversationProps = Omit<
+  ComponentProps<typeof StickToBottom>,
+  'children'
+> & {
+  messagesCount?: number
+  children?: React.ReactNode
+}
 
-// ✨ ИЗМЕНЕНИЕ: Убираем 'relative flex-1' и просто говорим компоненту занимать всю высоту родителя.
-export const Conversation = ({ className, ...props }: ConversationProps) => (
-  <StickToBottom
-    className={cn('h-full', className)} // Теперь здесь h-full, а не flex-1
-    initial="smooth"
-    resize="smooth"
-    role="log"
-    {...props}
-  />
-)
+const AutoScrollHandler = ({ messagesCount }: { messagesCount: number }) => {
+  const { scrollToBottom } = useStickToBottomContext()
+  const prevMessagesCountRef = useRef(messagesCount)
+
+  useEffect(() => {
+    if (messagesCount > prevMessagesCountRef.current) {
+      scrollToBottom()
+    }
+    prevMessagesCountRef.current = messagesCount
+  }, [messagesCount, scrollToBottom])
+
+  return null
+}
+
+export const Conversation = ({
+  className,
+  messagesCount = 0,
+  children,
+  ...props
+}: ConversationProps) => {
+  return (
+    <StickToBottom
+      className={cn('h-full', className)}
+      initial="smooth"
+      resize="smooth"
+      role="log"
+      {...props}
+    >
+      <AutoScrollHandler messagesCount={messagesCount} />
+      {children}
+    </StickToBottom>
+  )
+}
 
 export type ConversationContentProps = ComponentProps<
   typeof StickToBottom.Content

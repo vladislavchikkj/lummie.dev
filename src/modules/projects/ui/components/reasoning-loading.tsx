@@ -1,6 +1,5 @@
 'use client'
 
-import { Message, MessageContent } from '@/components/ui/shadcn-io/ai/message'
 import {
   Task,
   TaskContent,
@@ -158,19 +157,21 @@ export const ReasoningLoading = () => {
   }, [phase, taskQueue])
 
   return (
-    <Message from="assistant">
-      <MessageContent>
-        <Task className="w-full">
-          <TaskTrigger title="Generating Project..." />
-          <TaskContent>
-            {tasks.map((task) => (
-              <TaskItem key={task.key} data-exiting={task.isExiting}>
-                {task.value}
-              </TaskItem>
-            ))}
-          </TaskContent>
-        </Task>
-      </MessageContent>
-    </Message>
+    <div className="group is-assistant flex w-full flex-row-reverse items-end justify-end gap-2">
+      <div className="text-foreground flex flex-col gap-2 overflow-hidden rounded-2xl px-4 py-3 group-[.is-assistant]:ml-4 group-[.is-assistant]:max-w-full">
+        <div className="is-user:dark flex flex-col gap-4">
+          <Task className="w-full">
+            <TaskTrigger title="Generating Project..." />
+            <TaskContent>
+              {tasks.map((task) => (
+                <TaskItem key={task.key} data-exiting={task.isExiting}>
+                  {task.value}
+                </TaskItem>
+              ))}
+            </TaskContent>
+          </Task>
+        </div>
+      </div>
+    </div>
   )
 }

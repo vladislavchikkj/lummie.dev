@@ -125,12 +125,17 @@ export const MessageCard = memo(
     const messageRole = role.toLowerCase() as 'user' | 'assistant'
 
     return (
-      <Message from={messageRole} key={Math.random().toString()}>
-        {' '}
+      <Message from={messageRole}>
         <MessageContent className="flex flex-col">
           {role === 'ASSISTANT' ? (
             <>
-              <Response className="flex-1">{content}</Response>{' '}
+              <Response
+                className="flex-1"
+                useHardenedMarkdown={false}
+                parseIncompleteMarkdown={false}
+              >
+                {content}
+              </Response>
               {fragment && type === 'RESULT' && (
                 <Tool>
                   <FragmentCard
@@ -155,6 +160,16 @@ export const MessageCard = memo(
           )}
         </MessageContent>
       </Message>
+    )
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.content === nextProps.content &&
+      prevProps.role === nextProps.role &&
+      prevProps.type === nextProps.type &&
+      prevProps.isStreaming === nextProps.isStreaming &&
+      prevProps.isActiveFragment === nextProps.isActiveFragment &&
+      prevProps.fragment?.id === nextProps.fragment?.id
     )
   }
 )

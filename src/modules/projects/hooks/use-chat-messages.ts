@@ -118,7 +118,10 @@ export const useChatMessages = ({
       allMessages.push(streamingMessage)
     }
 
-    return allMessages
+    // Сортируем все сообщения по времени создания для обеспечения правильного порядка
+    return allMessages.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    )
   }, [
     messages,
     pendingUserMessage,

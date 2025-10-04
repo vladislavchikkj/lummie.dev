@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useMemo, useCallback } from 'react'
+import { ReactNode, useMemo, useCallback } from 'react'
 import { ReasoningLoading } from './reasoning-loading'
 import { cn } from '@/lib/utils'
 
@@ -37,8 +37,6 @@ export const MessagesContainer = ({
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
   const isCenteredLayout = !activeFragment
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleFragmentClick = useCallback(
     (fragment: Fragment | null) => {
@@ -47,107 +45,65 @@ export const MessagesContainer = ({
     [setActiveFragment]
   )
 
-  const scrollToBottom = useCallback(() => {
-    if (scrollContainerRef.current) {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
-
-      scrollTimeoutRef.current = setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop =
-            scrollContainerRef.current.scrollHeight
-        }
-      }, 50)
-    }
-  }, [])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages.length, projectCreating, scrollToBottom])
-
-  useEffect(() => {
-    if (isStreaming) {
-      const interval = setInterval(() => {
-        if (scrollContainerRef.current) {
-          requestAnimationFrame(() => {
-            if (scrollContainerRef.current) {
-              const container = scrollContainerRef.current
-              const isNearBottom =
-                container.scrollHeight -
-                  container.scrollTop -
-                  container.clientHeight <
-                100
-
-              if (isNearBottom) {
-                container.scrollTop = container.scrollHeight
-              }
-            }
-          })
-        }
-      }, 150)
-
-      return () => clearInterval(interval)
-    }
-  }, [isStreaming])
-
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
-    }
-  }, [])
-
   return (
     <div className="flex h-full flex-col">
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-        <Conversation>
+      <div className="flex-1 overflow-y-auto">
+        <Conversation messagesCount={messages.length}>
           <ConversationContent
             className={cn(
               'flex min-h-0 flex-col pt-5 pb-5',
               isCenteredLayout && 'mx-auto max-w-3xl'
             )}
           >
-            {useMemo(
-              () =>
-                messages.map((message, index) => {
-                  const isLastMessage = index === messages.length - 1
-                  const isCurrentlyStreaming = isStreaming && isLastMessage
-                  const isLastAssistantMessage =
-                    isLastMessage && message.role === 'ASSISTANT'
-                  const isLastUserMessage =
-                    isLastMessage && message.role === 'USER'
+            {useMemo(() => {
+              return messages.map((message, index) => {
+                const isLastMessage = index === messages.length - 1
+                const isCurrentlyStreaming = isStreaming && isLastMessage
+                const isLastAssistantMessage =
+                  isLastMessage && message.role === 'ASSISTANT'
+                const isLastUserMessage =
+                  isLastMessage && message.role === 'USER'
+                const shouldShowReasoningLoading =
+                  isLastMessageUser && projectCreating && !isStreaming
 
-                  return (
-                    <div
-                      key={message.id}
-                      className={cn(
-                        'flex flex-col',
-                        isLastAssistantMessage && 'min-h-[max(200px,40cqh)]',
-
-                        isLastUserMessage && 'min-h-[max(200px,40cqh)]'
-                      )}
-                    >
-                      <MessageCard
-                        content={message.content}
-                        role={message.role}
-                        fragment={message.fragment}
-                        createdAt={message.createdAt}
-                        isActiveFragment={
-                          activeFragment?.id === message.fragment?.id
-                        }
-                        onFragmentClick={handleFragmentClick}
-                        type={message.type}
-                        isStreaming={isCurrentlyStreaming}
-                      />
-                    </div>
-                  )
-                }),
-              [messages, isStreaming, activeFragment?.id, handleFragmentClick]
-            )}
+                return (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'flex flex-col',
+                      isLastAssistantMessage && 'min-h-[max(200px,40cqh)]',
+                      isLastUserMessage &&
+                        !shouldShowReasoningLoading &&
+                        'min-h-[max(200px,40cqh)]'
+                    )}
+                  >
+                    <MessageCard
+                      content={message.content}
+                      role={message.role}
+                      fragment={message.fragment}
+                      createdAt={message.createdAt}
+                      isActiveFragment={
+                        activeFragment?.id === message.fragment?.id
+                      }
+                      onFragmentClick={handleFragmentClick}
+                      type={message.type}
+                      isStreaming={isCurrentlyStreaming}
+                    />
+                  </div>
+                )
+              })
+            }, [
+              messages,
+              isStreaming,
+              activeFragment?.id,
+              handleFragmentClick,
+              isLastMessageUser,
+              projectCreating,
+            ])}
             {isLastMessageUser && projectCreating && !isStreaming && (
-              <ReasoningLoading />
+              <div className="min-h-[max(200px,40cqh)] py-4">
+                <ReasoningLoading />
+              </div>
             )}
           </ConversationContent>
           <ConversationScrollButton />
