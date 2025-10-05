@@ -8,7 +8,7 @@ export default function Page() {
   const currentTheme = useCurrentTheme()
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col">
+    <div className="mx-auto flex w-full max-w-3xl flex-col pt-20">
       <section className="space-y-6">
         <div className="flex min-h-[520px] flex-col items-center justify-center">
           <SignIn

@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 export default function TermsOfServicePage() {
   return (
     <div className="bg-background text-foreground antialiased">
-      <div className="container mx-auto max-w-4xl px-4 py-20 sm:py-28 lg:py-36">
+      <div className="container mx-auto max-w-4xl px-4 pt-24 pb-20 sm:pt-32 sm:pb-28 lg:pt-40 lg:pb-36">
         <header className="text-center">
           <h1 className="text-foreground text-4xl font-extrabold tracking-tight sm:text-5xl">
             Terms of Service

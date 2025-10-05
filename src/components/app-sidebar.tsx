@@ -27,7 +27,7 @@ const ProjectName = ({
     case 'PENDING':
       return (
         <span className="text-muted-foreground animate-pulse truncate">
-          Generating...
+          {project.name || 'Creating...'}
         </span>
       )
     case 'ERROR':

@@ -5,6 +5,7 @@ import { FragmentWeb } from './fragment-web'
 import { FileExplorer } from '@/components/file-explorer/file-explorer'
 import { FragmentPanelHeader } from './fragment-panel-header'
 import { TabState } from '../../constants/chat'
+import { cn } from '@/lib/utils'
 
 interface FragmentPanelProps {
   activeFragment: Fragment
@@ -16,6 +17,7 @@ interface FragmentPanelProps {
   onRefreshPreview: () => void
   onCopyUrl: () => void
   onClose: () => void
+  isMobile?: boolean
 }
 
 const CodePlaceholder = () => (
@@ -36,6 +38,7 @@ export const FragmentPanel = ({
   onRefreshPreview,
   onCopyUrl,
   onClose,
+  isMobile = false,
 }: FragmentPanelProps) => {
   return (
     <Tabs
@@ -52,13 +55,24 @@ export const FragmentPanel = ({
         onRefreshPreview={onRefreshPreview}
         onCopyUrl={onCopyUrl}
         onClose={onClose}
+        isMobile={isMobile}
       />
 
-      <TabsContent value="preview" className="flex-1 overflow-auto border-l">
-        <FragmentWeb data={activeFragment} refreshKey={fragmentKey} />
+      <TabsContent
+        value="preview"
+        className={cn('flex-1 overflow-auto', !isMobile && 'border-l')}
+      >
+        <FragmentWeb
+          data={activeFragment}
+          refreshKey={fragmentKey}
+          isMobile={isMobile}
+        />
       </TabsContent>
 
-      <TabsContent value="code" className="flex-1 overflow-auto border-l">
+      <TabsContent
+        value="code"
+        className={cn('flex-1 overflow-auto', !isMobile && 'border-l')}
+      >
         {activeFragment.files ? (
           <FileExplorer
             files={activeFragment.files as { [path: string]: string }}

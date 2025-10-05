@@ -102,7 +102,7 @@ const EnterprisePage = () => {
   return (
     <div className="relative w-full">
       {/* Hero Section */}
-      <section className="from-background relative bg-gradient-to-b to-neutral-50 py-24 text-center md:py-32 lg:py-40 dark:to-neutral-900">
+      <section className="from-background relative bg-gradient-to-b to-neutral-50 pt-32 pb-24 text-center md:pt-40 md:pb-32 lg:pt-48 lg:pb-40 dark:to-neutral-900">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_500px_at_50%_200px,#a78bfa22,transparent)]" />
         <div className="z-10 container mx-auto max-w-5xl px-4">
           <div className="z-5">
@@ -170,7 +170,7 @@ const EnterprisePage = () => {
 
       {/* Final CTA */}
       <section className="from-background bg-gradient-to-b to-neutral-50 py-20 md:py-28 dark:to-neutral-900">
-        <div className="container mx-auto max-w-3xl px-4 text-center">
+        <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
             Ready to Transform Your Workflow?
           </h2>

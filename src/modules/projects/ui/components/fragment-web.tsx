@@ -32,11 +32,16 @@ const SandboxExpiredState = () => (
 interface FragmentWebProps {
   data: Fragment
   refreshKey: number
+  isMobile?: boolean
 }
 
 type SandboxStatus = 'checking' | 'valid' | 'expired' | 'notFound'
 
-export function FragmentWeb({ data, refreshKey }: FragmentWebProps) {
+export function FragmentWeb({
+  data,
+  refreshKey,
+  isMobile = false,
+}: FragmentWebProps) {
   const [sandboxStatus, setSandboxStatus] = useState<SandboxStatus>('checking')
   const [isIframeLoading, setIsIframeLoading] = useState(true)
 
@@ -104,9 +109,20 @@ export function FragmentWeb({ data, refreshKey }: FragmentWebProps) {
         )}
         src={data.sandboxUrl}
         title="Fragment Preview"
-        sandbox="allow-forms allow-scripts allow-same-origin"
+        sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
         onLoad={() => setIsIframeLoading(false)}
         onError={() => setSandboxStatus('expired')}
+        style={{
+          // Оптимизация для мобильных устройств
+          ...(isMobile && {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+            width: '100%',
+            height: '100%',
+            minHeight: '100%',
+            minWidth: '100%',
+          }),
+        }}
       />
     </div>
   )

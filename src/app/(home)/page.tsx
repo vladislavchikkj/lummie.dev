@@ -6,7 +6,7 @@ import Logo from '@/components/ui/logo'
 
 const Page = () => {
   return (
-    <section className="mt-40">
+    <section className="pt-40 pb-20">
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center px-5">
         <Logo width={75} height={75} className="relative z-10 mb-2" />
         <h2 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-neutral-800 md:text-4xl lg:text-6xl dark:text-neutral-100">
@@ -21,7 +21,7 @@ const Page = () => {
           <ProjectForm />
         </div>
 
-        <div className="relative z-10 mx-auto my-15 mt-50 min-h-[400px] w-full max-w-7xl">
+        <div className="relative z-10 mx-auto mt-48 min-h-[400px] w-full max-w-7xl">
           <ProjectsList />
         </div>
       </div>

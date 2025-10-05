@@ -26,9 +26,12 @@ const ProjectName = ({
 }) => {
   switch (project.status) {
     case 'PENDING':
+      const isCreating = !project.name
       return (
-        <h3 className="text-muted-foreground animate-pulse truncate font-medium">
-          Generating...
+        <h3
+          className={`text-muted-foreground truncate font-medium ${isCreating ? 'animate-pulse' : ''}`}
+        >
+          {project.name || 'Creating...'}
         </h3>
       )
     case 'ERROR':

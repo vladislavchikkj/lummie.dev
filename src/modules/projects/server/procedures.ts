@@ -7,6 +7,7 @@ import { OpenAI } from 'openai'
 import { tools } from '@/modules/projects/tools'
 import { CREATE_PROJECT_FN_NAME } from '@/modules/projects/constants'
 import { availableFunctions } from '@/modules/projects/functions'
+import { generateChatName } from '@/lib/chat-name-generator'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -71,10 +72,14 @@ export const projectsRouter = createTRPCRouter({
         }
       }
 
+      // Генерируем имя чата на основе первого сообщения
+      const chatName = await generateChatName(input.value)
+
       const createdProject = await prisma.project.create({
         data: {
           userId: ctx.auth.userId,
           status: 'PENDING',
+          name: chatName, // Устанавливаем сгенерированное имя
           messages: {
             create: {
               content: input.value,
@@ -129,6 +134,8 @@ export const projectsRouter = createTRPCRouter({
       }
 
       try {
+        const startTime = Date.now()
+
         const history = await prisma.message.findMany({
           where: {
             projectId: input.projectId,
@@ -161,15 +168,11 @@ export const projectsRouter = createTRPCRouter({
         )
 
         let toolCallName = ''
-        let toolCallArgs = ''
 
         for await (const chunk of stream) {
           const delta = chunk.choices[0]?.delta || ''
           const toolCallDelta = delta?.tool_calls?.[0]
           if (toolCallDelta) {
-            if (toolCallDelta.function?.arguments) {
-              toolCallArgs += toolCallDelta.function.arguments
-            }
             if (toolCallDelta.function?.name) {
               toolCallName = toolCallDelta.function.name
             }
@@ -193,6 +196,8 @@ export const projectsRouter = createTRPCRouter({
         }
 
         if (assistantContent) {
+          const generationTime = (Date.now() - startTime) / 1000
+
           await prisma.project.update({
             where: { id: input.projectId, userId: ctx.auth.userId },
             data: {
@@ -201,6 +206,7 @@ export const projectsRouter = createTRPCRouter({
                   content: assistantContent,
                   role: 'ASSISTANT',
                   type: 'RESULT',
+                  generationTime: generationTime,
                 },
               },
             },

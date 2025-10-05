@@ -21,6 +21,7 @@ export const codeAgentFunction = inngest.createFunction(
   { id: 'code-agent' },
   { event: 'code-agent/run' },
   async ({ event, step }) => {
+    const startTime = Date.now()
     const sandboxId = await step.run('get-sandbox-id', async () => {
       const sandbox = await Sandbox.create('luci-ai-nextjs')
       await sandbox.setTimeout(SANDBOX_TIMEOUT)
@@ -85,12 +86,15 @@ export const codeAgentFunction = inngest.createFunction(
         throw new Error('No text files found in the sandbox.')
       }
 
+      const generationTime = (Date.now() - startTime) / 1000
+
       await saveSuccessResult({
         projectId: event.data.projectId,
         newProjectName: parseAgentOutput(fragmentTitleOutput),
         responseText: parseAgentOutput(responseOutput),
         sandboxUrl: sandboxUrl,
         allSandboxFiles: allSandboxFiles,
+        generationTime: generationTime,
       })
     })
 

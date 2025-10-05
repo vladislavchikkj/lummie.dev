@@ -9,7 +9,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-import { Navbar } from '@/modules/home/ui/components/navbar/navbar'
+import { ProjectHeader } from '@/modules/projects/ui/components/project-header'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 import { MessagesContainer } from '../components/messages-container'
 import { MessageForm } from '@/modules/projects/ui/components/message-form'
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export const ProjectView = ({ projectId }: Props) => {
+  const isMobile = useIsMobile()
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
   const [tabState, setTabState] = useState<TabState>('preview')
   const [assistantMessageType, setAssistantMessageType] =
@@ -35,6 +37,17 @@ export const ProjectView = ({ projectId }: Props) => {
   const [fragmentKey, setFragmentKey] = useState(0)
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessageEntity | null>(null)
+  const [lastGenerationTime, setLastGenerationTime] = useState<number | null>(
+    null
+  )
+  const [currentStreamingStartTime, setCurrentStreamingStartTime] = useState<
+    number | null
+  >(null)
+  const streamingStartTimeRef = useRef<number | null>(null)
+  const [finalGenerationTime, setFinalGenerationTime] = useState<number | null>(
+    null
+  )
+  const [isFragmentFullscreen, setIsFragmentFullscreen] = useState(false)
 
   const lastMessageWithFragmentIdRef = useRef<string | null>(null)
 
@@ -48,12 +61,41 @@ export const ProjectView = ({ projectId }: Props) => {
     clearStreamingContent,
   } = useChatStreaming({
     projectId,
-    onStreamingStart: () => {},
-    onStreamingEnd: () => {},
+    onStreamingStart: () => {
+      const startTime = Date.now()
+      setCurrentStreamingStartTime(startTime)
+      streamingStartTimeRef.current = startTime
+    },
+    onStreamingEnd: () => {
+      const startTime =
+        streamingStartTimeRef.current || currentStreamingStartTime
+      if (startTime) {
+        const finalTime = (Date.now() - startTime) / 1000
+        setLastGenerationTime(finalTime)
+        setFinalGenerationTime(finalTime)
+      }
+      setCurrentStreamingStartTime(null)
+      streamingStartTimeRef.current = null
+    },
     onMessageTypeChange: setAssistantMessageType,
     onContentUpdate: () => {},
-    onStreamAborted: () => {},
-    onStreamCompleted: () => {},
+    onStreamAborted: () => {
+      setCurrentStreamingStartTime(null)
+      streamingStartTimeRef.current = null
+      setLastGenerationTime(null)
+      setFinalGenerationTime(null)
+    },
+    onStreamCompleted: () => {
+      const startTime =
+        streamingStartTimeRef.current || currentStreamingStartTime
+      if (startTime) {
+        const finalTime = (Date.now() - startTime) / 1000
+        setLastGenerationTime(finalTime)
+        setFinalGenerationTime(finalTime)
+      }
+      setCurrentStreamingStartTime(null)
+      streamingStartTimeRef.current = null
+    },
   })
 
   const { displayedMessages } = useChatMessages({
@@ -63,6 +105,9 @@ export const ProjectView = ({ projectId }: Props) => {
     streamingCompleted,
     wasStreamAborted,
     pendingUserMessage,
+    lastGenerationTime,
+    currentStreamingStartTime,
+    finalGenerationTime,
     onFirstMessageSubmit: (content: string) => {
       startStreaming(content, true)
     },
@@ -130,16 +175,61 @@ export const ProjectView = ({ projectId }: Props) => {
   }, [])
 
   const handleClose = useCallback(() => {
-    setActiveFragment(null)
-  }, [])
+    if (isMobile && isFragmentFullscreen) {
+      setIsFragmentFullscreen(false)
+    } else {
+      setActiveFragment(null)
+    }
+  }, [isMobile, isFragmentFullscreen])
+
+  const handleFragmentClick = useCallback(
+    (fragment: Fragment | null) => {
+      if (fragment) {
+        setActiveFragment(fragment)
+        if (isMobile) {
+          setIsFragmentFullscreen(true)
+        }
+      } else {
+        setActiveFragment(null)
+        if (isMobile) {
+          setIsFragmentFullscreen(false)
+        }
+      }
+    },
+    [isMobile]
+  )
+
+  // Мобильный режим с полноэкранным фрагментом
+  if (isMobile && isFragmentFullscreen && activeFragment) {
+    return (
+      <div className="flex h-dvh flex-col overflow-hidden">
+        <FragmentPanel
+          activeFragment={activeFragment}
+          tabState={tabState}
+          fragmentKey={fragmentKey}
+          projectId={projectId}
+          copied={copied}
+          onTabChange={handleTabChange}
+          onRefreshPreview={onRefreshPreview}
+          onCopyUrl={handleCopyUrl}
+          onClose={handleClose}
+          isMobile={true}
+        />
+      </div>
+    )
+  }
 
   return (
-    <div className="flex h-dvh flex-col pt-14">
-      <Navbar showDesktopNav={false} applyScrollStyles={false} />
+    <div className="flex h-dvh flex-col overflow-hidden pt-14">
+      <div className="bg-background/95 fixed top-0 right-0 left-0 z-50 px-4 backdrop-blur-xl">
+        <div className="mx-auto flex w-full items-center justify-between">
+          <ProjectHeader projectId={projectId} />
+        </div>
+      </div>
 
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
-          defaultSize={activeFragment ? 35 : 100}
+          defaultSize={activeFragment && !isMobile ? 35 : 100}
           minSize={25}
           className="relative flex min-h-0 flex-col overflow-hidden"
         >
@@ -149,12 +239,13 @@ export const ProjectView = ({ projectId }: Props) => {
             <Suspense fallback={null}>
               <MessagesContainer
                 activeFragment={activeFragment}
-                setActiveFragment={setActiveFragment}
+                setActiveFragment={handleFragmentClick}
                 messages={displayedMessages || []}
                 projectCreating={
                   assistantMessageType !== 'CHAT' && !wasStreamAborted
                 }
                 isStreaming={isStreaming}
+                isMobile={isMobile}
               >
                 <MessageForm
                   key={activeFragment ? 'narrow' : 'wide'}
@@ -170,7 +261,7 @@ export const ProjectView = ({ projectId }: Props) => {
           <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
-        {activeFragment && (
+        {activeFragment && !isMobile && (
           <>
             <ResizableHandle withHandle className="bg-transparent" />
             <ResizablePanel defaultSize={65} minSize={50} className="min-h-0">

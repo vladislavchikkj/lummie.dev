@@ -9,6 +9,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation'
+import { PulsingLogo } from '@/components/ui/pulsing-logo'
 
 interface Props {
   activeFragment: Fragment | null
@@ -20,10 +21,12 @@ interface Props {
     type: 'RESULT' | 'ERROR'
     createdAt: Date
     fragment: Fragment | null
+    generationTime?: number | null
   }[]
   children: ReactNode
   projectCreating: boolean
   isStreaming?: boolean
+  isMobile?: boolean
 }
 
 export const MessagesContainer = ({
@@ -33,10 +36,11 @@ export const MessagesContainer = ({
   projectCreating,
   messages,
   isStreaming = false,
+  isMobile = false,
 }: Props) => {
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
-  const isCenteredLayout = !activeFragment
+  const isCenteredLayout = !activeFragment || isMobile
 
   const handleFragmentClick = useCallback(
     (fragment: Fragment | null) => {
@@ -52,7 +56,8 @@ export const MessagesContainer = ({
           <ConversationContent
             className={cn(
               'flex min-h-0 flex-col pt-5 pb-5',
-              isCenteredLayout && 'mx-auto max-w-3xl'
+              isCenteredLayout && 'mx-auto max-w-3xl',
+              isMobile && 'px-3'
             )}
           >
             {useMemo(() => {
@@ -88,7 +93,13 @@ export const MessagesContainer = ({
                       onFragmentClick={handleFragmentClick}
                       type={message.type}
                       isStreaming={isCurrentlyStreaming}
+                      generationTime={message.generationTime}
                     />
+                    {isLastUserMessage && (isStreaming || projectCreating) && (
+                      <div className="mt-2 mb-4 flex items-center gap-2">
+                        <PulsingLogo width={24} height={24} />
+                      </div>
+                    )}
                   </div>
                 )
               })
@@ -112,7 +123,12 @@ export const MessagesContainer = ({
 
       <div className="relative shrink-0 p-3 pt-1">
         <div className="to-background pointer-events-none absolute -top-6 right-0 left-0 h-6 bg-gradient-to-b from-transparent" />
-        <div className={cn(isCenteredLayout && 'mx-auto max-w-3xl')}>
+        <div
+          className={cn(
+            isCenteredLayout && 'mx-auto max-w-3xl',
+            isMobile && ''
+          )}
+        >
           {children}
         </div>
       </div>

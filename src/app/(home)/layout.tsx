@@ -59,7 +59,7 @@ const Layout = ({ children }: Props) => {
   return (
     <main className="relative flex min-h-screen w-full flex-col">
       <Navbar />
-      <div className="relative flex min-h-screen w-full flex-col items-start justify-center overflow-auto">
+      <div className="relative flex w-full flex-col items-start justify-center">
         <Particles
           className="absolute inset-0"
           quantity={100}

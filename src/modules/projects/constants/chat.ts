@@ -18,6 +18,7 @@ export interface ChatMessageEntity {
   createdAt: Date
   fragment: Fragment | null
   isFirst?: boolean
+  generationTime?: number | null
 }
 
 export type DisplayedMessageEntity = ChatMessageEntity & {

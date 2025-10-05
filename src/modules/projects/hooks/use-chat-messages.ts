@@ -14,6 +14,9 @@ interface UseChatMessagesProps {
   streamingCompleted: boolean
   wasStreamAborted: boolean
   pendingUserMessage: ChatMessageEntity | null
+  lastGenerationTime: number | null
+  currentStreamingStartTime: number | null
+  finalGenerationTime: number | null
   onFirstMessageSubmit: (content: string) => void
   onMessagesUpdate: (messages: ChatMessageEntity[]) => void
   onStreamingContentClear: () => void
@@ -27,6 +30,9 @@ export const useChatMessages = ({
   streamingCompleted,
   wasStreamAborted,
   pendingUserMessage,
+  lastGenerationTime,
+  currentStreamingStartTime,
+  finalGenerationTime,
   onFirstMessageSubmit,
   onMessagesUpdate,
   onStreamingContentClear,
@@ -106,6 +112,12 @@ export const useChatMessages = ({
       streamingContent && (isStreaming || streamingCompleted)
 
     if (shouldShowStreamingContent) {
+      const generationTime = isStreaming
+        ? currentStreamingStartTime
+          ? (Date.now() - currentStreamingStartTime) / 1000
+          : undefined
+        : finalGenerationTime || lastGenerationTime
+
       const streamingMessage = {
         id: `streaming-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date(),
@@ -114,6 +126,7 @@ export const useChatMessages = ({
         content: streamingContent,
         type: 'RESULT' as const,
         isStreaming: isStreaming,
+        generationTime: generationTime ?? undefined,
       }
       allMessages.push(streamingMessage)
     }
@@ -128,6 +141,9 @@ export const useChatMessages = ({
     streamingContent,
     isStreaming,
     streamingCompleted,
+    lastGenerationTime,
+    currentStreamingStartTime,
+    finalGenerationTime,
   ])
 
   const refetchMessages = useCallback(() => {

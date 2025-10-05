@@ -65,7 +65,7 @@ export default function RootLayout({
 
               <SidebarProvider>
                 <AppSidebar />
-                <main className="h-full w-full ring-0">{children}</main>
+                <main className="w-full ring-0">{children}</main>
               </SidebarProvider>
               <CookieConsent />
             </ThemeProvider>
