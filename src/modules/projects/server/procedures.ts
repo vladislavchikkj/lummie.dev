@@ -220,4 +220,45 @@ export const projectsRouter = createTRPCRouter({
         })
       }
     }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, { message: 'Project ID is required' }),
+        name: z
+          .string()
+          .min(1, { message: 'Name is required' })
+          .max(100, { message: 'Name is too long' }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const updatedProject = await prisma.project.update({
+        where: {
+          id: input.id,
+          userId: ctx.auth.userId,
+        },
+        data: {
+          name: input.name,
+        },
+      })
+
+      return updatedProject
+    }),
+
+  delete: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, { message: 'Project ID is required' }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await prisma.project.delete({
+        where: {
+          id: input.id,
+          userId: ctx.auth.userId,
+        },
+      })
+
+      return { success: true }
+    }),
 })

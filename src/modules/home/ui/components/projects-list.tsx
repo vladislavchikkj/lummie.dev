@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { useTRPC } from '@/trpc/client'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
+import { ProjectMenu } from '@/modules/projects/ui/components/project-menu'
 
 const ProjectName = ({
   project,
@@ -150,19 +151,21 @@ export const ProjectsList = () => {
         )}
 
         {filteredAndSortedProjects.map((project) => (
-          <Link
+          <div
             key={project.id}
-            href={`/projects/${project.id}`}
-            className="block"
+            className="group bg-card relative flex h-full items-center gap-x-4 rounded-lg border p-4 transition-colors"
           >
-            <div className="group bg-card relative flex h-full items-center gap-x-4 rounded-lg border p-4 transition-colors">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-              />
+            <GlowingEffect
+              spread={40}
+              glow={true}
+              disabled={false}
+              proximity={64}
+              inactiveZone={0.01}
+            />
+            <Link
+              href={`/projects/${project.id}`}
+              className="flex flex-1 items-center gap-x-4"
+            >
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
                 <Logo width={24} height={24} />
               </div>
@@ -175,8 +178,14 @@ export const ProjectsList = () => {
                   })}
                 </p>
               </div>
+            </Link>
+            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+              <ProjectMenu
+                projectId={project.id}
+                currentName={project.name || 'Untitled Project'}
+              />
             </div>
-          </Link>
+          </div>
         ))}
       </div>
     </div>
