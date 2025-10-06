@@ -28,19 +28,14 @@ const FragmentCard = ({
   return (
     <button
       className={cn(
-        // Base styles - minimal and clean
         'group bg-muted/50 relative flex w-full items-center gap-2 rounded-lg border-0 p-2 text-start transition-all duration-200 ease-out',
-        // Hover state - subtle
         'hover:bg-muted/70 active:scale-[0.98]',
-        // Desktop styles
         'sm:w-fit sm:gap-3 sm:p-2.5',
-        // Active state - minimal
         isActiveFragment &&
           'bg-primary/10 text-foreground ring-primary/20 ring-1'
       )}
       onClick={() => onFragmentClick(fragment)}
     >
-      {/* Icon - minimal */}
       <Code2Icon
         className={cn(
           'size-3.5 transition-colors sm:size-4',
@@ -50,7 +45,6 @@ const FragmentCard = ({
         )}
       />
 
-      {/* Content - compact */}
       <div className="flex min-w-0 flex-1 flex-col">
         <span
           className={cn(
@@ -74,7 +68,6 @@ const FragmentCard = ({
         </span>
       </div>
 
-      {/* Chevron - minimal */}
       <ChevronRightIcon
         className={cn(
           'size-3 transition-all duration-200 group-hover:translate-x-0.5 sm:size-3.5',
@@ -130,10 +123,6 @@ const AssistantMessageActions = ({
           : 'opacity-0 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
       )}
     >
-      {/* <Button variant="ghost" size="icon" className="h-8 w-8">
-        <RefreshCw className="h-4 w-4" />
-        <span className="sr-only">Regenerate response</span>
-      </Button> */}
       <Button
         variant="ghost"
         size="icon"
@@ -186,6 +175,32 @@ const AssistantMessageActions = ({
   )
 }
 
+interface UserMessageActionsProps {
+  content: string
+}
+
+const UserMessageActions = ({ content }: UserMessageActionsProps) => {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content).catch((err) => {
+      console.error('Failed to copy text: ', err)
+    })
+  }
+
+  return (
+    <div className="text-muted-foreground flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 transition-all duration-200 hover:bg-transparent sm:h-8 sm:w-8"
+        onClick={handleCopy}
+      >
+        <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <span className="sr-only">Copy</span>
+      </Button>
+    </div>
+  )
+}
+
 interface MessageCardProps {
   content: string
   role: MessageRole
@@ -195,7 +210,7 @@ interface MessageCardProps {
   onFragmentClick: (fragment: Fragment | null) => void
   type: MessageType
   isStreaming?: boolean
-  generationTime?: number | null // время генерации в секундах
+  generationTime?: number | null
 }
 
 export const MessageCard = memo(
@@ -212,10 +227,22 @@ export const MessageCard = memo(
     const messageRole = role.toLowerCase() as 'user' | 'assistant'
 
     return (
-      <Message from={messageRole}>
-        <MessageContent className="flex flex-col">
-          {role === 'ASSISTANT' ? (
-            <>
+      <>
+        {role === 'USER' && (
+          <div className="group mb-2 flex items-center justify-end gap-2">
+            <Message from={messageRole}>
+              <div className="flex gap-2">
+                <UserMessageActions content={content} />
+                <MessageContent className="flex flex-col">
+                  <div className="text-base sm:text-base">{content}</div>
+                </MessageContent>
+              </div>
+            </Message>
+          </div>
+        )}
+        {role === 'ASSISTANT' && (
+          <Message from={messageRole}>
+            <MessageContent className="flex flex-col">
               <Response
                 className="flex-1 text-base sm:text-base"
                 useHardenedMarkdown={false}
@@ -247,12 +274,10 @@ export const MessageCard = memo(
                   Error details
                 </Reasoning>
               )}
-            </>
-          ) : (
-            <div className="text-base sm:text-base">{content}</div>
-          )}
-        </MessageContent>
-      </Message>
+            </MessageContent>
+          </Message>
+        )}
+      </>
     )
   },
   (prevProps, nextProps) => {

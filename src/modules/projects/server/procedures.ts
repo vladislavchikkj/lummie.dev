@@ -72,14 +72,13 @@ export const projectsRouter = createTRPCRouter({
         }
       }
 
-      // Генерируем имя чата на основе первого сообщения
       const chatName = await generateChatName(input.value)
 
       const createdProject = await prisma.project.create({
         data: {
           userId: ctx.auth.userId,
           status: 'PENDING',
-          name: chatName, // Устанавливаем сгенерированное имя
+          name: chatName,
           messages: {
             create: {
               content: input.value,

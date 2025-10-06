@@ -4,8 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import TextareaAutosize from 'react-textarea-autosize'
 import { ArrowUpIcon, Loader2Icon, Paperclip } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
@@ -90,7 +89,6 @@ export const MessageForm = ({
           render={({ field }) => (
             <TextareaAutosize
               {...field}
-              // disabled={isStreaming}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               minRows={2}

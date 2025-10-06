@@ -120,7 +120,6 @@ export const ProjectView = ({ projectId }: Props) => {
     async (message: string, isFirstMessage: boolean = false) => {
       if (isStreaming || !message.trim()) return
 
-      // Создаем сообщение пользователя сразу
       const userMsg: ChatMessageEntity = {
         role: 'USER',
         content: message,
@@ -130,12 +129,10 @@ export const ProjectView = ({ projectId }: Props) => {
         type: 'RESULT',
       }
 
-      // Показываем сообщение пользователя мгновенно
       if (!isFirstMessage) {
         setPendingUserMessage(userMsg)
       }
 
-      // Запускаем стрим
       await startStreaming(message, isFirstMessage)
     },
     [isStreaming, startStreaming]
@@ -199,7 +196,6 @@ export const ProjectView = ({ projectId }: Props) => {
     [isMobile]
   )
 
-  // Мобильный режим с полноэкранным фрагментом
   if (isMobile && isFragmentFullscreen && activeFragment) {
     return (
       <div className="flex h-dvh flex-col overflow-hidden">

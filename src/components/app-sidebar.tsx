@@ -25,8 +25,11 @@ const ProjectName = ({
 }) => {
   switch (project.status) {
     case 'PENDING':
+      const isCreating = !project.name
       return (
-        <span className="text-muted-foreground animate-pulse truncate">
+        <span
+          className={`truncate ${isCreating ? 'text-muted-foreground animate-pulse' : ''}`}
+        >
           {project.name || 'Creating...'}
         </span>
       )

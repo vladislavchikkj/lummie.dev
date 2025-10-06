@@ -29,7 +29,7 @@ const ProjectName = ({
       const isCreating = !project.name
       return (
         <h3
-          className={`text-muted-foreground truncate font-medium ${isCreating ? 'animate-pulse' : ''}`}
+          className={`truncate font-medium ${isCreating ? 'animate-pulse' : ''}`}
         >
           {project.name || 'Creating...'}
         </h3>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Lock, CrownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useScroll } from '@/hooks/use-scroll'
 import { SignedIn, SignedOut, useAuth } from '@clerk/nextjs'
@@ -13,7 +13,6 @@ import { MobileNav } from '@/modules/home/ui/components/navbar/mobile-nav'
 import Logo from '@/components/ui/logo'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { CrownIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { formatDuration, intervalToDuration } from 'date-fns'
 import { useQuery } from '@tanstack/react-query'
@@ -80,27 +79,45 @@ export const ProjectHeader = ({
     }
   }, [msBeforeNext])
 
+  const isPrivateProject = true
+
   return (
     <header
       className={cn(
         'fixed top-0 right-0 left-0 z-50 border-transparent bg-transparent px-4 py-2 transition-all duration-300',
         isScrolled &&
           applyScrollStyles &&
-          'bg-background/95 shadow-sm backdrop-blur-xl'
+          'bg-background/95 border-b shadow-sm backdrop-blur-xl'
       )}
     >
       <div className="mx-auto flex w-full items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
+          <div
             onClick={toggleSidebar}
-            className="flex cursor-pointer items-center gap-2 p-0! px-0 py-0 transition-all hover:bg-transparent hover:opacity-80"
+            className="flex cursor-pointer items-center gap-3 rounded-lg bg-transparent transition-colors"
           >
             <Logo width={24} height={24} />
-            <span className="font-medium">{project?.name}</span>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+
+            <div className="bg-border h-6 w-px" />
+
+            <div className="flex flex-col items-start justify-center">
+              <div className="flex items-center gap-1.5 pb-1">
+                <span className="text-foreground text-sm leading-none font-semibold">
+                  {project?.name}
+                </span>
+                {isPrivateProject && (
+                  <Lock className="text-muted-foreground h-3 w-3" />
+                )}
+              </div>
+              <span className="text-muted-foreground text-xs leading-none">
+                View Projects
+              </span>
+            </div>
+
+            <ChevronDown className="text-muted-foreground h-4 w-4" />
+          </div>
         </div>
+
         <div className="hidden min-w-[100px] items-center gap-1 md:flex">
           {!isLoaded ? (
             <AuthSkeleton />
