@@ -95,10 +95,15 @@ export const ProjectView = ({ projectId }: Props) => {
       }
       setCurrentStreamingStartTime(null)
       streamingStartTimeRef.current = null
+
+      // Refetch messages after streaming completes to ensure proper order
+      setTimeout(() => {
+        refetchMessages()
+      }, 500)
     },
   })
 
-  const { displayedMessages } = useChatMessages({
+  const { displayedMessages, refetchMessages } = useChatMessages({
     projectId,
     isStreaming,
     streamingContent,
