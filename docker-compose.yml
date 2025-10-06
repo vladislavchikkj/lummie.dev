@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: luci-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: luci_dev
+      POSTGRES_USER: luci_user
+      POSTGRES_PASSWORD: luci_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U luci_user -d luci_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Опционально: pgAdmin для удобного управления БД
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: luci-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@luci.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  pgadmin_data:

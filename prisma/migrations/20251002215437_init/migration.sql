@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "public"."ProjectStatus" AS ENUM ('PENDING', 'COMPLETED', 'ERROR');
+CREATE TYPE "public"."ProjectStatus" AS ENUM ('PENDING', 'COMPLETED', 'ERROR', 'NOT_STARTED');
 
 -- CreateEnum
 CREATE TYPE "public"."MessageRole" AS ENUM ('USER', 'ASSISTANT');
@@ -29,6 +29,7 @@ CREATE TABLE "public"."Message" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "projectId" TEXT NOT NULL,
+    "isFirst" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
 );

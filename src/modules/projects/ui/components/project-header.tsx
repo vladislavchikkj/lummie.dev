@@ -1,33 +1,37 @@
+'use client'
+
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
-
-import Logo from '@/components/ui/logo'
+import { Header } from '@/components/ui/header'
+import { ProjectHeaderContent } from '@/components/ui/project-header-content'
 import { useTRPC } from '@/trpc/client'
-import { useSidebar } from '@/components/ui/sidebar'
 
 interface Props {
   projectId: string
+  applyScrollStyles?: boolean
 }
 
-export const ProjectHeader = ({ projectId }: Props) => {
+export const ProjectHeader = ({
+  projectId,
+  applyScrollStyles = true,
+}: Props) => {
   const trpc = useTRPC()
   const { data: project } = useSuspenseQuery(
     trpc.projects.getOne.queryOptions({ id: projectId })
   )
 
-  const { toggleSidebar } = useSidebar()
+  const isPrivateProject = true
 
   return (
-    <Button
-      variant="ghost"
-      onClick={toggleSidebar}
-      className="px-0! py-0! hover:bg-transparent!"
-    >
-      <Logo width={28} height={28} />
-      <span className="mx-2 font-medium">{project?.name}</span>
-      <ChevronDown className="h-4 w-4" />
-    </Button>
+    <Header
+      applyScrollStyles={applyScrollStyles}
+      showDesktopNav={false}
+      leftContent={
+        <ProjectHeaderContent
+          projectName={project?.name || 'Loading...'}
+          isPrivate={isPrivateProject}
+        />
+      }
+      mobilePathname="/projects"
+    />
   )
 }

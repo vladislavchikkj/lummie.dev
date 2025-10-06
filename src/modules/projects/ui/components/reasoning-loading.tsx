@@ -1,6 +1,5 @@
 'use client'
 
-import { Message, MessageContent } from '@/components/ui/shadcn-io/ai/message'
 import {
   Task,
   TaskContent,
@@ -103,13 +102,26 @@ export const ReasoningLoading = () => {
     }
 
     if (phase === 'INITIAL_FILL') {
-      const initialTasks = taskQueue.slice(0, MAX_TASKS_VISIBLE)
-      indexRef.current = initialTasks.length
-      setTasks(initialTasks)
+      const addTaskSequentially = (taskIndex: number) => {
+        if (taskIndex >= MAX_TASKS_VISIBLE) {
+          timerRef.current = setTimeout(() => {
+            setPhase('FADING_OUT')
+          }, 2000)
+          return
+        }
 
-      timerRef.current = setTimeout(() => {
-        setPhase('FADING_OUT')
-      }, 3000)
+        const delay = Math.random() * 1500 + 800
+        timerRef.current = setTimeout(() => {
+          setTasks((prevTasks) => {
+            const newTask = taskQueue[taskIndex]
+            indexRef.current = taskIndex + 1
+            return [...prevTasks, newTask]
+          })
+          addTaskSequentially(taskIndex + 1)
+        }, delay)
+      }
+
+      addTaskSequentially(0)
     }
 
     if (phase === 'FADING_OUT') {
@@ -118,12 +130,12 @@ export const ReasoningLoading = () => {
       timerRef.current = setTimeout(() => {
         setPhase('CYCLING')
         setTasks([])
-      }, 500)
+      }, 800)
     }
 
     if (phase === 'CYCLING') {
       const scheduleNextTask = () => {
-        const delay = Math.random() * 2000 + 1000
+        const delay = Math.random() * 3000 + 2000
         timerRef.current = setTimeout(() => {
           setTasks((prevTasks) => {
             const nextTaskToAdd = taskQueue[indexRef.current]
@@ -145,19 +157,21 @@ export const ReasoningLoading = () => {
   }, [phase, taskQueue])
 
   return (
-    <Message from="assistant">
-      <MessageContent>
-        <Task className="w-full">
-          <TaskTrigger title="Generating Project..." />
-          <TaskContent>
-            {tasks.map((task) => (
-              <TaskItem key={task.key} data-exiting={task.isExiting}>
-                {task.value}
-              </TaskItem>
-            ))}
-          </TaskContent>
-        </Task>
-      </MessageContent>
-    </Message>
+    <div className="group is-assistant flex w-full flex-row-reverse items-end justify-end gap-2">
+      <div className="text-foreground flex flex-col gap-2 overflow-hidden rounded-2xl px-4 py-3 group-[.is-assistant]:ml-4 group-[.is-assistant]:max-w-full">
+        <div className="is-user:dark flex flex-col gap-4">
+          <Task className="w-full">
+            <TaskTrigger title="Generating Project..." />
+            <TaskContent>
+              {tasks.map((task) => (
+                <TaskItem key={task.key} data-exiting={task.isExiting}>
+                  {task.value}
+                </TaskItem>
+              ))}
+            </TaskContent>
+          </Task>
+        </div>
+      </div>
+    </div>
   )
 }

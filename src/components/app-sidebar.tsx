@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, MoreHorizontal } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 
 import { useTRPC } from '@/trpc/client'
 import { Button } from './ui/button'
@@ -13,10 +13,10 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { ProjectMenu } from '@/modules/projects/ui/components/project-menu'
 
 const ProjectName = ({
   project,
@@ -25,9 +25,12 @@ const ProjectName = ({
 }) => {
   switch (project.status) {
     case 'PENDING':
+      const isCreating = !project.name
       return (
-        <span className="text-muted-foreground animate-pulse truncate">
-          Generating...
+        <span
+          className={`truncate ${isCreating ? 'text-muted-foreground animate-pulse' : ''}`}
+        >
+          {project.name || 'Creating...'}
         </span>
       )
     case 'ERROR':
@@ -97,16 +100,24 @@ export function AppSidebar() {
 
               {sortedProjects?.map((project) => (
                 <SidebarMenuItem key={project.id}>
-                  <Link
-                    href={`/projects/${project.id}`}
-                    className="w-full"
-                    onClick={() => setOpen(false)}
-                  >
-                    <SidebarMenuButton className="w-full justify-between hover:bg-neutral-800">
+                  <div className="group hover:bg-accent/50 flex w-full items-center rounded-md px-2 transition-all duration-200">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="-m-2 min-w-0 flex-1 rounded-md p-2 transition-colors duration-200 hover:bg-transparent"
+                      onClick={() => setOpen(false)}
+                    >
                       <ProjectName project={project} />
-                      <MoreHorizontal className="h-4 w-4 flex-shrink-0 text-neutral-400" />
-                    </SidebarMenuButton>
-                  </Link>
+                    </Link>
+                    <div
+                      className="ml-2 flex-shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ProjectMenu
+                        projectId={project.id}
+                        currentName={project.name || 'Untitled Chat'}
+                      />
+                    </div>
+                  </div>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

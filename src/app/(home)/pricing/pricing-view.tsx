@@ -10,7 +10,7 @@ const PricingView = () => {
   const currentTheme = useCurrentTheme()
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col">
+    <div className="mx-auto flex w-full max-w-3xl flex-col pt-20">
       <section className="relative z-10 space-y-6">
         <div className="flex flex-col items-center">
           <Logo width={50} height={30} className="hidden md:block" />

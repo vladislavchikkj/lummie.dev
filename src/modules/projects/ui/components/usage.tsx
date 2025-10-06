@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 interface Props {
   points: number
   msBeforeNext: number
-  onClose: () => void // Added onClose prop
+  onClose: () => void
 }
 
 export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
@@ -51,7 +51,7 @@ export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
             size="icon"
             variant="ghost"
             className="size-7"
-            onClick={onClose} // Close button functionality
+            onClick={onClose}
           >
             <XIcon className="size-4" />
           </Button>

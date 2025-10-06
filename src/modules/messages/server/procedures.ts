@@ -1,4 +1,3 @@
-import { inngest } from '@/inngest/client'
 import { prisma } from '@/lib/db'
 import { consumeCredits } from '@/lib/usage'
 import { protectedProcedure, createTRPCRouter } from '@/trpc/init'
@@ -30,7 +29,7 @@ export const messagesRouter = createTRPCRouter({
 
       return messages
     }),
-  create: protectedProcedure
+  handleUserMessage: protectedProcedure
     .input(
       z.object({
         value: z
@@ -38,22 +37,22 @@ export const messagesRouter = createTRPCRouter({
           .min(1, { message: 'Value is required' })
           .max(10000, { message: 'Value is too long' }),
         projectId: z.string().min(1, { message: 'Project ID is required' }),
+        isFirst: z.boolean().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const existingProject = await prisma.project.findUnique({
-        where: {
-          id: input.projectId,
-          userId: ctx.auth.userId,
-        },
-      })
-
-      if (!existingProject) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' })
-      }
-
+    .mutation(async function* ({ input, ctx }) {
       try {
-        await consumeCredits()
+        if (!input.isFirst) {
+          await consumeCredits()
+          await prisma.project.update({
+            where: { id: input.projectId, userId: ctx.auth.userId },
+            data: {
+              messages: {
+                create: { content: input.value, role: 'USER', type: 'RESULT' },
+              },
+            },
+          })
+        }
       } catch (error) {
         if (error instanceof Error) {
           throw new TRPCError({
@@ -68,23 +67,14 @@ export const messagesRouter = createTRPCRouter({
         }
       }
 
-      const createdMessage = await prisma.message.create({
-        data: {
-          projectId: existingProject.id,
-          content: input.value,
-          role: 'USER',
-          type: 'RESULT',
-        },
-      })
-
-      await inngest.send({
-        name: 'code-agent/run',
-        data: {
-          value: input.value,
-          projectId: input.projectId,
-        },
-      })
-
-      return createdMessage
+      try {
+      } catch (error) {
+        console.error('Streaming mutation error:', error)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message:
+            'An unexpected error occurred while processing your message.',
+        })
+      }
     }),
 })

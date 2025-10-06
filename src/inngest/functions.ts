@@ -21,6 +21,46 @@ export const codeAgentFunction = inngest.createFunction(
   { id: 'code-agent' },
   { event: 'code-agent/run' },
   async ({ event, step }) => {
+    // Проверяем статус проекта перед началом генерации
+    const projectStatus = await step.run('check-project-status', async () => {
+      const project = await prisma.project.findUnique({
+        where: { id: event.data.projectId },
+        select: { status: true, sandboxId: true },
+      })
+
+      // Если проект уже завершен или в процессе, не запускаем генерацию
+      if (project?.status === 'COMPLETED') {
+        console.log(
+          `Project ${event.data.projectId} is already completed, skipping generation`
+        )
+        return { shouldSkip: true, status: project.status }
+      }
+
+      // Если проект уже в процессе генерации и есть sandboxId, не создаем новый
+      if (project?.status === 'PENDING' && project.sandboxId) {
+        console.log(
+          `Project ${event.data.projectId} is already in progress with sandbox ${project.sandboxId}, skipping generation`
+        )
+        return {
+          shouldSkip: true,
+          status: project.status,
+          sandboxId: project.sandboxId,
+        }
+      }
+
+      return { shouldSkip: false, status: project?.status }
+    })
+
+    if (projectStatus.shouldSkip) {
+      return {
+        message: 'Project generation already in progress or completed',
+        status: projectStatus.status,
+        sandboxId:
+          'sandboxId' in projectStatus ? projectStatus.sandboxId : undefined,
+      }
+    }
+
+    const startTime = Date.now()
     const sandboxId = await step.run('get-sandbox-id', async () => {
       const sandbox = await Sandbox.create('luci-ai-nextjs')
       await sandbox.setTimeout(SANDBOX_TIMEOUT)
@@ -85,12 +125,15 @@ export const codeAgentFunction = inngest.createFunction(
         throw new Error('No text files found in the sandbox.')
       }
 
+      const generationTime = (Date.now() - startTime) / 1000
+
       await saveSuccessResult({
         projectId: event.data.projectId,
         newProjectName: parseAgentOutput(fragmentTitleOutput),
         responseText: parseAgentOutput(responseOutput),
         sandboxUrl: sandboxUrl,
         allSandboxFiles: allSandboxFiles,
+        generationTime: generationTime,
       })
     })
 
