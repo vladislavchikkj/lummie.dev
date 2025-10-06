@@ -72,14 +72,14 @@ Go beyond static pages. Your goal is to create a dynamic, "alive" experience. Im
 ---
 
 ⚠️ **Mandatory Safety Rules**
-- **"use client" Directive:** ALWAYS add \`"use client";\` to the **very first line** of any file that uses React Hooks (\`useState\`, \`useEffect\`, etc.) or browser APIs.
+- **"use client" Directive:** ALWAYS add \`"use client"\` to the **very first line** of any file that uses React Hooks (\`useState\`, \`useEffect\`, etc.) or browser APIs.
 - **SSR & Hydration Safety (CRITICAL):** To prevent React Hydration Errors, follow this pattern strictly for client-side values.
   - **THE CORRECT PATTERN:**
     1.  Initialize state with a static default (\`null\`, \`[]\`, \`false\`).
     2.  Set the dynamic, client-side value (e.g., from \`localStorage\` or \`Math.random\`) inside a \`useEffect\` hook with an empty dependency array (\`[]\`).
   - **Correct Example for \`localStorage\`:**
     \`\`\`tsx
-    "use client";
+    "use client"
     import { useState, useEffect } from 'react';
 
     function ThemeSwitcher() {

@@ -1,40 +1,9 @@
 'use client'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ChevronDown, Lock, CrownIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useScroll } from '@/hooks/use-scroll'
-import { SignedIn, SignedOut, useAuth } from '@clerk/nextjs'
-import { Sheet } from '@/components/ui/sheet'
-import { Skeleton } from '@/components/ui/skeleton'
-import { AuthControls } from '@/modules/home/ui/components/navbar/auth-controls'
-import { UserMenu } from '@/modules/home/ui/components/navbar/user-menu'
-import { MobileNav } from '@/modules/home/ui/components/navbar/mobile-nav'
-import Logo from '@/components/ui/logo'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { useMemo } from 'react'
-import { formatDuration, intervalToDuration } from 'date-fns'
-import { useQuery } from '@tanstack/react-query'
+import { Header } from '@/components/ui/header'
+import { ProjectHeaderContent } from '@/components/ui/project-header-content'
 import { useTRPC } from '@/trpc/client'
-import { UsagePopover } from '@/modules/home/ui/components/navbar/usage-popover'
-import { useSidebar } from '@/components/ui/sidebar'
-
-const navItems = [
-  { href: '/enterprise', label: 'Enterprise' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/resources', label: 'Resources' },
-]
-
-const AuthSkeleton = () => {
-  return (
-    <div className="flex min-w-[100px] items-center gap-2">
-      <Skeleton className="h-6 w-6 rounded-full" />
-      <Skeleton className="h-6 w-6 rounded-full" />
-      <Skeleton className="h-8 w-8" />
-    </div>
-  )
-}
 
 interface Props {
   projectId: string
@@ -50,112 +19,19 @@ export const ProjectHeader = ({
     trpc.projects.getOne.queryOptions({ id: projectId })
   )
 
-  const { toggleSidebar } = useSidebar()
-  const isScrolled = useScroll()
-  const { isLoaded, has } = useAuth()
-
-  const { data: usage, isLoading: isUsageLoading } = useQuery(
-    trpc.usage.status.queryOptions()
-  )
-
-  const hasProAccess = has?.({ plan: 'pro' })
-  const points = usage?.remainingPoints ?? 0
-  const msBeforeNext = usage?.msBeforeNext ?? 0
-  const hasNoCredits = points <= 0
-
-  const resetTime = useMemo(() => {
-    if (!msBeforeNext) return '...'
-    try {
-      return formatDuration(
-        intervalToDuration({
-          start: new Date(),
-          end: new Date(Date.now() + msBeforeNext),
-        }),
-        { format: ['days', 'hours'] }
-      )
-    } catch (error) {
-      console.error('Error formatting duration:', error)
-      return '...'
-    }
-  }, [msBeforeNext])
-
   const isPrivateProject = true
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 right-0 left-0 z-50 border-transparent bg-transparent px-4 py-2 transition-all duration-300',
-        isScrolled &&
-          applyScrollStyles &&
-          'bg-background/95 border-b shadow-sm backdrop-blur-xl'
-      )}
-    >
-      <div className="mx-auto flex w-full items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div
-            onClick={toggleSidebar}
-            className="flex cursor-pointer items-center gap-3 rounded-lg bg-transparent transition-colors"
-          >
-            <Logo width={24} height={24} />
-
-            <div className="bg-border h-6 w-px" />
-
-            <div className="flex flex-col items-start justify-center">
-              <div className="flex items-center gap-1.5 pb-1">
-                <span className="text-foreground text-sm leading-none font-semibold">
-                  {project?.name}
-                </span>
-                {isPrivateProject && (
-                  <Lock className="text-muted-foreground h-3 w-3" />
-                )}
-              </div>
-              <span className="text-muted-foreground text-xs leading-none">
-                View Projects
-              </span>
-            </div>
-
-            <ChevronDown className="text-muted-foreground h-4 w-4" />
-          </div>
-        </div>
-
-        <div className="hidden min-w-[100px] items-center gap-1 md:flex">
-          {!isLoaded ? (
-            <AuthSkeleton />
-          ) : (
-            <>
-              <SignedOut>
-                <AuthControls />
-              </SignedOut>
-              <SignedIn>
-                {isUsageLoading ? (
-                  <Skeleton className="h-8 w-20 rounded-md" />
-                ) : hasNoCredits && !hasProAccess ? (
-                  <Button asChild size="sm" className="h-8">
-                    <Link href="/pricing">
-                      <CrownIcon className="mr-2 h-4 w-4" />
-                      Upgrade
-                    </Link>
-                  </Button>
-                ) : (
-                  usage && (
-                    <UsagePopover
-                      points={points}
-                      hasProAccess={hasProAccess}
-                      resetTime={resetTime}
-                    />
-                  )
-                )}
-                <UserMenu />
-              </SignedIn>
-            </>
-          )}
-        </div>
-        <div className="md:hidden">
-          <Sheet>
-            <MobileNav pathname="/projects" navItems={navItems} />
-          </Sheet>
-        </div>
-      </div>
-    </header>
+    <Header
+      applyScrollStyles={applyScrollStyles}
+      showDesktopNav={false}
+      leftContent={
+        <ProjectHeaderContent
+          projectName={project?.name || 'Loading...'}
+          isPrivate={isPrivateProject}
+        />
+      }
+      mobilePathname="/projects"
+    />
   )
 }

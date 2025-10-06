@@ -11,7 +11,7 @@ const IGNORE_DIRS = new Set([
   '.npm',
   '.cache',
   'node_modules',
-  'components',
+  // 'components',
   'nextjs-app',
   'build',
   'dist',

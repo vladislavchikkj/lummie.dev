@@ -19,6 +19,7 @@ import {
   Settings,
   LogOut,
   MessageSquareDot,
+  CreditCard,
 } from 'lucide-react'
 import { UserControl } from '@/components/user-control'
 import { cn } from '@/lib/utils'
@@ -41,9 +42,9 @@ const UserMenuMobile = ({ theme, setTheme }: UserMenuMobileProps) => {
         <User className="h-4 w-4" />
         Profile
       </Link>
-      <Link href="/settings" className={itemClasses}>
-        <Settings className="h-4 w-4" />
-        Settings
+      <Link href="/profile/billing" className={itemClasses}>
+        <CreditCard className="h-4 w-4" />
+        Billing
       </Link>
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -114,9 +115,9 @@ const UserMenuDesktop = ({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+              <Link href="/profile/billing">
+                <CreditCard className="mr-2 h-4 w-4" />
+                <span>Billing</span>
                 <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>

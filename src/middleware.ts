@@ -12,6 +12,9 @@ const isPublicRoute = createRouteMatcher([
   '/about',
   '/contact',
   '/enterprise',
+  // Clerk routes - allow access to profile and settings routes
+  '/profile(.*)',
+  '/settings(.*)',
 ])
 
 export default clerkMiddleware(async (auth, req) => {

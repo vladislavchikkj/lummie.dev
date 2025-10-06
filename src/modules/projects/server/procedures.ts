@@ -226,6 +226,28 @@ export const projectsRouter = createTRPCRouter({
               toolCallName in availableFunctions &&
               toolCallName === CREATE_PROJECT_FN_NAME
             ) {
+              // Проверяем статус проекта перед вызовом createProjectTool
+              const project = await prisma.project.findUnique({
+                where: { id: input.projectId },
+                select: { status: true, sandboxId: true },
+              })
+
+              // Если проект уже завершен, не вызываем createProjectTool
+              if (project?.status === 'COMPLETED') {
+                console.log(
+                  `Project ${input.projectId} is already completed, skipping createProjectTool call`
+                )
+                return
+              }
+
+              // Если проект уже в процессе генерации (PENDING + есть sandboxId), не вызываем createProjectTool
+              if (project?.status === 'PENDING' && project.sandboxId) {
+                console.log(
+                  `Project ${input.projectId} is already in progress with sandbox ${project.sandboxId}, skipping createProjectTool call`
+                )
+                return
+              }
+
               const functionToCall = availableFunctions[toolCallName]
               await functionToCall({ input })
             }

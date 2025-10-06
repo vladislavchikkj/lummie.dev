@@ -100,16 +100,16 @@ export function AppSidebar() {
 
               {sortedProjects?.map((project) => (
                 <SidebarMenuItem key={project.id}>
-                  <div className="flex w-full items-center">
+                  <div className="group hover:bg-accent/50 flex w-full items-center rounded-md px-2 transition-all duration-200">
                     <Link
                       href={`/projects/${project.id}`}
-                      className="-m-2 min-w-0 flex-1 rounded-md p-2 hover:bg-neutral-800"
+                      className="-m-2 min-w-0 flex-1 rounded-md p-2 transition-colors duration-200 hover:bg-transparent"
                       onClick={() => setOpen(false)}
                     >
                       <ProjectName project={project} />
                     </Link>
                     <div
-                      className="ml-2 flex-shrink-0"
+                      className="ml-2 flex-shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <ProjectMenu

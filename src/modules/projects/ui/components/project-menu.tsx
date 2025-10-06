@@ -82,15 +82,15 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
         ref={triggerRef}
         variant="ghost"
         size="sm"
-        className="hover:bg-primary/10 h-8 w-8 rounded-full p-0 transition-all duration-200"
+        className="h-8 w-8 p-0 transition-all duration-200 hover:bg-transparent"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <MoreHorizontal className="text-muted-foreground hover:text-primary h-4 w-4" />
+        <MoreHorizontal className="text-muted-foreground hover:text-primary h-4 w-4 transition-colors duration-200 hover:bg-transparent" />
       </Button>
 
       {isOpen && (
         <div
-          className="bg-popover text-popover-foreground fixed z-50 w-48 min-w-[8rem] overflow-hidden rounded-xl border shadow-xl backdrop-blur-sm"
+          className="bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 fixed z-50 w-48 min-w-[8rem] overflow-hidden rounded-xl border shadow-xl backdrop-blur-sm duration-200"
           style={{
             position: 'fixed',
             top: triggerRect ? triggerRect.bottom + 5 : 0,
@@ -99,24 +99,24 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
           }}
         >
           <div
-            className="hover:bg-accent hover:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm transition-colors"
+            className="hover:bg-accent hover:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm transition-all duration-200 hover:translate-x-1"
             onClick={() => {
               setNewName(currentName)
               setIsRenameDialogOpen(true)
               setIsOpen(false)
             }}
           >
-            <Edit2 className="mr-2 h-4 w-4" />
+            <Edit2 className="mr-2 h-4 w-4 transition-transform duration-200" />
             Rename
           </div>
           <div
-            className="hover:bg-accent relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm text-red-500 transition-colors hover:text-red-500"
+            className="hover:bg-accent relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm text-red-500 transition-all duration-200 hover:translate-x-1 hover:text-red-500"
             onClick={() => {
               setIsDeleteDialogOpen(true)
               setIsOpen(false)
             }}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 className="mr-2 h-4 w-4 transition-transform duration-200" />
             Delete
           </div>
         </div>
