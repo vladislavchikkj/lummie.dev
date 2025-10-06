@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import Logo from '@/components/ui/logo'
 
 interface ProjectMenuProps {
   projectId: string
@@ -81,15 +82,15 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
         ref={triggerRef}
         variant="ghost"
         size="sm"
-        className="h-6 w-6 p-0 hover:bg-neutral-800"
+        className="hover:bg-primary/10 h-8 w-8 rounded-full p-0 transition-all duration-200"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <MoreHorizontal className="h-4 w-4 text-neutral-400" />
+        <MoreHorizontal className="text-muted-foreground hover:text-primary h-4 w-4" />
       </Button>
 
       {isOpen && (
         <div
-          className="bg-popover text-popover-foreground fixed z-50 w-48 min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-md"
+          className="bg-popover text-popover-foreground fixed z-50 w-48 min-w-[8rem] overflow-hidden rounded-xl border shadow-xl backdrop-blur-sm"
           style={{
             position: 'fixed',
             top: triggerRect ? triggerRect.bottom + 5 : 0,
@@ -133,11 +134,18 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsRenameDialogOpen(false)}
           />
-          <div className="bg-background relative z-[101] w-full max-w-md rounded-lg p-6 shadow-lg">
-            <h2 className="mb-2 text-lg font-semibold">Rename Chat</h2>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Enter a new name for your chat.
-            </p>
+          <div className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                <Logo width={16} height={16} className="text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Rename Chat</h2>
+                <p className="text-muted-foreground text-sm">
+                  Enter a new name for your chat.
+                </p>
+              </div>
+            </div>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="name" className="text-sm font-medium">
@@ -156,10 +164,11 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
                   }}
                 />
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setIsRenameDialogOpen(false)}
+                  className="rounded-lg"
                 >
                   Cancel
                 </Button>
@@ -170,6 +179,7 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
                     !newName.trim() ||
                     newName === currentName
                   }
+                  className="bg-primary hover:bg-primary/90 rounded-lg"
                 >
                   {updateMutation.isPending ? 'Renaming...' : 'Rename'}
                 </Button>
@@ -186,16 +196,24 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsDeleteDialogOpen(false)}
           />
-          <div className="bg-background relative z-[101] w-full max-w-md rounded-lg p-6 shadow-lg">
-            <h2 className="mb-2 text-lg font-semibold">Delete Chat</h2>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Are you sure you want to delete &quot;{currentName}&quot;? This
-              action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
+          <div className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="bg-destructive/10 flex h-8 w-8 items-center justify-center rounded-full">
+                <Logo width={16} height={16} className="text-destructive" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Delete Chat</h2>
+                <p className="text-muted-foreground text-sm">
+                  Are you sure you want to delete &quot;{currentName}&quot;?
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
+                className="rounded-lg"
               >
                 Cancel
               </Button>
@@ -203,6 +221,7 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
                 variant="destructive"
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
+                className="rounded-lg"
               >
                 {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
               </Button>

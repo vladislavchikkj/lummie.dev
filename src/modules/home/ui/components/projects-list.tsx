@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, memo } from 'react'
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useQuery } from '@tanstack/react-query'
@@ -17,8 +17,41 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useTRPC } from '@/trpc/client'
-import { GlowingEffect } from '@/components/ui/glowing-effect'
 import { ProjectMenu } from '@/modules/projects/ui/components/project-menu'
+import type { JsonValue } from '@prisma/client/runtime/library'
+
+interface FragmentPreview {
+  id: string
+  sandboxUrl: string
+  title: string
+  files: JsonValue
+}
+
+const PreviewIframe = memo(({ sandboxUrl }: { sandboxUrl: string }) => {
+  const cacheKey = useMemo(() => {
+    const url = new URL(sandboxUrl)
+    return `${url.origin}${url.pathname}`
+  }, [sandboxUrl])
+
+  return (
+    <iframe
+      key={cacheKey}
+      src={sandboxUrl}
+      className="h-full w-full border-0"
+      title="Project Preview"
+      sandbox="allow-scripts allow-same-origin"
+      style={{
+        pointerEvents: 'none',
+        transform: 'scale(0.5)',
+        transformOrigin: 'top left',
+        width: '200%',
+        height: '200%',
+      }}
+    />
+  )
+})
+
+PreviewIframe.displayName = 'PreviewIframe'
 
 const ProjectName = ({
   project,
@@ -57,13 +90,15 @@ export const ProjectsList = () => {
   const [sortBy, setSortBy] = useState('latest')
 
   const { data: projects, isLoading } = useQuery({
-    ...trpc.projects.getMany.queryOptions(),
+    ...trpc.projects.getManyWithPreview.queryOptions(),
     refetchInterval: (query) => {
       const isAnyProjectPending = query.state.data?.some(
         (p) => p.status === 'PENDING'
       )
       return isAnyProjectPending ? 3000 : false
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   })
 
   const filteredAndSortedProjects = useMemo(() => {
@@ -150,43 +185,92 @@ export const ProjectsList = () => {
           </div>
         )}
 
-        {filteredAndSortedProjects.map((project) => (
-          <div
-            key={project.id}
-            className="group bg-card relative flex h-full items-center gap-x-4 rounded-lg border p-4 transition-colors"
-          >
-            <GlowingEffect
-              spread={40}
-              glow={true}
-              disabled={false}
-              proximity={64}
-              inactiveZone={0.01}
-            />
-            <Link
-              href={`/projects/${project.id}`}
-              className="flex flex-1 items-center gap-x-4"
+        {filteredAndSortedProjects.map((project) => {
+          const previewFragment =
+            project.latestFragment as FragmentPreview | null
+
+          return (
+            <div
+              key={project.id}
+              className="group bg-card hover:border-primary/20 relative flex h-full flex-col overflow-hidden rounded-xl border transition-all duration-300"
             >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md">
-                <Logo width={24} height={24} />
+              <div className="bg-muted/20 flex items-center gap-3 border-b p-4">
+                <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                  <Logo width={20} height={20} className="text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <ProjectName project={project} />
+                  <p className="text-muted-foreground text-xs">
+                    Chat •{' '}
+                    {formatDistanceToNow(project.updatedAt, {
+                      addSuffix: true,
+                    })}
+                  </p>
+                </div>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <ProjectMenu
+                    projectId={project.id}
+                    currentName={project.name || 'Untitled Project'}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col overflow-hidden">
-                <ProjectName project={project} />
-                <p className="text-muted-foreground text-sm">
-                  Updated{' '}
-                  {formatDistanceToNow(project.updatedAt, {
-                    addSuffix: true,
-                  })}
-                </p>
-              </div>
-            </Link>
-            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-              <ProjectMenu
-                projectId={project.id}
-                currentName={project.name || 'Untitled Project'}
-              />
+
+              <Link
+                href={`/projects/${project.id}`}
+                className="flex flex-1 flex-col"
+              >
+                <div className="bg-muted/10 relative aspect-video w-full overflow-hidden">
+                  {previewFragment && previewFragment.sandboxUrl ? (
+                    <div className="pointer-events-none h-full w-full">
+                      <PreviewIframe sandboxUrl={previewFragment.sandboxUrl} />
+                    </div>
+                  ) : (
+                    <div className="from-muted/20 to-muted/40 flex h-full w-full items-center justify-center bg-gradient-to-br">
+                      <div className="text-center">
+                        <Logo
+                          width={32}
+                          height={32}
+                          className="text-muted-foreground/60 mx-auto mb-2"
+                        />
+                        <p className="text-muted-foreground/60 text-xs">
+                          No preview available
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                    <p className="text-sm font-medium text-white">
+                      Project Preview
+                    </p>
+                    <p className="text-xs text-white/80">Click to open chat</p>
+                  </div>
+                </div>
+
+                <div className="bg-card p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                      <span className="text-muted-foreground text-sm">
+                        Active chat
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Logo
+                        width={12}
+                        height={12}
+                        className="text-muted-foreground"
+                      />
+                      <span className="text-muted-foreground text-xs">
+                        Powered by Lummie
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

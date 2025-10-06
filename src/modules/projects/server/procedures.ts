@@ -46,6 +46,46 @@ export const projectsRouter = createTRPCRouter({
 
     return projects
   }),
+  getManyWithPreview: protectedProcedure.query(async ({ ctx }) => {
+    const projects = await prisma.project.findMany({
+      where: {
+        userId: ctx.auth.userId,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      include: {
+        messages: {
+          where: {
+            fragment: {
+              isNot: null,
+            },
+          },
+          include: {
+            fragment: {
+              select: {
+                id: true,
+                title: true,
+                files: true,
+                sandboxUrl: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
+      },
+    })
+
+    return projects.map((project) => ({
+      ...project,
+      hasFiles:
+        project.messages.length > 0 && project.messages[0]?.fragment?.files,
+      latestFragment: project.messages[0]?.fragment || null,
+    }))
+  }),
   create: protectedProcedure
     .input(
       z.object({
