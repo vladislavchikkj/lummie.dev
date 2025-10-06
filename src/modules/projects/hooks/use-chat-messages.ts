@@ -50,7 +50,8 @@ export const useChatMessages = ({
       {
         refetchOnMount: false,
         refetchOnWindowFocus: false,
-        refetchInterval: isStreaming ? false : 5000,
+        // Disable automatic refetching during streaming to prevent race conditions
+        refetchInterval: false,
       }
     )
   )
@@ -104,12 +105,17 @@ export const useChatMessages = ({
   const displayedMessages = useMemo((): DisplayedMessageEntity[] => {
     const allMessages: DisplayedMessageEntity[] = [...messages]
 
+    // Always show pending user message first if it exists
     if (pendingUserMessage) {
       allMessages.push(pendingUserMessage)
     }
 
+    // Only show streaming content if we have a pending user message or if streaming is completed
+    // This prevents showing assistant response before user message
     const shouldShowStreamingContent =
-      streamingContent && (isStreaming || streamingCompleted)
+      streamingContent &&
+      (isStreaming || streamingCompleted) &&
+      (pendingUserMessage || messages.length > 0)
 
     if (shouldShowStreamingContent) {
       const generationTime = isStreaming
@@ -131,9 +137,29 @@ export const useChatMessages = ({
       allMessages.push(streamingMessage)
     }
 
-    return allMessages.sort(
+    const sortedMessages = allMessages.sort(
       (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
     )
+
+    // Debug logging for production issues
+    if (process.env.NODE_ENV === 'production') {
+      console.debug('Displayed messages:', {
+        messagesCount: messages.length,
+        pendingUserMessage: !!pendingUserMessage,
+        streamingContent: !!streamingContent,
+        isStreaming,
+        streamingCompleted,
+        shouldShowStreamingContent,
+        totalDisplayed: sortedMessages.length,
+        messageOrder: sortedMessages.map((m) => ({
+          role: m.role,
+          id: m.id,
+          content: m.content.substring(0, 50),
+        })),
+      })
+    }
+
+    return sortedMessages
   }, [
     messages,
     pendingUserMessage,

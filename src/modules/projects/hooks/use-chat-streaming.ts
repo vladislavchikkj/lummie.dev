@@ -38,6 +38,7 @@ export const useChatStreaming = ({
         abortControllerRef.current = new AbortController()
       }
 
+      // Reset all streaming state before starting
       setIsStreaming(true)
       setStreamingContent('')
       setWasStreamAborted(false)
@@ -80,6 +81,10 @@ export const useChatStreaming = ({
           console.error('Streaming error:', error)
         }
       } finally {
+        // Mark streaming as completed first, then stop streaming
+        setStreamingCompleted(true)
+        onStreamCompleted()
+
         setIsStreaming(false)
         setIsAborting(false)
         onStreamingEnd()
@@ -87,9 +92,6 @@ export const useChatStreaming = ({
         if (abortControllerRef.current) {
           abortControllerRef.current = null
         }
-
-        setStreamingCompleted(true)
-        onStreamCompleted()
 
         if (wasStreamAborted) {
           setWasStreamAborted(false)
