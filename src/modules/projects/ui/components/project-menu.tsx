@@ -24,13 +24,50 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
   const router = useRouter()
   const queryClient = useQueryClient()
 
+  // Calculate dropdown position with bounds checking
+  const getDropdownPosition = () => {
+    if (!triggerRect) return { top: 0, left: 0 }
+
+    const dropdownWidth = 192 // w-48 = 192px
+    const dropdownHeight = 80 // Approximate height of dropdown
+    const margin = 5
+
+    let top = triggerRect.bottom + margin
+    let left = triggerRect.right - dropdownWidth
+
+    // Check if dropdown goes off the right edge
+    if (left < 0) {
+      left = triggerRect.left - dropdownWidth
+    }
+
+    // Check if dropdown goes off the bottom edge
+    if (top + dropdownHeight > window.innerHeight) {
+      top = triggerRect.top - dropdownHeight - margin
+    }
+
+    // Ensure dropdown doesn't go off the left edge
+    if (left < 0) {
+      left = margin
+    }
+
+    // Ensure dropdown doesn't go off the top edge
+    if (top < 0) {
+      top = margin
+    }
+
+    return { top, left }
+  }
+
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [newName, setNewName] = useState(currentName)
 
   useEffect(() => {
     if (isOpen && triggerRef.current) {
-      setTriggerRect(triggerRef.current.getBoundingClientRect())
+      const rect = triggerRef.current.getBoundingClientRect()
+      setTriggerRect(rect)
+    } else if (!isOpen) {
+      setTriggerRect(null)
     }
   }, [isOpen])
 
@@ -88,13 +125,12 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
         <MoreHorizontal className="text-muted-foreground hover:text-primary h-4 w-4 transition-colors duration-200 hover:bg-transparent" />
       </Button>
 
-      {isOpen && (
+      {isOpen && triggerRect && (
         <div
           className="bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 fixed z-50 w-48 min-w-[8rem] overflow-hidden rounded-xl border shadow-xl backdrop-blur-sm duration-200"
           style={{
             position: 'fixed',
-            top: triggerRect ? triggerRect.bottom + 5 : 0,
-            left: triggerRect ? triggerRect.right - 192 : 0, // 192px = w-48
+            ...getDropdownPosition(),
             zIndex: 50,
           }}
         >
