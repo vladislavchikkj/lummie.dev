@@ -62,6 +62,7 @@ export const useChatStreaming = ({
           setStreamingContent((prev) => {
             const newContent = prev + content
             onContentUpdate(newContent)
+
             return newContent
           })
         }

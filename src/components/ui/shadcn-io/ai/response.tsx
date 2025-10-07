@@ -12,48 +12,31 @@ import 'katex/dist/katex.min.css'
 import hardenReactMarkdown from 'harden-react-markdown'
 import { processFormulas, restoreFormulas } from '@/lib/formula-processing'
 
-/**
- * Processes formulas using the new reliable approach
- * Extracts formulas, replaces them with placeholders, then restores them
- */
-// ПРАВИЛЬНО (ПРОСТО И НАДЕЖНО)
 function processMathFormulas(text: string): string {
   if (!text || typeof text !== 'string') {
     return text
   }
 
-  // Просто извлекаем формулы, чтобы защитить их от других обработчиков,
-  // а затем возвращаем их на место без каких-либо изменений.
   const { textWithPlaceholders, formulas } = processFormulas(text)
   return restoreFormulas(textWithPlaceholders, formulas)
 }
 
-/**
- * Optimized markdown parser that only handles the most common incomplete tokens
- * to prevent partial rendering during streaming with minimal performance impact.
- *
- * Note: This function now works with the new formula processing approach
- */
 function parseIncompleteMarkdown(text: string): string {
   if (!text || typeof text !== 'string') {
     return text
   }
 
-  // Early return for short texts to avoid unnecessary processing
   if (text.length < 10) {
     return text
   }
 
   let result = text
 
-  // For non-math content, handle more cases
-  // 1. Incomplete bold formatting (**) - most common
   const asteriskCount = (result.match(/\*/g) || []).length
   if (asteriskCount % 2 === 1) {
     result = `${result}*`
   }
 
-  // 2. Incomplete inline code (`) - but skip if we're in a code block
   const tripleBackticks = (result.match(/```/g) || []).length
   if (tripleBackticks % 2 === 0) {
     const singleBackticks = (result.match(/`/g) || []).length
@@ -65,8 +48,6 @@ function parseIncompleteMarkdown(text: string): string {
   return result
 }
 
-// Create a hardened version of ReactMarkdown
-// Note: harden-react-markdown might interfere with KaTeX math rendering
 const HardenedMarkdown = hardenReactMarkdown(ReactMarkdown)
 
 export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
@@ -231,7 +212,6 @@ const components: Options['components'] = {
       language = node.properties.className.replace('language-', '')
     }
 
-    // Extract code content from children safely
     let code = ''
     if (
       isValidElement(children) &&
@@ -250,10 +230,7 @@ const components: Options['components'] = {
         code={code}
         language={language}
       >
-        <CodeBlockCopyButton
-          onCopy={() => console.log('Copied code to clipboard')}
-          onError={() => console.error('Failed to copy code to clipboard')}
-        />
+        <CodeBlockCopyButton onCopy={() => {}} onError={() => {}} />
       </CodeBlock>
     )
   },
@@ -271,42 +248,14 @@ export const Response = memo(
     useHardenedMarkdown = true,
     ...props
   }: ResponseProps) => {
-    // Process math formulas using the new reliable approach
     const mathProcessedChildren =
       typeof children === 'string' ? processMathFormulas(children) : children
 
-    // Parse the children to remove incomplete markdown tokens if enabled
     const parsedChildren =
       typeof mathProcessedChildren === 'string' && shouldParseIncompleteMarkdown
         ? parseIncompleteMarkdown(mathProcessedChildren)
         : mathProcessedChildren
 
-    // Логируем контент для анализа KaTeX
-    if (
-      typeof children === 'string' &&
-      (children.includes('$') ||
-        children.includes('\\[') ||
-        children.includes('\\('))
-    ) {
-      console.log('🧮 [Response] Math content detected:', {
-        originalContent: children,
-        mathProcessedContent: mathProcessedChildren,
-        parsedContent: parsedChildren,
-        hasMathFormulas:
-          children.includes('$') ||
-          children.includes('$$') ||
-          children.includes('\\[') ||
-          children.includes('\\('),
-        mathFormulas:
-          children.match(
-            /\$[^$]+\$|\$\$[^$]+\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)/g
-          ) || [],
-        useHardenedMarkdown,
-        shouldParseIncompleteMarkdown,
-      })
-    }
-
-    // Choose between hardened and regular ReactMarkdown
     const MarkdownComponent = useHardenedMarkdown
       ? HardenedMarkdown
       : ReactMarkdown
@@ -334,12 +283,10 @@ export const Response = memo(
     )
   },
   (prevProps, nextProps) => {
-    // More efficient comparison - only re-render if content actually changed
     if (prevProps.children !== nextProps.children) {
       return false
     }
 
-    // Check other props that might affect rendering
     return (
       prevProps.className === nextProps.className &&
       prevProps.parseIncompleteMarkdown === nextProps.parseIncompleteMarkdown &&
