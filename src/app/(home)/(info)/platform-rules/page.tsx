@@ -34,15 +34,22 @@ export const metadata: Metadata = {
 
 export default function PlatformRulesPage() {
   return (
-    <div className="bg-background text-foreground antialiased">
-      <div className="container mx-auto max-w-4xl px-4 pt-24 pb-20 sm:pt-32 sm:pb-28 lg:pt-40 lg:pb-36">
-        <header className="text-center">
-          <h1>Platform Rules (Acceptable Use Policy)</h1>
-          <p><strong>Effective Date: October 2, 2025</strong></p>
+    <div
+      className="bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 min-h-screen antialiased transition-colors duration-300">
+      <div className="container mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+
+        <header className="text-center mb-16 sm:mb-6">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+            Platform Rules (Acceptable Use Policy)
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-4 text-lg">
+            <strong className="font-semibold">Effective Date: October 2, 2025</strong>
+          </p>
         </header>
 
         <main
-          className="prose prose-neutral dark:prose-invert prose-lg prose-headings:font-bold prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 mt-16 max-w-none">
+          className="mt-6 p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl shadow-indigo-100/50 dark:shadow-none
+         text-lg leading-relaxed space-y-6">
           <div className="privacy-policy-content">
             <p>These Platform Rules ("Rules") govern the acceptable use of the lummie.dev Services and are incorporated
               by
@@ -50,70 +57,96 @@ export default function PlatformRulesPage() {
               comply with these Rules constitutes a material breach of the Terms of Service and may result in the
               immediate termination of your account without refund.</p>
 
-            <h2 >1. General Principles</h2>
+            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+              1. General Principles
+            </h2>
             <p>The Services are intended for the creation of functional, non-malicious code and prototypes. You must use
               the Services in a manner that is lawful, ethical, and respects the rights of others.</p>
 
-            <h2>2. Prohibited Uses and Content Generation</h2>
+            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+              2. Prohibited Uses and Content Generation
+            </h2>
             <p>You may NOT use the Services to generate or facilitate the creation of any content or code that:</p>
-            <ul>
-              <li><strong>Illegal Activity:</strong> Violates any applicable local, state, national, or international
+
+            <ul className="list-disc ml-6 space-y-2">
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Illegal Activity:</strong> Violates
+                any applicable local, state, national, or international
                 law or regulation.
               </li>
-              <li><strong>Malicious Code:</strong> Creates, distributes, or promotes viruses, malware, ransomware,
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Malicious Code:</strong> Creates,
+                distributes, or promotes viruses, malware, ransomware,
                 denial-of-service attack scripts, or any other code designed to disrupt, damage, or gain unauthorized
                 access to any system, data, or personal information.
               </li>
-              <li><strong>Hate Speech and Harassment:</strong> Promotes or facilitates discrimination, harassment,
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Hate Speech and
+                Harassment:</strong> Promotes or facilitates discrimination, harassment,
                 violence, or hate speech against individuals or groups based on race, ethnicity, religion, disability,
                 gender, age, or sexual orientation.
               </li>
-              <li><strong>Exploitation of Minors:</strong> Generates content or code related to the exploitation or
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Exploitation of
+                Minors:</strong> Generates content or code related to the exploitation or
                 abuse of children, including child sexual abuse material (CSAM).
               </li>
-              <li><strong>Intellectual Property Infringement:</strong> Violates the copyright, patent, trademark, trade
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Intellectual Property
+                Infringement:</strong> Violates the copyright, patent, trademark, trade
                 secret, or other proprietary rights of any third party.
               </li>
-              <li><strong>Phishing and Spam:</strong> Facilitates phishing schemes, spam campaigns, or any form of
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Phishing and
+                Spam:</strong> Facilitates phishing schemes, spam campaigns, or any form of
                 unsolicited commercial communication.
               </li>
-              <li><strong>Privacy Violation:</strong> Collects, stores, or transmits sensitive personal information
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Privacy
+                Violation:</strong> Collects, stores, or transmits sensitive personal information
                 (PII, financial data) without appropriate legal bases or security measures.
               </li>
-              <li><strong>Deceptive Practices:</strong> Is false, fraudulent, or misleading (e.g., generating code for
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Deceptive Practices:</strong> Is
+                false, fraudulent, or misleading (e.g., generating code for
                 fake identities or scams).
               </li>
             </ul>
 
-            <h2>3. Prohibited Service Abuse</h2>
+            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+              3. Prohibited Service Abuse
+            </h2>
             <p>You may NOT misuse the technical functionality of the Services in any way, including:</p>
-            <ul>
-              <li><strong>Bypassing Limits:</strong> Attempting to circumvent usage limits, rate limits, or token
+            <ul className="list-disc ml-6 space-y-2">
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Bypassing
+                Limits:</strong> Attempting to circumvent usage limits, rate limits, or token
                 restrictions imposed by your subscription plan.
               </li>
-              <li><strong>Unauthorized Access:</strong> Accessing or attempting to access areas of the Service for which
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Unauthorized
+                Access:</strong> Accessing or attempting to access areas of the Service for which
                 you have not been granted explicit permission.
               </li>
-              <li><strong>Reverse Engineering:</strong> Attempting to decompile, disassemble, or reverse engineer the
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Reverse
+                Engineering:</strong> Attempting to decompile, disassemble, or reverse engineer the
                 underlying AI models or software infrastructure of the Services.
               </li>
-              <li><strong>Account Misuse:</strong> Selling, sharing, or transferring your account or login credentials
+              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Account Misuse:</strong> Selling,
+                sharing, or transferring your account or login credentials
                 to others outside the permitted scope of your subscription.
               </li>
             </ul>
 
-            <h2>4. Enforcement and Reporting</h2>
+            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+              4. Enforcement and Reporting
+            </h2>
             <p>The Company reserves the right to review any Content or Generated Code for compliance with these Rules.
               We may, at our sole discretion, take any action we deem appropriate, including:</p>
-            <ul>
+            <ul className="list-disc ml-6 space-y-2">
               <li>Removing or blocking access to prohibited Content or Generated Code.</li>
               <li>Issuing warnings.</li>
               <li>Suspending or permanently terminating your account, potentially without refund, as outlined in the
-                Terms of Service.
+                <a href="/terms"
+                   className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold ms-2">Terms
+                  of Service</a>.
               </li>
             </ul>
             <p>If you encounter any content or activity on the Services that you believe violates these Rules, please
-              report it immediately to: <a href="mailto:legal@lummie.dev">legal@lummie.dev</a></p>
+              report it immediately to:
+              <a href="mailto:legal@lummie.dev"
+                 className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold">legal@lummie.dev</a>
+            </p>
           </div>
         </main>
       </div>
