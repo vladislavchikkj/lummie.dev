@@ -77,7 +77,7 @@ export default function TermsOfServicePage() {
             <p><strong className="font-extrabold text-gray-900 dark:text-gray-50">You agree to abide by the Company's
               separate Platform Rules (Acceptable Use Policy), which is
               incorporated herein by reference and is available at
-              <a href='platform-rules'
+              <a href='/platform-rules'
                  className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold ms-2">Platform
                 Rules</a>.
               Any violation of
