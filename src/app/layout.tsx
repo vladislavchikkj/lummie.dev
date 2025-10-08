@@ -9,6 +9,7 @@ import CookieConsent from '@/components/cookie-consent'
 import { APP_NAME } from './constants'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
+import { DynamicNavbar } from '@/components/dynamic-navbar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -64,6 +65,7 @@ export default function RootLayout({
               <Toaster />
 
               <SidebarProvider>
+                <DynamicNavbar />
                 <AppSidebar />
                 <main className="w-full ring-0">{children}</main>
               </SidebarProvider>

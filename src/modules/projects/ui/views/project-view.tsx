@@ -231,13 +231,7 @@ export const ProjectView = ({ projectId }: Props) => {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden pt-14">
-      <div className="bg-background/95 fixed top-0 right-0 left-0 z-50 px-4 backdrop-blur-xl">
-        <div className="mx-auto flex w-full items-center justify-between">
-          <ProjectHeader projectId={projectId} />
-        </div>
-      </div>
-
+    <div className="flex h-dvh flex-col overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
           defaultSize={activeFragment && !isMobile ? 35 : 100}
