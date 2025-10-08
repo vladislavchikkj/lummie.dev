@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Footer } from '@/modules/home/ui/components/footer'
-import { Navbar } from '@/modules/home/ui/components/navbar/navbar'
 import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
 import { Particles } from '@/components/ui/particles'
 
@@ -58,7 +57,6 @@ interface Props {
 const Layout = ({ children }: Props) => {
   return (
     <main className="relative flex min-h-screen w-full flex-col">
-      <Navbar />
       <div className="relative flex w-full flex-col items-start justify-center">
         <Particles
           className="absolute inset-0"
