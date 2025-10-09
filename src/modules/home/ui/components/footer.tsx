@@ -7,7 +7,9 @@ import { Github, Twitter, Linkedin } from 'lucide-react'
 const footerLinks = [
   { href: '/about', label: 'About Us' },
   { href: '/contact', label: 'Contact' },
+  { href: '/cookie', label: 'Cookie' },
   { href: '/privacy', label: 'Privacy Policy' },
+  { href: '/platform-rules', label: 'Platform Rules' },
   { href: '/terms', label: 'Terms of Service' },
 ]
 

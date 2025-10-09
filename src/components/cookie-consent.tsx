@@ -42,6 +42,12 @@ const CookieConsent: FC = () => {
     }
   }, [])
 
+  useEffect(() => {
+    const handler = () => setShowBanner(true)
+    document.addEventListener('open-cookie-banner', handler)
+    return () => document.removeEventListener('open-cookie-banner', handler)
+  }, [])
+
   const handleAcceptAll = () => {
     const newConsent = { necessary: true, analytics: true, marketing: true }
     setConsent(newConsent)
