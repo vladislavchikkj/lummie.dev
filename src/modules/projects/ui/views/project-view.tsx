@@ -114,18 +114,6 @@ export const ProjectView = ({ projectId }: Props) => {
     currentStreamingStartTime,
     finalGenerationTime,
     onFirstMessageSubmit: (content: string) => {
-      // Create pending user message for first message too
-      const userMsg: ChatMessageEntity = {
-        role: 'USER',
-        content: content,
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date(),
-        fragment: null,
-        type: 'RESULT',
-      }
-
-      setPendingUserMessage(userMsg)
-
       startStreaming(content, true)
     },
     onMessagesUpdate: () => {},
@@ -137,16 +125,19 @@ export const ProjectView = ({ projectId }: Props) => {
     async (message: string, isFirstMessage: boolean = false) => {
       if (isStreaming || !message.trim()) return
 
-      const userMsg: ChatMessageEntity = {
-        role: 'USER',
-        content: message,
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date(),
-        fragment: null,
-        type: 'RESULT',
-      }
+      // Only create pending user message for non-first messages
+      if (!isFirstMessage) {
+        const userMsg: ChatMessageEntity = {
+          role: 'USER',
+          content: message,
+          id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: new Date(),
+          fragment: null,
+          type: 'RESULT',
+        }
 
-      setPendingUserMessage(userMsg)
+        setPendingUserMessage(userMsg)
+      }
 
       await startStreaming(message, isFirstMessage)
     },

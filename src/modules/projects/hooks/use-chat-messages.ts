@@ -63,8 +63,10 @@ export const useChatMessages = ({
         lastMessage?.isFirst && lastMessage.role === CHAT_ROLES.USER
 
       if (isUserFirstMsg && !hasSubmittedFirstMessage.current) {
-        setMessages(initialMessages.slice(0, -1))
-        setLastMessageCount(initialMessages.length - 1)
+        // For first message, add it to messages so it shows immediately
+        // Then trigger streaming
+        setMessages(initialMessages)
+        setLastMessageCount(initialMessages.length)
         onFirstMessageSubmit(lastMessage.content)
         hasSubmittedFirstMessage.current = true
       } else {
@@ -113,18 +115,15 @@ export const useChatMessages = ({
   const displayedMessages = useMemo((): DisplayedMessageEntity[] => {
     const allMessages: DisplayedMessageEntity[] = [...messages]
 
-    // Always show pending user message first if it exists
+    // Show pending user message if it exists (for non-first messages)
+    // For first messages, we'll handle them through the first message logic
     if (pendingUserMessage) {
       allMessages.push(pendingUserMessage)
     }
 
-    // Only show streaming content if we have a pending user message or if streaming is completed
-    // This prevents showing assistant response before user message
-    // For first message, we should always show streaming content
+    // Show streaming content if we have content and are streaming or completed
     const shouldShowStreamingContent =
-      streamingContent &&
-      (isStreaming || streamingCompleted) &&
-      (pendingUserMessage || messages.length > 0 || isStreaming)
+      streamingContent && (isStreaming || streamingCompleted)
 
     if (shouldShowStreamingContent) {
       const generationTime = isStreaming
