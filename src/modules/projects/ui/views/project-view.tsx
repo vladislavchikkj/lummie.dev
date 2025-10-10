@@ -204,7 +204,7 @@ export const ProjectView = ({ projectId }: Props) => {
 
   if (isMobile && isFragmentFullscreen && activeFragment) {
     return (
-      <div className="flex h-dvh flex-col overflow-hidden">
+      <div className="bg-background flex h-full flex-col overflow-hidden">
         <FragmentPanel
           activeFragment={activeFragment}
           tabState={tabState}
@@ -222,7 +222,7 @@ export const ProjectView = ({ projectId }: Props) => {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
           defaultSize={activeFragment && !isMobile ? 35 : 100}
