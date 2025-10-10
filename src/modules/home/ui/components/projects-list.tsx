@@ -136,6 +136,7 @@ export const ProjectsList = () => {
 
   const { data: projects, isLoading } = useQuery({
     ...trpc.projects.getManyWithPreview.queryOptions(),
+    enabled: !!user, // Выполнять запрос только если пользователь авторизован
     refetchInterval: (query) => {
       const isAnyProjectPending = query.state.data?.some(
         (p) => p.status === 'PENDING'

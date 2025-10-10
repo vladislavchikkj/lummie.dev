@@ -51,13 +51,14 @@ export const Header = ({
 }: HeaderProps) => {
   const isScrolled = useScroll()
   const pathname = usePathname()
-  const { isLoaded, has } = useAuth()
+  const { isLoaded, has, userId } = useAuth()
   const trpc = useTRPC()
   const { toggleSidebar } = useSidebar()
 
-  const { data: usage, isLoading: isUsageLoading } = useQuery(
-    trpc.usage.status.queryOptions()
-  )
+  const { data: usage, isLoading: isUsageLoading } = useQuery({
+    ...trpc.usage.status.queryOptions(),
+    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+  })
 
   const hasProAccess = has?.({ plan: 'pro' })
   const points = usage?.remainingPoints ?? 0

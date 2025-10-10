@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
 
 import { useTRPC } from '@/trpc/client'
 import { Button } from './ui/button'
@@ -102,9 +103,11 @@ const ProjectName = ({
 export function AppSidebar() {
   const trpc = useTRPC()
   const pathname = usePathname()
+  const { userId } = useAuth()
 
   const { data: projects, isLoading } = useQuery({
     ...trpc.projects.getMany.queryOptions(),
+    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
     refetchInterval: (query) => {
       const isAnyProjectGenerating = query.state.data?.some(
         (p) => p.status === 'PENDING' && p.sandboxId

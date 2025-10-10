@@ -6,6 +6,7 @@ import TextareaAutosize from 'react-textarea-autosize'
 import { ArrowUpIcon, Loader2Icon, Paperclip } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useAuth } from '@clerk/nextjs'
 
 import { cn } from '@/lib/utils'
 import { useTRPC } from '@/trpc/client'
@@ -34,8 +35,12 @@ export const MessageForm = ({
   onSubmit,
 }: Props) => {
   const trpc = useTRPC()
+  const { userId } = useAuth()
 
-  const { data: usage } = useQuery(trpc.usage.status.queryOptions())
+  const { data: usage } = useQuery({
+    ...trpc.usage.status.queryOptions(),
+    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+  })
   const [isUsageVisible, setIsUsageVisible] = useState(true)
 
   const form = useForm<z.infer<typeof formSchema>>({

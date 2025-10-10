@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@clerk/nextjs'
 import { useTRPC } from '@/trpc/client'
 import {
   ChatMessageEntity,
@@ -43,9 +44,10 @@ export const useChatMessages = ({
 
   const hasSubmittedFirstMessage = useRef(false)
   const trpc = useTRPC()
+  const { userId } = useAuth()
 
-  const { data: initialMessages, refetch } = useSuspenseQuery(
-    trpc.messages.getMany.queryOptions(
+  const { data: initialMessages, refetch } = useQuery({
+    ...trpc.messages.getMany.queryOptions(
       { projectId },
       {
         refetchOnMount: false,
@@ -53,8 +55,9 @@ export const useChatMessages = ({
         // Disable automatic refetching during streaming to prevent race conditions
         refetchInterval: false,
       }
-    )
-  )
+    ),
+    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+  })
 
   useEffect(() => {
     if (initialMessages) {
