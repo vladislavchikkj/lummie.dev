@@ -114,18 +114,6 @@ export const ProjectView = ({ projectId }: Props) => {
     currentStreamingStartTime,
     finalGenerationTime,
     onFirstMessageSubmit: (content: string) => {
-      // Create pending user message for first message too
-      const userMsg: ChatMessageEntity = {
-        role: 'USER',
-        content: content,
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date(),
-        fragment: null,
-        type: 'RESULT',
-      }
-
-      setPendingUserMessage(userMsg)
-
       startStreaming(content, true)
     },
     onMessagesUpdate: () => {},
@@ -137,16 +125,19 @@ export const ProjectView = ({ projectId }: Props) => {
     async (message: string, isFirstMessage: boolean = false) => {
       if (isStreaming || !message.trim()) return
 
-      const userMsg: ChatMessageEntity = {
-        role: 'USER',
-        content: message,
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date(),
-        fragment: null,
-        type: 'RESULT',
-      }
+      // Only create pending user message for non-first messages
+      if (!isFirstMessage) {
+        const userMsg: ChatMessageEntity = {
+          role: 'USER',
+          content: message,
+          id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: new Date(),
+          fragment: null,
+          type: 'RESULT',
+        }
 
-      setPendingUserMessage(userMsg)
+        setPendingUserMessage(userMsg)
+      }
 
       await startStreaming(message, isFirstMessage)
     },
@@ -213,7 +204,7 @@ export const ProjectView = ({ projectId }: Props) => {
 
   if (isMobile && isFragmentFullscreen && activeFragment) {
     return (
-      <div className="flex h-dvh flex-col overflow-hidden">
+      <div className="bg-background flex h-full flex-col overflow-hidden">
         <FragmentPanel
           activeFragment={activeFragment}
           tabState={tabState}
@@ -231,7 +222,7 @@ export const ProjectView = ({ projectId }: Props) => {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
           defaultSize={activeFragment && !isMobile ? 35 : 100}

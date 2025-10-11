@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
 
 import { useTRPC } from '@/trpc/client'
 import { Button } from './ui/button'
@@ -42,13 +43,11 @@ const ProjectStatusIcon = ({
 }) => {
   switch (status) {
     case 'PENDING':
-      // Показываем вращающуюся иконку только если есть sandboxId (реально генерируется проект)
       if (sandboxId) {
         return (
           <Activity className="h-3 w-3 animate-pulse text-black dark:text-white" />
         )
       }
-      // Для обычных чатов без sandboxId показываем обычную иконку
       return (
         <MessageCircle className="h-3 w-3 text-gray-600 dark:text-gray-400" />
       )
@@ -104,11 +103,12 @@ const ProjectName = ({
 export function AppSidebar() {
   const trpc = useTRPC()
   const pathname = usePathname()
+  const { userId } = useAuth()
 
   const { data: projects, isLoading } = useQuery({
     ...trpc.projects.getMany.queryOptions(),
+    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
     refetchInterval: (query) => {
-      // Обновляем только если есть проекты с sandboxId (реально генерируются)
       const isAnyProjectGenerating = query.state.data?.some(
         (p) => p.status === 'PENDING' && p.sandboxId
       )
@@ -122,11 +122,9 @@ export function AppSidebar() {
 
   const { setOpen } = useSidebar()
 
-  // Group projects by status for better organization
-  // Generating: только проекты с sandboxId (реально генерируются)
   const generatingProjects =
     sortedProjects?.filter((p) => p.status === 'PENDING' && p.sandboxId) || []
-  // Обычные чаты в ожидании (без sandboxId)
+
   const pendingChats =
     sortedProjects?.filter((p) => p.status === 'PENDING' && !p.sandboxId) || []
   const completedProjects =
@@ -136,10 +134,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      {/* Header with Navigation */}
       <div className="p-4">
         <div className="space-y-2">
-          {/* Home Button */}
           <Button
             asChild
             variant="ghost"
@@ -155,7 +151,6 @@ export function AppSidebar() {
             </Link>
           </Button>
 
-          {/* New Chat Button */}
           <Button
             asChild
             className="group h-10 w-full rounded-lg bg-black font-medium text-white shadow-sm transition-all duration-200 hover:scale-[1.02] hover:bg-black/90 active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-white/90"
@@ -173,6 +168,60 @@ export function AppSidebar() {
       </div>
 
       <SidebarContent className="p-2">
+        {/* Generating Projects - только проекты с sandboxId */}
+        {generatingProjects.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="animate-in slide-in-from-top-1 flex items-center gap-2 px-2 py-1 text-xs font-medium text-gray-600 duration-300 dark:text-gray-400">
+              <Activity className="h-3 w-3 animate-pulse text-black dark:text-white" />
+              <span>Generating</span>
+              <Badge
+                variant="secondary"
+                className="animate-in zoom-in-50 ml-auto bg-black/10 text-xs text-black duration-300 dark:bg-white/10 dark:text-white"
+              >
+                {generatingProjects.length}
+              </Badge>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {generatingProjects.map((project, index) => (
+                  <SidebarMenuItem
+                    key={project.id}
+                    className="animate-in slide-in-from-left-1 duration-300"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === `/projects/${project.id}`}
+                      className="group relative h-10 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
+                    >
+                      <Link
+                        href={`/projects/${project.id}`}
+                        onClick={() => setOpen(false)}
+                        className="flex w-full items-center gap-3"
+                      >
+                        <ProjectName
+                          project={{
+                            name: project.name,
+                            status: project.status,
+                            updatedAt: project.updatedAt,
+                            sandboxId: project.sandboxId,
+                          }}
+                        />
+                        <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                          <ProjectMenu
+                            projectId={project.id}
+                            currentName={project.name || 'Untitled Chat'}
+                          />
+                        </div>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         {/* Recent Chats - завершенные чаты */}
         <SidebarGroup>
           <SidebarGroupLabel className="animate-in slide-in-from-top-1 flex items-center gap-2 px-2 py-1 text-xs font-medium text-gray-600 duration-300 dark:text-gray-400">
@@ -303,59 +352,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Generating Projects - только проекты с sandboxId */}
-        {generatingProjects.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="animate-in slide-in-from-top-1 flex items-center gap-2 px-2 py-1 text-xs font-medium text-gray-600 duration-300 dark:text-gray-400">
-              <Activity className="h-3 w-3 animate-pulse text-black dark:text-white" />
-              <span>Generating</span>
-              <Badge
-                variant="secondary"
-                className="animate-in zoom-in-50 ml-auto bg-black/10 text-xs text-black duration-300 dark:bg-white/10 dark:text-white"
-              >
-                {generatingProjects.length}
-              </Badge>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {generatingProjects.map((project, index) => (
-                  <SidebarMenuItem
-                    key={project.id}
-                    className="animate-in slide-in-from-left-1 duration-300"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === `/projects/${project.id}`}
-                      className="group hover:bg-accent/50 relative h-10 rounded-lg transition-all duration-200 hover:scale-[1.02]"
-                    >
-                      <Link
-                        href={`/projects/${project.id}`}
-                        onClick={() => setOpen(false)}
-                        className="flex w-full items-center gap-3"
-                      >
-                        <ProjectName
-                          project={{
-                            name: project.name,
-                            status: project.status,
-                            updatedAt: project.updatedAt,
-                          }}
-                        />
-                        <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
-                          <ProjectMenu
-                            projectId={project.id}
-                            currentName={project.name || 'Untitled Chat'}
-                          />
-                        </div>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
         {/* Error Projects */}
         {errorProjects.length > 0 && (
           <SidebarGroup>
@@ -392,6 +388,7 @@ export function AppSidebar() {
                             name: project.name,
                             status: project.status,
                             updatedAt: project.updatedAt,
+                            sandboxId: project.sandboxId,
                           }}
                         />
                         <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">

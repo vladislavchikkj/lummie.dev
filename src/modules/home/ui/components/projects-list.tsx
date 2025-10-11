@@ -136,6 +136,7 @@ export const ProjectsList = () => {
 
   const { data: projects, isLoading } = useQuery({
     ...trpc.projects.getManyWithPreview.queryOptions(),
+    enabled: !!user, // Выполнять запрос только если пользователь авторизован
     refetchInterval: (query) => {
       const isAnyProjectPending = query.state.data?.some(
         (p) => p.status === 'PENDING'
@@ -149,33 +150,43 @@ export const ProjectsList = () => {
   const filteredAndSortedProjects = useMemo(() => {
     if (!projects) return []
 
-    const filtered = projects.filter((project) =>
-      (project.name || 'Untitled Project')
+    // Фильтруем только проекты с latestFragment и по поисковому запросу
+    const filtered = projects.filter((project) => {
+      const hasFragment = !!project.latestFragment
+      const matchesSearch = (project.name || 'Untitled Project')
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
-    )
 
+      return hasFragment && matchesSearch
+    })
+
+    let sorted
     switch (sortBy) {
       case 'oldest':
-        return filtered.sort(
+        sorted = filtered.sort(
           (a, b) =>
             new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
         )
+        break
       case 'az':
-        return filtered.sort((a, b) =>
+        sorted = filtered.sort((a, b) =>
           (a.name || '').localeCompare(b.name || '')
         )
+        break
       case 'za':
-        return filtered.sort((a, b) =>
+        sorted = filtered.sort((a, b) =>
           (b.name || '').localeCompare(a.name || '')
         )
+        break
       case 'latest':
       default:
-        return filtered.sort(
+        sorted = filtered.sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         )
     }
+
+    return sorted.slice(0, 6)
   }, [projects, searchQuery, sortBy])
 
   if (!user) return null
