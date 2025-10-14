@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@clerk/nextjs'
 import { useTRPC } from '@/trpc/client'
 import {
   ChatMessageEntity,
@@ -43,9 +44,10 @@ export const useChatMessages = ({
 
   const hasSubmittedFirstMessage = useRef(false)
   const trpc = useTRPC()
+  const { userId } = useAuth()
 
-  const { data: initialMessages, refetch } = useSuspenseQuery(
-    trpc.messages.getMany.queryOptions(
+  const { data: initialMessages, refetch } = useQuery({
+    ...trpc.messages.getMany.queryOptions(
       { projectId },
       {
         refetchOnMount: false,
@@ -53,8 +55,9 @@ export const useChatMessages = ({
         // Disable automatic refetching during streaming to prevent race conditions
         refetchInterval: false,
       }
-    )
-  )
+    ),
+    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+  })
 
   useEffect(() => {
     if (initialMessages) {
@@ -63,8 +66,10 @@ export const useChatMessages = ({
         lastMessage?.isFirst && lastMessage.role === CHAT_ROLES.USER
 
       if (isUserFirstMsg && !hasSubmittedFirstMessage.current) {
-        setMessages(initialMessages.slice(0, -1))
-        setLastMessageCount(initialMessages.length - 1)
+        // For first message, add it to messages so it shows immediately
+        // Then trigger streaming
+        setMessages(initialMessages)
+        setLastMessageCount(initialMessages.length)
         onFirstMessageSubmit(lastMessage.content)
         hasSubmittedFirstMessage.current = true
       } else {
@@ -113,18 +118,15 @@ export const useChatMessages = ({
   const displayedMessages = useMemo((): DisplayedMessageEntity[] => {
     const allMessages: DisplayedMessageEntity[] = [...messages]
 
-    // Always show pending user message first if it exists
+    // Show pending user message if it exists (for non-first messages)
+    // For first messages, we'll handle them through the first message logic
     if (pendingUserMessage) {
       allMessages.push(pendingUserMessage)
     }
 
-    // Only show streaming content if we have a pending user message or if streaming is completed
-    // This prevents showing assistant response before user message
-    // For first message, we should always show streaming content
+    // Show streaming content if we have content and are streaming or completed
     const shouldShowStreamingContent =
-      streamingContent &&
-      (isStreaming || streamingCompleted) &&
-      (pendingUserMessage || messages.length > 0 || isStreaming)
+      streamingContent && (isStreaming || streamingCompleted)
 
     if (shouldShowStreamingContent) {
       const generationTime = isStreaming

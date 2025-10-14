@@ -9,6 +9,7 @@ import { FolderX, Search } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
 import Logo from '@/components/ui/logo'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -53,6 +54,50 @@ const PreviewIframe = memo(({ sandboxUrl }: { sandboxUrl: string }) => {
 
 PreviewIframe.displayName = 'PreviewIframe'
 
+const ProjectCardSkeleton = () => (
+  <div className="group bg-card relative flex h-full flex-col overflow-hidden rounded-xl border">
+    {/* Header skeleton */}
+    <div className="bg-muted/20 flex items-center gap-3 border-b p-4">
+      <Skeleton className="h-10 w-10 rounded-full" />
+      <div className="min-w-0 flex-1 space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded" />
+    </div>
+
+    {/* Preview area skeleton */}
+    <div className="bg-muted/10 relative aspect-video w-full overflow-hidden">
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="space-y-3 text-center">
+          <Skeleton className="mx-auto h-8 w-8 rounded" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+      </div>
+
+      {/* Gradient overlay skeleton */}
+      <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+        <Skeleton className="h-4 w-24 bg-white/20" />
+        <Skeleton className="mt-1 h-3 w-16 bg-white/20" />
+      </div>
+    </div>
+
+    {/* Footer skeleton */}
+    <div className="bg-card p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-2 w-2 rounded-full bg-green-500/50" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-3 rounded" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+    </div>
+  </div>
+)
+
 const ProjectName = ({
   project,
 }: {
@@ -91,6 +136,7 @@ export const ProjectsList = () => {
 
   const { data: projects, isLoading } = useQuery({
     ...trpc.projects.getManyWithPreview.queryOptions(),
+    enabled: !!user, // Выполнять запрос только если пользователь авторизован
     refetchInterval: (query) => {
       const isAnyProjectPending = query.state.data?.some(
         (p) => p.status === 'PENDING'
@@ -104,33 +150,43 @@ export const ProjectsList = () => {
   const filteredAndSortedProjects = useMemo(() => {
     if (!projects) return []
 
-    const filtered = projects.filter((project) =>
-      (project.name || 'Untitled Project')
+    // Фильтруем только проекты с latestFragment и по поисковому запросу
+    const filtered = projects.filter((project) => {
+      const hasFragment = !!project.latestFragment
+      const matchesSearch = (project.name || 'Untitled Project')
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
-    )
 
+      return hasFragment && matchesSearch
+    })
+
+    let sorted
     switch (sortBy) {
       case 'oldest':
-        return filtered.sort(
+        sorted = filtered.sort(
           (a, b) =>
             new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
         )
+        break
       case 'az':
-        return filtered.sort((a, b) =>
+        sorted = filtered.sort((a, b) =>
           (a.name || '').localeCompare(b.name || '')
         )
+        break
       case 'za':
-        return filtered.sort((a, b) =>
+        sorted = filtered.sort((a, b) =>
           (b.name || '').localeCompare(a.name || '')
         )
+        break
       case 'latest':
       default:
-        return filtered.sort(
+        sorted = filtered.sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         )
     }
+
+    return sorted.slice(0, 6)
   }, [projects, searchQuery, sortBy])
 
   if (!user) return null
@@ -168,9 +224,11 @@ export const ProjectsList = () => {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {isLoading && (
-          <div className="text-muted-foreground col-span-full text-center">
-            Loading projects...
-          </div>
+          <>
+            <ProjectCardSkeleton />
+            <ProjectCardSkeleton />
+            <ProjectCardSkeleton />
+          </>
         )}
 
         {!isLoading && filteredAndSortedProjects.length === 0 && (
