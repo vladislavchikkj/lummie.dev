@@ -34,200 +34,288 @@ export const metadata: Metadata = {
 
 export default function TermsOfServicePage() {
   return (
-    <div
-      className="bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 min-h-screen antialiased transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 text-gray-800 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
       <div className="container mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-
-        <header className="text-center mb-16 sm:mb-20">
-          <h1
-            className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl ">
+        <header className="mb-16 text-center sm:mb-20">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             Terms of Service
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-4 text-lg">
-            Effective Date: <strong className="font-semibold">August 29, 2025</strong>
+          <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
+            Effective Date:{' '}
+            <strong className="font-semibold">August 29, 2025</strong>
           </p>
         </header>
 
-        <main
-          className="mt-12 p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl shadow-indigo-100/50 dark:shadow-none
-         text-lg leading-relaxed space-y-6">
-          <p>These Terms of Service ("Terms") govern your access to and use of the lummie.dev platform and any related
-            services (collectively, the "Services"), provided by lummie.dev ("Company," "we," "us," or "our"). By
-            accessing or using our Services, you agree to be bound by these Terms. If you do not agree to these Terms,
-            you may not use the Services.</p>
+        <main className="mt-12 space-y-6 rounded-xl bg-white p-8 text-lg leading-relaxed shadow-2xl shadow-indigo-100/50 dark:bg-zinc-800 dark:shadow-none">
+          <p>
+            These Terms of Service ("Terms") govern your access to and use of
+            the lummie.dev platform and any related services (collectively, the
+            "Services"), provided by lummie.dev ("Company," "we," "us," or
+            "our"). By accessing or using our Services, you agree to be bound by
+            these Terms. If you do not agree to these Terms, you may not use the
+            Services.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             1. User Accounts
           </h2>
-          <p>To access certain features of our Services, you must create an account. You are responsible for
-            safeguarding your account information, including your password, and for all activities that occur under your
-            account. You agree to notify us immediately of any unauthorized use of your account.</p>
+          <p>
+            To access certain features of our Services, you must create an
+            account. You are responsible for safeguarding your account
+            information, including your password, and for all activities that
+            occur under your account. You agree to notify us immediately of any
+            unauthorized use of your account.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             2. Use of Services and Prohibited Conduct
           </h2>
-          <p>You agree to use the Services only for lawful purposes and in accordance with these Terms. You agree not to
-            use the Services in any way that violates any applicable federal, state, local, or international law or
-            regulation.</p>
+          <p>
+            You agree to use the Services only for lawful purposes and in
+            accordance with these Terms. You agree not to use the Services in
+            any way that violates any applicable federal, state, local, or
+            international law or regulation.
+          </p>
 
-          <blockquote
-            className="border-l-4 border-black pl-4 py-2 bg-gray-200 dark:bg-gray-800 text-base rounded-r-md">
-            <p><strong className="font-extrabold text-gray-900 dark:text-gray-50">You agree to abide by the Company's
-              separate Platform Rules (Acceptable Use Policy), which is
-              incorporated herein by reference and is available at
-              <a href='/platform-rules'
-                 className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold ms-2">Platform
-                Rules</a>.
-              Any violation of
-              the Platform Rules constitutes a material breach of these Terms.</strong></p>
+          <blockquote className="rounded-r-md border-l-4 border-black bg-gray-200 py-2 pl-4 text-base dark:bg-gray-800">
+            <p>
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                You agree to abide by the Company's separate Platform Rules
+                (Acceptable Use Policy), which is incorporated herein by
+                reference and is available at
+                <a
+                  href="/platform-rules"
+                  className="ms-2 font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  Platform Rules
+                </a>
+                . Any violation of the Platform Rules constitutes a material
+                breach of these Terms.
+              </strong>
+            </p>
           </blockquote>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             3. Intellectual Property Rights
           </h2>
 
-          <h3 className="text-2xl font-bold mt-8 mb-3">Your Content (Prompts)</h3>
-          <p>You retain all ownership rights to the natural language prompts you submit to the Services ("Your
-            Content"). However, solely for the purpose of operating, improving, and training our AI models and providing
-            the Services to you, <strong className="font-extrabold text-gray-900 dark:text-gray-50">you grant the
-              Company a worldwide, non-exclusive, royalty-free, transferable,
-              sublicensable license</strong> to use, reproduce, modify, and distribute Your Content.</p>
+          <h3 className="mt-8 mb-3 text-2xl font-bold">
+            Your Content (Prompts)
+          </h3>
+          <p>
+            You retain all ownership rights to the natural language prompts you
+            submit to the Services ("Your Content"). However, solely for the
+            purpose of operating, improving, and training our AI models and
+            providing the Services to you,{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              you grant the Company a worldwide, non-exclusive, royalty-free,
+              transferable, sublicensable license
+            </strong>{' '}
+            to use, reproduce, modify, and distribute Your Content.
+          </p>
 
-          <h3 className="text-2xl font-bold mt-8 mb-3">Generated Code</h3>
-          <p>Subject to your full compliance with these Terms, you shall own the code generated by the Services based on
-            Your Content ("Generated Code"). You are solely responsible for reviewing, testing, and ensuring the
-            security and compliance of the Generated Code before deploying it. The Company makes no warranties or
-            representations regarding the Generated Code, including its functionality, security, or <strong
-              className="font-extrabold text-gray-900 dark:text-gray-50">freedom from
-              third-party intellectual property claims</strong>.</p>
+          <h3 className="mt-8 mb-3 text-2xl font-bold">Generated Code</h3>
+          <p>
+            Subject to your full compliance with these Terms, you shall own the
+            code generated by the Services based on Your Content ("Generated
+            Code"). You are solely responsible for reviewing, testing, and
+            ensuring the security and compliance of the Generated Code before
+            deploying it. The Company makes no warranties or representations
+            regarding the Generated Code, including its functionality, security,
+            or{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              freedom from third-party intellectual property claims
+            </strong>
+            .
+          </p>
 
-          <h3 className="text-2xl font-bold mt-8 mb-3">Our Services</h3>
-          <p>The Services and their entire contents, features, and functionality (including but not limited to all
-            underlying software, AI models, and interface design) are owned by the Company or its licensors and are
-            protected by international intellectual property laws.</p>
+          <h3 className="mt-8 mb-3 text-2xl font-bold">Our Services</h3>
+          <p>
+            The Services and their entire contents, features, and functionality
+            (including but not limited to all underlying software, AI models,
+            and interface design) are owned by the Company or its licensors and
+            are protected by international intellectual property laws.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             4. Subscription, Billing, and Tokens
           </h2>
 
-          <h3 className="text-2xl font-bold mt-8 mb-3">Subscription and Automatic
-            Renewal</h3>
-          <p>Access to certain features of the Services requires a paid subscription. You agree to pay the applicable
-            subscription fees. <strong className="font-extrabold text-gray-900 dark:text-gray-50">Your subscription will
-              automatically renew</strong> at the end of the subscription period
-            (e.g., monthly or annually) unless you cancel your subscription prior to the renewal date. You authorize us
-            (or our third-party payment processor) to charge the current subscription fee to your designated payment
-            method upon renewal.</p>
+          <h3 className="mt-8 mb-3 text-2xl font-bold">
+            Subscription and Automatic Renewal
+          </h3>
+          <p>
+            Access to certain features of the Services requires a paid
+            subscription. You agree to pay the applicable subscription fees.{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              Your subscription will automatically renew
+            </strong>{' '}
+            at the end of the subscription period (e.g., monthly or annually)
+            unless you cancel your subscription prior to the renewal date. You
+            authorize us (or our third-party payment processor) to charge the
+            current subscription fee to your designated payment method upon
+            renewal.
+          </p>
 
-          <h3 className="text-2xl font-bold mt-8 mb-3">Fee Changes and Tokens</h3>
-          <p>We reserve the right to change our subscription fees upon thirty (30) days' prior notice to you. Your
-            continued use of the Services after the fee change constitutes your agreement to pay the new fee. Access to
-            the AI generation features is limited by <strong
-              className="font-extrabold text-gray-900 dark:text-gray-50">tokens</strong>. Tokens are consumed upon use,
-            are non-refundable, and
-            typically <strong className="font-extrabold text-gray-900 dark:text-gray-50">do not roll over</strong> to
-            the next billing period unless explicitly stated otherwise in your
-            subscription plan.</p>
+          <h3 className="mt-8 mb-3 text-2xl font-bold">
+            Fee Changes and Tokens
+          </h3>
+          <p>
+            We reserve the right to change our subscription fees upon thirty
+            (30) days' prior notice to you. Your continued use of the Services
+            after the fee change constitutes your agreement to pay the new fee.
+            Access to the AI generation features is limited by{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              tokens
+            </strong>
+            . Tokens are consumed upon use, are non-refundable, and typically{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              do not roll over
+            </strong>{' '}
+            to the next billing period unless explicitly stated otherwise in
+            your subscription plan.
+          </p>
 
-          <h3 className="text-2xl font-bold mt-8 mb-3">Refund Policy and
-            Cancellation</h3>
-          <p>You may cancel your subscription at any time. Cancellation will be effective at the end of your current
-            billing period. <strong className="font-extrabold text-gray-900 dark:text-gray-50">All fees paid are
-              generally non-refundable.</strong> We do not provide refunds or credits for any
-            partial subscription periods or unused tokens, unless required by applicable law.</p>
+          <h3 className="mt-8 mb-3 text-2xl font-bold">
+            Refund Policy and Cancellation
+          </h3>
+          <p>
+            You may cancel your subscription at any time. Cancellation will be
+            effective at the end of your current billing period.{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              All fees paid are generally non-refundable.
+            </strong>{' '}
+            We do not provide refunds or credits for any partial subscription
+            periods or unused tokens, unless required by applicable law.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             5. Termination and Remedies for Breach
           </h2>
-          <p>We may terminate or suspend your access to our Services immediately, without prior notice or liability, for
-            any reason whatsoever, including without limitation if you breach these Terms or fail to pay subscription
-            fees. Upon termination, your right to use the Services will immediately cease. <strong
-              className="font-extrabold text-gray-900 dark:text-gray-50">In the event of termination
-              due to your breach of these Terms, you will not be entitled to any refund of unused subscription fees or
-              tokens.</strong></p>
+          <p>
+            We may terminate or suspend your access to our Services immediately,
+            without prior notice or liability, for any reason whatsoever,
+            including without limitation if you breach these Terms or fail to
+            pay subscription fees. Upon termination, your right to use the
+            Services will immediately cease.{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              In the event of termination due to your breach of these Terms, you
+              will not be entitled to any refund of unused subscription fees or
+              tokens.
+            </strong>
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             6. Disclaimer of Warranties
           </h2>
-          <p>The Services are provided on an "AS IS" and "AS AVAILABLE" basis. The Company makes no representations or
-            warranties of any kind, express or implied, as to the operation of their services, or the information,
-            content, or materials included therein. You expressly agree that your use of the services is at your sole
-            risk. We do not warrant that the Generated Code will be error-free, secure, or fit for a particular
-            purpose.</p>
+          <p>
+            The Services are provided on an "AS IS" and "AS AVAILABLE" basis.
+            The Company makes no representations or warranties of any kind,
+            express or implied, as to the operation of their services, or the
+            information, content, or materials included therein. You expressly
+            agree that your use of the services is at your sole risk. We do not
+            warrant that the Generated Code will be error-free, secure, or fit
+            for a particular purpose.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             7. Indemnification
           </h2>
-          <p>You agree to indemnify, defend, and hold harmless the Company and its affiliates, officers, agents, and
-            employees from and against any and all claims, liabilities, damages, losses, and expenses, including
-            reasonable attorneys’ fees, arising out of or in any way connected with <strong
-              className="font-extrabold text-gray-900 dark:text-gray-50">(i) your access to or use of the
-              Services; (ii) your violation of these Terms; or (iii) your Generated Code, including any claim that the
-              Generated Code infringes the intellectual property rights of a third party.</strong></p>
+          <p>
+            You agree to indemnify, defend, and hold harmless the Company and
+            its affiliates, officers, agents, and employees from and against any
+            and all claims, liabilities, damages, losses, and expenses,
+            including reasonable attorneys’ fees, arising out of or in any way
+            connected with{' '}
+            <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+              (i) your access to or use of the Services; (ii) your violation of
+              these Terms; or (iii) your Generated Code, including any claim
+              that the Generated Code infringes the intellectual property rights
+              of a third party.
+            </strong>
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             8. Limitation of Liability
           </h2>
-          <p>To the maximum extent permitted by applicable law, in no event shall the Company, nor its directors,
-            employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special,
-            consequential or punitive damages, including without limitation, loss of profits, data, or other intangible
-            losses.</p>
+          <p>
+            To the maximum extent permitted by applicable law, in no event shall
+            the Company, nor its directors, employees, partners, agents,
+            suppliers, or affiliates, be liable for any indirect, incidental,
+            special, consequential or punitive damages, including without
+            limitation, loss of profits, data, or other intangible losses.
+          </p>
 
-          <blockquote
-            className="border-l-4 border-black pl-4 py-2 bg-gray-200 dark:bg-gray-800 text-base rounded-r-md">
-            <p><strong className="font-extrabold text-gray-900 dark:text-gray-50">The Company's total liability to you
-              for any and all claims arising out of or relating to these
-              Terms or the Services shall not exceed the greater of (a) the total amount you paid to us in the twelve
-              (12)
-              months preceding the claim or (b) Two Hundred Forty U.S. Dollars ($240.00).</strong></p>
+          <blockquote className="rounded-r-md border-l-4 border-black bg-gray-200 py-2 pl-4 text-base dark:bg-gray-800">
+            <p>
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                The Company's total liability to you for any and all claims
+                arising out of or relating to these Terms or the Services shall
+                not exceed the greater of (a) the total amount you paid to us in
+                the twelve (12) months preceding the claim or (b) Two Hundred
+                Forty U.S. Dollars ($240.00).
+              </strong>
+            </p>
           </blockquote>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             9. Governing Law and Dispute Resolution
           </h2>
-          <p>These Terms shall be governed and construed in accordance with the laws of the State of Delaware, United
-            States, without regard to its conflict of law provisions.</p>
-          <p>Any dispute arising out of or relating to these Terms, including disputes regarding the enforceability of
-            any provision, shall be submitted to binding arbitration in Delaware, U.S.A., in accordance with the rules
-            of the American Arbitration Association (AAA), to the extent permitted by law. You and the Company agree to
-            waive any right to participate in a class action or representative proceeding.</p>
+          <p>
+            These Terms shall be governed and construed in accordance with the
+            laws of the State of Delaware, United States, without regard to its
+            conflict of law provisions.
+          </p>
+          <p>
+            Any dispute arising out of or relating to these Terms, including
+            disputes regarding the enforceability of any provision, shall be
+            submitted to binding arbitration in Delaware, U.S.A., in accordance
+            with the rules of the American Arbitration Association (AAA), to the
+            extent permitted by law. You and the Company agree to waive any
+            right to participate in a class action or representative proceeding.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             10. Force Majeure
           </h2>
-          <p>The Company shall not be liable for any failure or delay in the performance of its obligations hereunder
-            due to causes beyond its reasonable control, including, but not limited to, acts of God, war, acts of
-            terrorism, governmental restrictions, labor disputes, widespread internet or power outages, or the failure
-            of any third-party service provider (e.g., cloud hosting provider, AI model provider).</p>
+          <p>
+            The Company shall not be liable for any failure or delay in the
+            performance of its obligations hereunder due to causes beyond its
+            reasonable control, including, but not limited to, acts of God, war,
+            acts of terrorism, governmental restrictions, labor disputes,
+            widespread internet or power outages, or the failure of any
+            third-party service provider (e.g., cloud hosting provider, AI model
+            provider).
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             11. Changes to These Terms
           </h2>
-          <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will alert
-            you about any changes by updating the "Effective Date" of these Terms and providing notice (e.g., via email
-            or a prominent site notification). Your continued use of the Services following the posting of any changes
-            constitutes acceptance of those changes.</p>
+          <p>
+            We reserve the right, at our sole discretion, to modify or replace
+            these Terms at any time. We will alert you about any changes by
+            updating the "Effective Date" of these Terms and providing notice
+            (e.g., via email or a prominent site notification). Your continued
+            use of the Services following the posting of any changes constitutes
+            acceptance of those changes.
+          </p>
 
-          <h2
-            className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+          <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
             12. Contact Us
           </h2>
-          <p>Should you have any questions regarding these Terms, please contact us at:</p>
+          <p>
+            Should you have any questions regarding these Terms, please contact
+            us at:
+          </p>
 
           <p className="font-bold">
-            Email: <a href="mailto:legal@lummie.dev"
-                      className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold">legal@lummie.dev</a>
+            Email:{' '}
+            <a
+              href="mailto:legal@lummie.dev"
+              className="font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+            >
+              legal@lummie.dev
+            </a>
           </p>
         </main>
       </div>

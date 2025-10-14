@@ -34,251 +34,410 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div
-      className="bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 min-h-screen antialiased transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 text-gray-800 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
       <div className="container mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-
-        <header className="text-center mb-16 sm:mb-5">
+        <header className="mb-16 text-center sm:mb-5">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             Privacy Policy
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-4 text-lg">
-            Effective Date: <strong className="font-semibold">October 2, 2025</strong>
+          <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
+            Effective Date:{' '}
+            <strong className="font-semibold">October 2, 2025</strong>
           </p>
         </header>
 
-        <main
-          className="mt-6 p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl shadow-indigo-100/50 dark:shadow-none
-         text-lg leading-relaxed space-y-6">
+        <main className="mt-6 space-y-6 rounded-xl bg-white p-8 text-lg leading-relaxed shadow-2xl shadow-indigo-100/50 dark:bg-zinc-800 dark:shadow-none">
           <div className="privacy-policy-content">
-            <p>This Privacy Policy ("Policy") governs the manner in which lummie.dev ("Company," "we," "us," or "our")
-              collects, uses, maintains, and discloses information collected from users ("User," "you," or "your") of
-              the lummie.dev platform and any related services (collectively, the "Services"). Your access to and use of
-              the Services is contingent upon your acceptance of and compliance with this Policy.</p>
+            <p>
+              This Privacy Policy ("Policy") governs the manner in which
+              lummie.dev ("Company," "we," "us," or "our") collects, uses,
+              maintains, and discloses information collected from users ("User,"
+              "you," or "your") of the lummie.dev platform and any related
+              services (collectively, the "Services"). Your access to and use of
+              the Services is contingent upon your acceptance of and compliance
+              with this Policy.
+            </p>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               1. Information We Collect
             </h2>
-            <p>We may collect information from and about you in various ways, including but not limited to, the
-              following categories:</p>
+            <p>
+              We may collect information from and about you in various ways,
+              including but not limited to, the following categories:
+            </p>
 
-            <ul className="list-disc ml-6 space-y-2">
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Personally Identifiable Information
-                (PII):</strong> Information that can be used to identify
-                you, which you voluntarily provide upon registration or during your use. This includes:
-                <ul className="list-circle ml-6 space-y-1 mt-1">
-                  <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Contact Data:</strong> Your
-                    name and email address.
+            <ul className="ml-6 list-disc space-y-2">
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Personally Identifiable Information (PII):
+                </strong>{' '}
+                Information that can be used to identify you, which you
+                voluntarily provide upon registration or during your use. This
+                includes:
+                <ul className="list-circle mt-1 ml-6 space-y-1">
+                  <li>
+                    <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                      Contact Data:
+                    </strong>{' '}
+                    Your name and email address.
                   </li>
-                  <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Account
-                    Credentials:</strong> Encrypted password or authentication tokens from third-party
+                  <li>
+                    <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                      Account Credentials:
+                    </strong>{' '}
+                    Encrypted password or authentication tokens from third-party
                     sign-in services (e.g., Google).
                   </li>
                 </ul>
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Service Data (Prompts and Generated
-                Code):</strong> We collect and store the natural language
-                prompts you submit and the resulting source code generated by our Services. This data is integral to the
-                core functionality of our platform.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Service Data (Prompts and Generated Code):
+                </strong>{' '}
+                We collect and store the natural language prompts you submit and
+                the resulting source code generated by our Services. This data
+                is integral to the core functionality of our platform.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Payment Data:</strong> When you
-                purchase a subscription, we do <strong>not</strong> directly
-                store your full credit card number. We collect limited payment data (e.g., last four digits of the card,
-                expiry date) and rely on a <strong className="font-extrabold text-gray-900 dark:text-gray-50">PCI-DSS
-                  compliant third-party payment processor</strong> to handle
-                the transaction.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Payment Data:
+                </strong>{' '}
+                When you purchase a subscription, we do <strong>not</strong>{' '}
+                directly store your full credit card number. We collect limited
+                payment data (e.g., last four digits of the card, expiry date)
+                and rely on a{' '}
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  PCI-DSS compliant third-party payment processor
+                </strong>{' '}
+                to handle the transaction.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Usage Data:</strong> We
-                automatically collect certain information when you access and use the
-                Services. This includes your <strong className="font-extrabold text-gray-900 dark:text-gray-50">Internet
-                  Protocol (IP) address</strong>, browser type, operating
-                system, access times, pages viewed, and other diagnostic data.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Usage Data:
+                </strong>{' '}
+                We automatically collect certain information when you access and
+                use the Services. This includes your{' '}
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Internet Protocol (IP) address
+                </strong>
+                , browser type, operating system, access times, pages viewed,
+                and other diagnostic data.
               </li>
             </ul>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               2. Use of Your Information and Legal Basis for Processing (GDPR)
             </h2>
-            <p>We use the information we collect for various purposes, supported by the following legal bases required
-              by GDPR:</p>
+            <p>
+              We use the information we collect for various purposes, supported
+              by the following legal bases required by GDPR:
+            </p>
 
-            <div className="overflow-x-auto my-6">
-              <table className="w-full text-left border-collapse">
+            <div className="my-6 overflow-x-auto">
+              <table className="w-full border-collapse text-left">
                 <thead>
-                <tr className="text-sm uppercase bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                  <th className="py-3 px-4 font-extrabold border-b border-gray-300 dark:border-gray-700">Purpose of
-                    Use
-                  </th>
-                  <th className="py-3 px-4 font-extrabold border-b border-gray-300 dark:border-gray-700">Legal Basis
-                    (GDPR)
-                  </th>
-                  <th className="py-3 px-4 font-extrabold border-b border-gray-300 dark:border-gray-700">Data Type</th>
-                </tr>
+                  <tr className="bg-gray-100 text-sm text-gray-600 uppercase dark:bg-gray-800 dark:text-gray-300">
+                    <th className="border-b border-gray-300 px-4 py-3 font-extrabold dark:border-gray-700">
+                      Purpose of Use
+                    </th>
+                    <th className="border-b border-gray-300 px-4 py-3 font-extrabold dark:border-gray-700">
+                      Legal Basis (GDPR)
+                    </th>
+                    <th className="border-b border-gray-300 px-4 py-3 font-extrabold dark:border-gray-700">
+                      Data Type
+                    </th>
+                  </tr>
                 </thead>
                 <tbody>
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong className="font-bold">Provision
-                    of Services</strong> (Account creation, code generation)
-                  </td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong
-                    className="font-extrabold text-gray-900 dark:text-gray-50">Performance of a contract</strong></td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800">PII, Service Data</td>
-                </tr>
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong className="font-bold">Service
-                    Improvement</strong> (Monitoring, analyzing trends)
-                  </td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong
-                    className="font-extrabold text-gray-900 dark:text-gray-50">Legitimate interest</strong> (if data is
-                    anonymized)
-                  </td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800">Usage Data, Service Data</td>
-                </tr>
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong className="font-bold">Marketing
-                    and Communication</strong> (Service updates)
-                  </td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong
-                    className="font-extrabold text-gray-900 dark:text-gray-50">Consent</strong> or <strong
-                    className="font-extrabold text-gray-900 dark:text-gray-50">Legitimate interest</strong></td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800">PII</td>
-                </tr>
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong className="font-bold">Security
-                    and Fraud Prevention</strong></td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong
-                    className="font-extrabold text-gray-900 dark:text-gray-50">Legitimate interest</strong></td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800">PII, Usage Data</td>
-                </tr>
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong className="font-bold">Payment
-                    Processing</strong></td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800"><strong
-                    className="font-extrabold text-gray-900 dark:text-gray-50">Performance of a contract</strong></td>
-                  <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-800">Payment Data</td>
-                </tr>
+                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-bold">
+                        Provision of Services
+                      </strong>{' '}
+                      (Account creation, code generation)
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                        Performance of a contract
+                      </strong>
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      PII, Service Data
+                    </td>
+                  </tr>
+                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-bold">Service Improvement</strong>{' '}
+                      (Monitoring, analyzing trends)
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                        Legitimate interest
+                      </strong>{' '}
+                      (if data is anonymized)
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      Usage Data, Service Data
+                    </td>
+                  </tr>
+                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-bold">
+                        Marketing and Communication
+                      </strong>{' '}
+                      (Service updates)
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                        Consent
+                      </strong>{' '}
+                      or{' '}
+                      <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                        Legitimate interest
+                      </strong>
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      PII
+                    </td>
+                  </tr>
+                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-bold">
+                        Security and Fraud Prevention
+                      </strong>
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                        Legitimate interest
+                      </strong>
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      PII, Usage Data
+                    </td>
+                  </tr>
+                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-bold">Payment Processing</strong>
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                        Performance of a contract
+                      </strong>
+                    </td>
+                    <td className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+                      Payment Data
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
 
-
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               3. Service Data (Prompts and Code) Clarification
             </h2>
-            <p>We utilize Service Data (prompts and generated code) for the continuous improvement of our artificial
-              intelligence models and service offerings.</p>
+            <p>
+              We utilize Service Data (prompts and generated code) for the
+              continuous improvement of our artificial intelligence models and
+              service offerings.
+            </p>
 
-            <blockquote
-              className="border-l-4 border-black pl-4 py-2 bg-gray-200 dark:bg-gray-800 text-base rounded-r-md">
-              <p><strong className="font-extrabold text-gray-900 dark:text-gray-50">Important Note:</strong> We
-                implement measures to prevent the unintentional inclusion of
-                Personally Identifiable Information (PII) within our AI model training data. <strong
-                  className="font-extrabold text-gray-900 dark:text-gray-50">However, you are
-                  responsible for ensuring that you do not input sensitive personal, proprietary, or confidential
-                  information into the service prompts.</strong> By submitting prompts, you acknowledge and agree that
-                this Service Data will be used for model training and service enhancement, and you waive any
-                confidentiality claims regarding the input data.</p>
+            <blockquote className="rounded-r-md border-l-4 border-black bg-gray-200 py-2 pl-4 text-base dark:bg-gray-800">
+              <p>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Important Note:
+                </strong>{' '}
+                We implement measures to prevent the unintentional inclusion of
+                Personally Identifiable Information (PII) within our AI model
+                training data.{' '}
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  However, you are responsible for ensuring that you do not
+                  input sensitive personal, proprietary, or confidential
+                  information into the service prompts.
+                </strong>{' '}
+                By submitting prompts, you acknowledge and agree that this
+                Service Data will be used for model training and service
+                enhancement, and you waive any confidentiality claims regarding
+                the input data.
+              </p>
             </blockquote>
 
-
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               4. Disclosure and International Transfer of Your Information
             </h2>
-            <p>We do not sell, trade, or rent your PII to others. We may share information we have collected about you
-              as follows:</p>
-            <ul className="list-disc ml-6 space-y-2">
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Third-Party Service
-                Providers:</strong> We share information with vendors who perform services
-                on our behalf (e.g., cloud hosting, payment processing, data analysis, AI model provisioning). These
-                providers are contractually obligated to maintain the confidentiality and security of your information.
+            <p>
+              We do not sell, trade, or rent your PII to others. We may share
+              information we have collected about you as follows:
+            </p>
+            <ul className="ml-6 list-disc space-y-2">
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Third-Party Service Providers:
+                </strong>{' '}
+                We share information with vendors who perform services on our
+                behalf (e.g., cloud hosting, payment processing, data analysis,
+                AI model provisioning). These providers are contractually
+                obligated to maintain the confidentiality and security of your
+                information.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Business Transfers:</strong> Your
-                information may be transferred as part of a merger, sale of
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Business Transfers:
+                </strong>{' '}
+                Your information may be transferred as part of a merger, sale of
                 assets, or acquisition.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Legal Requirements:</strong> We may
-                disclose your information if required by law, regulation,
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Legal Requirements:
+                </strong>{' '}
+                We may disclose your information if required by law, regulation,
                 or a legal process (e.g., court order or subpoena).
               </li>
             </ul>
 
-            <h3 className="text-2xl font-bold mt-8 mb-3">International Data Transfers</h3>
-            <p>Since we operate globally, your information may be transferred to, and stored in, countries outside your
-              state, province, or country of residence, including the <strong
-                className="font-extrabold text-gray-900 dark:text-gray-50">United States</strong>, where data
-              protection laws may differ from those in your jurisdiction. We take all steps reasonably necessary to
-              ensure that your data is treated securely and in accordance with this Policy, utilizing mechanisms such
-              as <strong className="font-extrabold text-gray-900 dark:text-gray-50">Standard Contractual Clauses
-                (SCCs)</strong> where required by GDPR.</p>
+            <h3 className="mt-8 mb-3 text-2xl font-bold">
+              International Data Transfers
+            </h3>
+            <p>
+              Since we operate globally, your information may be transferred to,
+              and stored in, countries outside your state, province, or country
+              of residence, including the{' '}
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                United States
+              </strong>
+              , where data protection laws may differ from those in your
+              jurisdiction. We take all steps reasonably necessary to ensure
+              that your data is treated securely and in accordance with this
+              Policy, utilizing mechanisms such as{' '}
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                Standard Contractual Clauses (SCCs)
+              </strong>{' '}
+              where required by GDPR.
+            </p>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               5. Data Security and Retention
             </h2>
-            <p><strong className="font-extrabold text-gray-900 dark:text-gray-50">Security:</strong> We employ
-              administrative, technical, and physical security measures to protect
-              your personal information. While we strive to use commercially acceptable means to protect your
-              data, <strong className="font-extrabold text-gray-900 dark:text-gray-50">no method of transmission over
-                the Internet is 100% secure.</strong></p>
-            <p><strong className="font-extrabold text-gray-900 dark:text-gray-50">Data Retention:</strong> We retain
-              your Personal Data only for as long as is necessary for the
-              purposes set out in this Policy. Generally, we will retain your PII <strong
-                className="font-extrabold text-gray-900 dark:text-gray-50">for the duration your account
-                is active</strong> and for a reasonable period thereafter (e.g., 90 days) to allow for account recovery
-              or internal backup purposes, unless a longer retention period is required or permitted by law.</p>
+            <p>
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                Security:
+              </strong>{' '}
+              We employ administrative, technical, and physical security
+              measures to protect your personal information. While we strive to
+              use commercially acceptable means to protect your data,{' '}
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                no method of transmission over the Internet is 100% secure.
+              </strong>
+            </p>
+            <p>
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                Data Retention:
+              </strong>{' '}
+              We retain your Personal Data only for as long as is necessary for
+              the purposes set out in this Policy. Generally, we will retain
+              your PII{' '}
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                for the duration your account is active
+              </strong>{' '}
+              and for a reasonable period thereafter (e.g., 90 days) to allow
+              for account recovery or internal backup purposes, unless a longer
+              retention period is required or permitted by law.
+            </p>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               6. Your Data Protection Rights (GDPR and Global Users)
             </h2>
-            <p>Depending on your location, you may have the following rights regarding your Personal Data:</p>
-            <ul className="list-disc ml-6 space-y-2">
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Right of Access (Right to
-                Know):</strong> The right to request copies of your Personal Data.
+            <p>
+              Depending on your location, you may have the following rights
+              regarding your Personal Data:
+            </p>
+            <ul className="ml-6 list-disc space-y-2">
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Right of Access (Right to Know):
+                </strong>{' '}
+                The right to request copies of your Personal Data.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Right to
-                Rectification:</strong> The right to request that we correct any information you
-                believe is inaccurate or incomplete.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Right to Rectification:
+                </strong>{' '}
+                The right to request that we correct any information you believe
+                is inaccurate or incomplete.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Right to Erasure (Right to be
-                Forgotten):</strong> The right to request that we delete your
-                Personal Data, under certain conditions.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Right to Erasure (Right to be Forgotten):
+                </strong>{' '}
+                The right to request that we delete your Personal Data, under
+                certain conditions.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Right to Restrict
-                Processing:</strong> The right to request that we limit the way we use your
-                Personal Data.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Right to Restrict Processing:
+                </strong>{' '}
+                The right to request that we limit the way we use your Personal
+                Data.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Right to Data
-                Portability:</strong> The right to request that we transfer the data we have
-                collected to another organization, or directly to you, under certain conditions.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Right to Data Portability:
+                </strong>{' '}
+                The right to request that we transfer the data we have collected
+                to another organization, or directly to you, under certain
+                conditions.
               </li>
-              <li><strong className="font-extrabold text-gray-900 dark:text-gray-50">Right to Object:</strong> The right
-                to object to our processing of your Personal Data.
+              <li>
+                <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                  Right to Object:
+                </strong>{' '}
+                The right to object to our processing of your Personal Data.
               </li>
             </ul>
-            <p>To exercise any of these rights, please contact us using the details below. We will respond to your
-              request within the timeframe required by applicable law.</p>
+            <p>
+              To exercise any of these rights, please contact us using the
+              details below. We will respond to your request within the
+              timeframe required by applicable law.
+            </p>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               7. Policy for Children
             </h2>
-            <p>Our Services are not directed to individuals under the age of 13. We do not knowingly collect personal
-              information from children under 13.</p>
+            <p>
+              Our Services are not directed to individuals under the age of 13.
+              We do not knowingly collect personal information from children
+              under 13.
+            </p>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               8. Changes to This Privacy Policy
             </h2>
-            <p>We reserve the right, at our sole discretion, to modify or replace this Policy at any time. We will alert
-              you about any changes by updating the <strong className="font-extrabold text-gray-900 dark:text-gray-50">"Effective
-                Date"</strong> of this Policy and notifying you
-              via email or a prominent notice on the Services prior to the change becoming effective.</p>
+            <p>
+              We reserve the right, at our sole discretion, to modify or replace
+              this Policy at any time. We will alert you about any changes by
+              updating the{' '}
+              <strong className="font-extrabold text-gray-900 dark:text-gray-50">
+                "Effective Date"
+              </strong>{' '}
+              of this Policy and notifying you via email or a prominent notice
+              on the Services prior to the change becoming effective.
+            </p>
 
-            <h2 className="text-3xl font-extrabold mt-10 mb-4 border-b pb-2 border-gray-200 dark:border-gray-700">
+            <h2 className="mt-10 mb-4 border-b border-gray-200 pb-2 text-3xl font-extrabold dark:border-gray-700">
               9. Contact Us
             </h2>
-            <p>Should you have any questions or comments regarding this Privacy Policy, please do not hesitate to
-              contact us at:</p>
+            <p>
+              Should you have any questions or comments regarding this Privacy
+              Policy, please do not hesitate to contact us at:
+            </p>
             <p className="font-bold">
-              Email: <a href="mailto:legal@lummie.dev"
-                        className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold">legal@lummie.dev</a>
+              Email:{' '}
+              <a
+                href="mailto:legal@lummie.dev"
+                className="font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                legal@lummie.dev
+              </a>
             </p>
           </div>
         </main>
