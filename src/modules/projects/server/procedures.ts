@@ -146,7 +146,6 @@ export const projectsRouter = createTRPCRouter({
     )
     .mutation(async function* ({ input, ctx, signal }) {
       try {
-        console.log('Creating message with input: ============', input)
         if (!input.isFirst) {
           await consumeCredits()
           await prisma.project.update({
