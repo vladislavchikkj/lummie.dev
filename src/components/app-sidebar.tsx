@@ -120,7 +120,15 @@ export function AppSidebar() {
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )
 
-  const { setOpen } = useSidebar()
+  const { setOpen, setOpenMobile, isMobile } = useSidebar()
+
+  const handleCloseSidebar = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    } else {
+      setOpen(false)
+    }
+  }
 
   const generatingProjects =
     sortedProjects?.filter((p) => p.status === 'PENDING' && p.sandboxId) || []
@@ -143,7 +151,7 @@ export function AppSidebar() {
           >
             <Link
               href={'/'}
-              onClick={() => setOpen(false)}
+              onClick={handleCloseSidebar}
               className="flex items-center gap-3"
             >
               <Home className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
@@ -157,7 +165,7 @@ export function AppSidebar() {
           >
             <Link
               href={'/'}
-              onClick={() => setOpen(false)}
+              onClick={handleCloseSidebar}
               className="flex items-center gap-2"
             >
               <MessageSquarePlus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-12" />
@@ -196,7 +204,7 @@ export function AppSidebar() {
                     >
                       <Link
                         href={`/projects/${project.id}`}
-                        onClick={() => setOpen(false)}
+                        onClick={handleCloseSidebar}
                         className="flex w-full items-center gap-3"
                       >
                         <ProjectName
@@ -273,7 +281,7 @@ export function AppSidebar() {
                   >
                     <Link
                       href={`/projects/${project.id}`}
-                      onClick={() => setOpen(false)}
+                      onClick={handleCloseSidebar}
                       className="flex w-full items-center gap-3"
                     >
                       <ProjectName
@@ -326,7 +334,7 @@ export function AppSidebar() {
                     >
                       <Link
                         href={`/projects/${project.id}`}
-                        onClick={() => setOpen(false)}
+                        onClick={handleCloseSidebar}
                         className="flex w-full items-center gap-3"
                       >
                         <ProjectName
@@ -380,7 +388,7 @@ export function AppSidebar() {
                     >
                       <Link
                         href={`/projects/${project.id}`}
-                        onClick={() => setOpen(false)}
+                        onClick={handleCloseSidebar}
                         className="flex w-full items-center gap-3"
                       >
                         <ProjectName

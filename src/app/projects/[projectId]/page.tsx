@@ -22,7 +22,7 @@ const Page = async ({ params }: Props) => {
   )
 
   return (
-    <div className="fixed inset-y-0 top-[68px] right-0 left-0 overflow-hidden md:left-[var(--sidebar-width-icon)] md:group-data-[state=expanded]/sidebar-wrapper:left-[var(--sidebar-width)]">
+    <div className="fixed inset-y-0 top-[68px] right-0 left-0 overflow-hidden md:group-data-[state=expanded]/sidebar-wrapper:left-[var(--sidebar-width)]">
       <HydrationBoundary state={dehydrate(queryClient)}>
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
           <Suspense fallback={null}>

@@ -31,17 +31,19 @@ export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
   }, [msBeforeNext])
 
   return (
-    <div className="bg-background rounded-t-xl border border-b-0 p-2.5">
-      <div className="flex items-center gap-x-2">
-        <div>
-          <p className="text-sm">
+    <div className="bg-card border-border rounded-t-3xl border-2 border-b-0 p-3">
+      <div className="flex items-center gap-x-3">
+        <div className="flex-1">
+          <p className="text-sm font-medium">
             {points} {hasProAccess ? '' : 'free'} credits remaining
           </p>
-          <p className="text-muted-foreground text-xs">Resets in {resetTime}</p>
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            Resets in {resetTime}
+          </p>
         </div>
-        <div className="ml-auto flex items-center gap-x-2">
+        <div className="flex items-center gap-x-2">
           {!hasProAccess && (
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm" variant="outline" className="rounded-xl">
               <Link href="/pricing">
                 <CrownIcon className="mr-2 size-4" /> Upgrade
               </Link>
@@ -50,7 +52,7 @@ export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
           <Button
             size="icon"
             variant="ghost"
-            className="size-7"
+            className="size-8 rounded-xl"
             onClick={onClose}
           >
             <XIcon className="size-4" />

@@ -121,7 +121,7 @@ export const MessagesContainer = ({
         </Conversation>
       </div>
 
-      <div className="relative shrink-0 p-3 pt-1">
+      <div className="relative shrink-0 p-3 pt-1 pb-4">
         <div className="to-background pointer-events-none absolute -top-6 right-0 left-0 h-6 bg-gradient-to-b from-transparent" />
         <div
           className={cn(
