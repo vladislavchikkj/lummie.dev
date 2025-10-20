@@ -2,6 +2,7 @@
 import { dark } from '@clerk/themes'
 import { UserButton } from '@clerk/nextjs'
 import { useCurrentTheme } from '@/hooks/use-current-theme'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 interface Props {
   showName?: boolean

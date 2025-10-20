@@ -5,6 +5,8 @@ import {
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Bell } from 'lucide-react'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
+import { cn } from '@/lib/utils'
 
 export const NotificationsPopover = () => {
   return (
@@ -13,7 +15,7 @@ export const NotificationsPopover = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="hover:bg-accent relative rounded-full"
+          className={cn('hover:bg-accent relative rounded-full', A11Y_OUTLINE_CLASSES)}
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />

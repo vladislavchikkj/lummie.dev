@@ -1,0 +1,1 @@
+export const A11Y_OUTLINE_CLASSES = 'outline-offset-3 rounded-md transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:ring-blue-500  dark:focus-visible:outline-zinc-50 focus-visible:ring-0 focus:outline-solid focus:outline-2 focus:outline-blue-500 focus:ring-blue-500  dark:focus:outline-zinc-50 focus:ring-0'

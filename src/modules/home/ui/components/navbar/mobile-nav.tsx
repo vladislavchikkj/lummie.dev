@@ -14,6 +14,7 @@ import { Menu, Bell, X } from 'lucide-react'
 import { LogoLink } from './logo-link'
 import { AuthControls } from './auth-controls'
 import { UserMenu } from './user-menu'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 type NavItem = {
   href: string
@@ -31,7 +32,7 @@ export const MobileNav = ({ pathname, navItems }: MobileNavProps) => (
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-lg lg:hidden"
+        className={cn('rounded-lg lg:hidden', A11Y_OUTLINE_CLASSES)}
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />

@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTRPC } from '@/trpc/client'
 import { UsagePopover } from '@/modules/home/ui/components/navbar/usage-popover'
 import { useSidebar } from '@/components/ui/sidebar'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 const navItems = [
   { href: '/enterprise', label: 'Enterprise' },
@@ -95,7 +96,14 @@ export const Header = ({
           {leftContent || (
             <div
               onClick={toggleSidebar}
-              className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  toggleSidebar()
+                }
+              }}
+              tabIndex={0}
+              className={cn('flex cursor-pointer items-center gap-1 transition-all hover:opacity-80', A11Y_OUTLINE_CLASSES)}
             >
               <Logo width={24} height={24} />
             </div>
@@ -110,7 +118,8 @@ export const Header = ({
                     'hover:text-foreground px-3 py-2 text-sm font-medium transition-colors',
                     pathname === item.href
                       ? 'text-foreground'
-                      : 'text-muted-foreground'
+                      : 'text-muted-foreground',
+                    A11Y_OUTLINE_CLASSES
                   )}
                 >
                   {item.label}

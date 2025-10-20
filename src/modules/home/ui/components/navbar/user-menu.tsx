@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils'
 import type { UserResource } from '@clerk/types'
 import { NotificationsPopover } from './notifications-popover'
 import { BonusPopover } from './bonus-popover'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 interface UserMenuMobileProps {
   theme: string
@@ -87,7 +88,7 @@ const UserMenuDesktop = ({
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-accent"
+            className={cn('hover:bg-accent', A11Y_OUTLINE_CLASSES)}
             aria-label="Open user menu"
           >
             <UserControl />

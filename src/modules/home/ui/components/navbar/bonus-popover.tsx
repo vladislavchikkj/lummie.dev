@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Gift, Copy } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 const STORAGE_KEY = 'bonus-popover-clicked'
 
@@ -44,7 +46,7 @@ export const BonusPopover = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="hover:bg-accent relative rounded-full"
+          className={cn('hover:bg-accent relative rounded-full', A11Y_OUTLINE_CLASSES)}
           aria-label="Bonuses"
         >
           <Gift className="h-5 w-5" />

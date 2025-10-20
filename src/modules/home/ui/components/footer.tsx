@@ -3,6 +3,8 @@
 import Logo from '@/components/ui/logo'
 import Link from 'next/link'
 import { Github, Twitter, Linkedin } from 'lucide-react'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
+import { cn } from '@/lib/utils'
 
 const footerLinks = [
   { href: '/about', label: 'About Us' },
@@ -37,7 +39,7 @@ export const Footer = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-8 py-12 lg:flex-row">
           <div className="max-w-sm">
-            <Link href="/" className="mb-4 flex items-center gap-2">
+            <Link href="/" className={cn('mb-4 flex items-center gap-2', A11Y_OUTLINE_CLASSES)}>
               <Logo width={28} height={28} />
               <span className="text-foreground text-lg font-bold">Lummie</span>
             </Link>
@@ -55,7 +57,7 @@ export const Footer = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                className={cn('text-muted-foreground text-sm', A11Y_OUTLINE_CLASSES)}
               >
                 {link.label}
               </Link>
@@ -75,7 +77,7 @@ export const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className={cn('text-muted-foreground hover:text-foreground transition-colors', A11Y_OUTLINE_CLASSES)}
               >
                 <social.icon className="h-5 w-5" />
               </Link>

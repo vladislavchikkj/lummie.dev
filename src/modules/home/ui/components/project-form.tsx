@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { RotatingText } from '@/components/ui/rotating-text'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 const formSchema = z.object({
   value: z
@@ -98,7 +99,8 @@ export const ProjectForm = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className={cn(
             'bg-sidebar dark:bg-sidebar relative rounded-xl border p-4 pt-1 transition-all',
-            isFocused && 'shadow-xs'
+            isFocused && 'shadow-xs',
+            isFocused && 'outline-style-solid outline-2 outline-offset-2 outline-blue-500 ring-blue-500! dark:outline-zinc-50 ring-0',
           )}
         >
           <GlowingEffect
@@ -158,9 +160,9 @@ export const ProjectForm = () => {
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="secondary" // Этот вариант даст кнопке фон
+                          variant="secondary"
                           size="sm"
-                          className="h-7 rounded-full px-3" // Добавляем скругление и паддинг
+                          className={cn(A11Y_OUTLINE_CLASSES, 'h-7 rounded-full px-3')}
                           disabled={isPending}
                         >
                           <Sparkles className="mr-1.5 size-3.5" />
@@ -176,7 +178,7 @@ export const ProjectForm = () => {
                           <DropdownMenuItem
                             key={template.title}
                             onSelect={() => onSelect(template.prompt)}
-                            className="cursor-pointer"
+                            className={cn('cursor-pointer', A11Y_OUTLINE_CLASSES)}
                           >
                             {template.title}
                           </DropdownMenuItem>
@@ -201,6 +203,7 @@ export const ProjectForm = () => {
             <Button
               disabled={isButtonDisabled}
               className={cn(
+                A11Y_OUTLINE_CLASSES,
                 'size-8 rounded-full',
                 isButtonDisabled && 'bg-muted-foreground border'
               )}
@@ -208,7 +211,7 @@ export const ProjectForm = () => {
               {isPending ? (
                 <Loader2Icon className="size-4 animate-spin" />
               ) : (
-                <ArrowUpIcon />
+                <ArrowUpIcon/>
               )}
             </Button>
           </div>

@@ -20,6 +20,8 @@ import {
 import { useTRPC } from '@/trpc/client'
 import { ProjectMenu } from '@/modules/projects/ui/components/project-menu'
 import type { JsonValue } from '@prisma/client/runtime/library'
+import { cn } from '@/lib/utils'
+import { A11Y_OUTLINE_CLASSES } from '@/components/constants'
 
 interface FragmentPreview {
   id: string
@@ -200,23 +202,23 @@ export const ProjectsList = () => {
 
         <div className="flex items-center gap-x-2">
           <div className="relative w-full sm:w-64">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" tabIndex={-1}/>
             <Input
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className={cn(A11Y_OUTLINE_CLASSES, 'pl-10')}
             />
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className={cn(A11Y_OUTLINE_CLASSES,'w-[150px]')}>
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="latest">Latest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="az">A-Z</SelectItem>
-              <SelectItem value="za">Z-A</SelectItem>
+              <SelectItem className={A11Y_OUTLINE_CLASSES} value="latest">Latest</SelectItem>
+              <SelectItem className={A11Y_OUTLINE_CLASSES} value="oldest">Oldest</SelectItem>
+              <SelectItem className={A11Y_OUTLINE_CLASSES} value="az">A-Z</SelectItem>
+              <SelectItem className={A11Y_OUTLINE_CLASSES} value="za">Z-A</SelectItem>
             </SelectContent>
           </Select>
         </div>
