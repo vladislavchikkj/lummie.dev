@@ -322,4 +322,28 @@ export const projectsRouter = createTRPCRouter({
 
       return { success: true }
     }),
+
+  status: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, { message: 'Project ID is required' }),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const project = await prisma.project.findUnique({
+        where: {
+          id: input.id,
+          userId: ctx.auth.userId,
+        },
+        select: {
+          status: true,
+        },
+      })
+
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' })
+      }
+
+      return { status: project.status }
+    }),
 })

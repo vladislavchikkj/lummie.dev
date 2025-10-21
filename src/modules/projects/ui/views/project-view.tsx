@@ -22,6 +22,7 @@ import {
   AssistantMessageType,
   TabState,
 } from '../../constants/chat'
+import { useTRPCClient } from '@/trpc/client'
 
 interface Props {
   projectId: string
@@ -38,18 +39,19 @@ export const ProjectView = ({ projectId }: Props) => {
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessageEntity | null>(null)
   const [lastGenerationTime, setLastGenerationTime] = useState<number | null>(
-    null
+    null,
   )
   const [currentStreamingStartTime, setCurrentStreamingStartTime] = useState<
     number | null
   >(null)
   const streamingStartTimeRef = useRef<number | null>(null)
   const [finalGenerationTime, setFinalGenerationTime] = useState<number | null>(
-    null
+    null,
   )
   const [isFragmentFullscreen, setIsFragmentFullscreen] = useState(false)
 
   const lastMessageWithFragmentIdRef = useRef<string | null>(null)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const {
     isStreaming,
@@ -78,7 +80,8 @@ export const ProjectView = ({ projectId }: Props) => {
       streamingStartTimeRef.current = null
     },
     onMessageTypeChange: setAssistantMessageType,
-    onContentUpdate: () => {},
+    onContentUpdate: () => {
+    },
     onStreamAborted: () => {
       setCurrentStreamingStartTime(null)
       streamingStartTimeRef.current = null
@@ -116,10 +119,52 @@ export const ProjectView = ({ projectId }: Props) => {
     onFirstMessageSubmit: (content: string) => {
       startStreaming(content, true)
     },
-    onMessagesUpdate: () => {},
+    onMessagesUpdate: () => {
+    },
     onStreamingContentClear: clearStreamingContent,
     onPendingMessageClear: () => setPendingUserMessage(null),
   })
+
+
+  const trpcClient = useTRPCClient()
+
+  useEffect(() => {
+    if (assistantMessageType !== 'CHAT' && !wasStreamAborted) {
+      const tick = async () => {
+        try {
+          const { status } = await trpcClient.projects.status.query({ id: projectId });
+          if (status === 'COMPLETED' || status === 'ERROR') {
+            stopStreaming();
+            refetchMessages();
+            // setAssistantMessageType('CHAT'); // Optional: Reset to chat mode if needed
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current);
+              pollingRef.current = null;
+            }
+            // // Optional: Update generation times or other states if required
+            // const finalTime = currentStreamingStartTime ? (Date.now() - currentStreamingStartTime) / 1000 : null;
+            // if (finalTime) {
+            //   setLastGenerationTime(finalTime);
+            //   setFinalGenerationTime(finalTime);
+            // }
+          }
+        } catch (error) {
+          console.error('Error polling project status:', error);
+        }
+      };
+
+      // Start polling
+      tick();
+      pollingRef.current = setInterval(tick, 4000);
+
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      };
+    }
+  }, [isStreaming])
 
   const onSubmit = useCallback(
     async (message: string, isFirstMessage: boolean = false) => {
@@ -141,12 +186,12 @@ export const ProjectView = ({ projectId }: Props) => {
 
       await startStreaming(message, isFirstMessage)
     },
-    [isStreaming, startStreaming]
+    [isStreaming, startStreaming],
   )
 
   useEffect(() => {
     const lastMessageWithFragment = displayedMessages.findLast(
-      (message) => !!message.fragment
+      (message) => !!message.fragment,
     )
 
     if (
@@ -199,7 +244,7 @@ export const ProjectView = ({ projectId }: Props) => {
         }
       }
     },
-    [isMobile]
+    [isMobile],
   )
 
   if (isMobile && isFragmentFullscreen && activeFragment) {
@@ -254,7 +299,8 @@ export const ProjectView = ({ projectId }: Props) => {
             </Suspense>
           </ErrorBoundary>
 
-          <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
+          <div
+            className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
         {activeFragment && !isMobile && (
