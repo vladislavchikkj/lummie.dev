@@ -229,53 +229,57 @@ export const MessageCard = memo(
     return (
       <>
         {role === 'USER' && (
-          <div className="group mb-2 flex items-center justify-end gap-2">
-            <Message from={messageRole}>
-              <div className="flex gap-2">
-                <UserMessageActions content={content} />
+          <div className="group mb-2 flex w-full justify-end">
+            <div className="flex items-center gap-2">
+              <UserMessageActions content={content} />
+              <Message from={messageRole}>
                 <MessageContent className="flex flex-col">
-                  <div className="text-base sm:text-base">{content}</div>
+                  <div className="text-base break-words sm:text-base">
+                    {content}
+                  </div>
                 </MessageContent>
-              </div>
-            </Message>
+              </Message>
+            </div>
           </div>
         )}
         {role === 'ASSISTANT' && (
-          <Message from={messageRole}>
-            <MessageContent className="flex flex-col">
-              <Response
-                className="flex-1 text-base sm:text-base"
-                useHardenedMarkdown={false}
-                parseIncompleteMarkdown={false}
-              >
-                {content}
-              </Response>
-              {fragment && type === 'RESULT' && (
-                <Tool className="mt-2">
-                  <FragmentCard
-                    fragment={fragment}
-                    isActiveFragment={isActiveFragment}
-                    onFragmentClick={onFragmentClick}
-                  />
-                </Tool>
-              )}
-              {type !== 'ERROR' && (
-                <AssistantMessageActions
-                  content={content}
-                  isStreaming={isStreaming}
-                  generationTime={generationTime}
-                />
-              )}
-              {type === 'ERROR' && (
-                <Reasoning
-                  isStreaming={false}
-                  className="text-base sm:text-base"
+          <div className="group mb-2 flex w-full">
+            <Message from={messageRole}>
+              <MessageContent className="flex flex-col">
+                <Response
+                  className="flex-1 text-base sm:text-base"
+                  useHardenedMarkdown={false}
+                  parseIncompleteMarkdown={false}
                 >
-                  Error details
-                </Reasoning>
-              )}
-            </MessageContent>
-          </Message>
+                  {content}
+                </Response>
+                {fragment && type === 'RESULT' && (
+                  <Tool className="mt-2">
+                    <FragmentCard
+                      fragment={fragment}
+                      isActiveFragment={isActiveFragment}
+                      onFragmentClick={onFragmentClick}
+                    />
+                  </Tool>
+                )}
+                {type !== 'ERROR' && (
+                  <AssistantMessageActions
+                    content={content}
+                    isStreaming={isStreaming}
+                    generationTime={generationTime}
+                  />
+                )}
+                {type === 'ERROR' && (
+                  <Reasoning
+                    isStreaming={false}
+                    className="text-base sm:text-base"
+                  >
+                    Error details
+                  </Reasoning>
+                )}
+              </MessageContent>
+            </Message>
+          </div>
         )}
       </>
     )
