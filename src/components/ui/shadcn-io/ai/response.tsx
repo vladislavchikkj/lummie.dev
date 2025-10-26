@@ -67,6 +67,14 @@ export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 const components: Options['components'] = {
+  p: ({ children, className, ...props }) => (
+    <p
+      className={cn('overflow-wrap-anywhere break-words', className)}
+      {...props}
+    >
+      {children}
+    </p>
+  ),
   ol: ({ children, className, ...props }) => (
     <ol className={cn('ml-4 list-outside list-decimal', className)} {...props}>
       {children}
@@ -263,7 +271,7 @@ export const Response = memo(
     return (
       <div
         className={cn(
-          'size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+          'overflow-wrap-anywhere size-full break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
           className
         )}
         {...props}

@@ -13,6 +13,9 @@ import { Message, MessageContent } from '@/components/ui/shadcn-io/ai/message'
 import { Response } from '@/components/ui/shadcn-io/ai/response'
 import { Tool } from '@/components/ui/shadcn-io/ai/tool'
 import { Reasoning } from '@/components/ui/shadcn-io/ai/reasoning'
+import type { ProcessedImage } from '@/lib/image-processing'
+import type { LocalImagePreview } from '../../constants/chat'
+import { ImagePreview } from './image-preview'
 
 interface FragmentCardProps {
   fragment: Fragment
@@ -28,7 +31,7 @@ const FragmentCard = ({
   return (
     <button
       className={cn(
-        'group bg-muted/50 relative flex w-full items-center gap-2 rounded-lg border-0 p-2 text-start transition-all duration-200 ease-out',
+        'bg-muted/50 group relative flex w-full items-center gap-2 rounded-lg border-0 p-2 text-start transition-all duration-200 ease-out',
         'hover:bg-muted/70 active:scale-[0.98]',
         'sm:w-fit sm:gap-3 sm:p-2.5',
         isActiveFragment &&
@@ -211,6 +214,8 @@ interface MessageCardProps {
   type: MessageType
   isStreaming?: boolean
   generationTime?: number | null
+  images?: ProcessedImage[] | null | undefined
+  localImagePreviews?: LocalImagePreview[]
 }
 
 export const MessageCard = memo(
@@ -223,59 +228,95 @@ export const MessageCard = memo(
     type,
     isStreaming = false,
     generationTime,
+    images,
+    localImagePreviews,
   }: MessageCardProps) => {
     const messageRole = role.toLowerCase() as 'user' | 'assistant'
+
+    const hasLocalPreviews = localImagePreviews && localImagePreviews.length > 0
+    const hasDbImages = images && images.length > 0
+    const shouldShowLocalPreviews = hasLocalPreviews && !hasDbImages
 
     return (
       <>
         {role === 'USER' && (
-          <div className="group mb-2 flex items-center justify-end gap-2">
-            <Message from={messageRole}>
-              <div className="flex gap-2">
-                <UserMessageActions content={content} />
-                <MessageContent className="flex flex-col">
-                  <div className="text-base sm:text-base">{content}</div>
+          <div className="group mb-2 flex w-full justify-end">
+            <div className="flex min-w-0 items-center gap-2">
+              <UserMessageActions content={content} />
+              <Message from={messageRole}>
+                <MessageContent className="flex flex-col gap-2">
+                  {shouldShowLocalPreviews && (
+                    <div className="flex flex-wrap gap-2">
+                      {localImagePreviews.map((preview, index) => (
+                        <ImagePreview
+                          key={preview.url}
+                          src={preview.url}
+                          alt={preview.file.name || `Attachment ${index + 1}`}
+                          isLocal={true}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {hasDbImages && (
+                    <div className="flex flex-wrap gap-2">
+                      {images.map((image, index) => (
+                        <ImagePreview
+                          key={index}
+                          src={image.data}
+                          alt={`Attachment ${index + 1}`}
+                          isLocal={false}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {content.trim() && (
+                    <div className="overflow-wrap-anywhere text-base break-words sm:text-base">
+                      {content}
+                    </div>
+                  )}
                 </MessageContent>
-              </div>
-            </Message>
+              </Message>
+            </div>
           </div>
         )}
         {role === 'ASSISTANT' && (
-          <Message from={messageRole}>
-            <MessageContent className="flex flex-col">
-              <Response
-                className="flex-1 text-base sm:text-base"
-                useHardenedMarkdown={false}
-                parseIncompleteMarkdown={false}
-              >
-                {content}
-              </Response>
-              {fragment && type === 'RESULT' && (
-                <Tool className="mt-2">
-                  <FragmentCard
-                    fragment={fragment}
-                    isActiveFragment={isActiveFragment}
-                    onFragmentClick={onFragmentClick}
-                  />
-                </Tool>
-              )}
-              {type !== 'ERROR' && (
-                <AssistantMessageActions
-                  content={content}
-                  isStreaming={isStreaming}
-                  generationTime={generationTime}
-                />
-              )}
-              {type === 'ERROR' && (
-                <Reasoning
-                  isStreaming={false}
-                  className="text-base sm:text-base"
+          <div className="group mb-2 flex w-full min-w-0">
+            <Message from={messageRole} className="w-full min-w-0">
+              <MessageContent className="flex min-w-0 flex-col">
+                <Response
+                  className="flex-1 text-base sm:text-base"
+                  useHardenedMarkdown={false}
+                  parseIncompleteMarkdown={false}
                 >
-                  Error details
-                </Reasoning>
-              )}
-            </MessageContent>
-          </Message>
+                  {content}
+                </Response>
+                {fragment && type === 'RESULT' && (
+                  <Tool className="mt-2">
+                    <FragmentCard
+                      fragment={fragment}
+                      isActiveFragment={isActiveFragment}
+                      onFragmentClick={onFragmentClick}
+                    />
+                  </Tool>
+                )}
+                {type !== 'ERROR' && (
+                  <AssistantMessageActions
+                    content={content}
+                    isStreaming={isStreaming}
+                    generationTime={generationTime}
+                  />
+                )}
+                {type === 'ERROR' && (
+                  <Reasoning
+                    isStreaming={false}
+                    className="text-base sm:text-base"
+                  >
+                    Error details
+                  </Reasoning>
+                )}
+              </MessageContent>
+            </Message>
+          </div>
         )}
       </>
     )
@@ -287,7 +328,10 @@ export const MessageCard = memo(
       prevProps.type === nextProps.type &&
       prevProps.isStreaming === nextProps.isStreaming &&
       prevProps.isActiveFragment === nextProps.isActiveFragment &&
-      prevProps.fragment?.id === nextProps.fragment?.id
+      prevProps.fragment?.id === nextProps.fragment?.id &&
+      JSON.stringify(prevProps.images) === JSON.stringify(nextProps.images) &&
+      JSON.stringify(prevProps.localImagePreviews) ===
+        JSON.stringify(nextProps.localImagePreviews)
     )
   }
 )

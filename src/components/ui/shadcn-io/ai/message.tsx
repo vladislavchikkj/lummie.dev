@@ -9,8 +9,10 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
-      'group flex w-full items-end justify-end gap-2 py-4',
-      from === 'user' ? 'is-user' : 'is-assistant flex-row-reverse',
+      'group flex items-end gap-2 py-4',
+      from === 'user'
+        ? 'is-user justify-end'
+        : 'is-assistant flex-row-reverse justify-start',
       className
     )}
     {...props}
@@ -28,13 +30,13 @@ export const MessageContent = ({
     className={cn(
       'text-foreground flex flex-col gap-2 overflow-hidden rounded-2xl px-3 py-3 sm:px-4',
       'group-[.is-user]:bg-muted group-[.is-user]:mr-0 sm:group-[.is-user]:mr-4',
-      'group-[.is-user]:max-w-[80%] group-[.is-user]:rounded-br-none',
-      'group-[.is-assistant]:ml-0 group-[.is-assistant]:max-w-full sm:group-[.is-assistant]:ml-4',
+      'group-[.is-user]:w-fit group-[.is-user]:max-w-[100%] group-[.is-user]:self-end group-[.is-user]:rounded-br-none',
+      'group-[.is-assistant]:ml-0 group-[.is-assistant]:w-full group-[.is-assistant]:max-w-full group-[.is-assistant]:self-start sm:group-[.is-assistant]:ml-4',
 
       className
     )}
     {...props}
   >
-    <div className="is-user:dark flex flex-col gap-4">{children}</div>
+    <div className="is-user:dark flex min-w-0 flex-col gap-4">{children}</div>
   </div>
 )

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useTRPCClient } from '@/trpc/client'
 import { TRPCClientError } from '@trpc/client'
+import type { ProcessedImage } from '@/lib/image-processing'
 
 interface UseChatStreamingProps {
   projectId: string
@@ -31,7 +32,11 @@ export const useChatStreaming = ({
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const startStreaming = useCallback(
-    async (message: string, isFirstMessage: boolean = false) => {
+    async (
+      message: string,
+      isFirstMessage: boolean = false,
+      images?: ProcessedImage[]
+    ) => {
       if (isStreaming || !message.trim()) return
 
       if (!abortControllerRef.current) {
@@ -51,6 +56,7 @@ export const useChatStreaming = ({
             projectId,
             value: message,
             isFirst: isFirstMessage,
+            images,
           },
           {
             signal: abortControllerRef.current.signal,

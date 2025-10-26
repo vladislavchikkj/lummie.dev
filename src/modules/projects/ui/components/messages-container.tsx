@@ -10,6 +10,8 @@ import {
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation'
 import { PulsingLogo } from '@/components/ui/pulsing-logo'
+import type { ProcessedImage } from '@/lib/image-processing'
+import type { LocalImagePreview } from '../../constants/chat'
 
 interface Props {
   activeFragment: Fragment | null
@@ -22,6 +24,8 @@ interface Props {
     createdAt: Date
     fragment: Fragment | null
     generationTime?: number | null
+    images?: ProcessedImage[] | null | undefined
+    localImagePreviews?: LocalImagePreview[]
   }[]
   children: ReactNode
   projectCreating: boolean
@@ -51,7 +55,7 @@ export const MessagesContainer = ({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto">
         <Conversation messagesCount={messages.length}>
           <ConversationContent
             className={cn(
@@ -94,6 +98,8 @@ export const MessagesContainer = ({
                       type={message.type}
                       isStreaming={isCurrentlyStreaming}
                       generationTime={message.generationTime}
+                      images={message.images}
+                      localImagePreviews={message.localImagePreviews}
                     />
                     {isLastUserMessage && (isStreaming || projectCreating) && (
                       <div className="mt-2 mb-4 flex items-center gap-2">
@@ -121,7 +127,7 @@ export const MessagesContainer = ({
         </Conversation>
       </div>
 
-      <div className="relative shrink-0 p-3 pt-1">
+      <div className="relative shrink-0 p-3 pt-1 pb-4">
         <div className="to-background pointer-events-none absolute -top-6 right-0 left-0 h-6 bg-gradient-to-b from-transparent" />
         <div
           className={cn(

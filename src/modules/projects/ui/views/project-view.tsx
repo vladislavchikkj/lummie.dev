@@ -9,7 +9,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-import { ProjectHeader } from '@/modules/projects/ui/components/project-header'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 import { MessagesContainer } from '../components/messages-container'
@@ -21,7 +20,10 @@ import {
   ChatMessageEntity,
   AssistantMessageType,
   TabState,
+  LocalImagePreview,
 } from '../../constants/chat'
+import { useTRPCClient } from '@/trpc/client'
+import type { ProcessedImage } from '@/lib/image-processing'
 
 interface Props {
   projectId: string
@@ -50,6 +52,7 @@ export const ProjectView = ({ projectId }: Props) => {
   const [isFragmentFullscreen, setIsFragmentFullscreen] = useState(false)
 
   const lastMessageWithFragmentIdRef = useRef<string | null>(null)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const {
     isStreaming,
@@ -113,20 +116,84 @@ export const ProjectView = ({ projectId }: Props) => {
     lastGenerationTime,
     currentStreamingStartTime,
     finalGenerationTime,
-    onFirstMessageSubmit: (content: string) => {
-      startStreaming(content, true)
+    onFirstMessageSubmit: (content: string, images?: ProcessedImage[]) => {
+      startStreaming(content, true, images)
     },
     onMessagesUpdate: () => {},
     onStreamingContentClear: clearStreamingContent,
     onPendingMessageClear: () => setPendingUserMessage(null),
   })
 
-  const onSubmit = useCallback(
-    async (message: string, isFirstMessage: boolean = false) => {
-      if (isStreaming || !message.trim()) return
+  const trpcClient = useTRPCClient()
 
-      // Only create pending user message for non-first messages
+  useEffect(() => {
+    if (assistantMessageType !== 'CHAT' && !wasStreamAborted) {
+      const tick = async () => {
+        try {
+          const { status } = await trpcClient.projects.status.query({
+            id: projectId,
+          })
+          if (status === 'COMPLETED' || status === 'ERROR') {
+            stopStreaming()
+            refetchMessages()
+            // setAssistantMessageType('CHAT'); // Optional: Reset to chat mode if needed
+            if (pollingRef.current) {
+              clearInterval(pollingRef.current)
+              pollingRef.current = null
+            }
+            // // Optional: Update generation times or other states if required
+            // const finalTime = currentStreamingStartTime ? (Date.now() - currentStreamingStartTime) / 1000 : null;
+            // if (finalTime) {
+            //   setLastGenerationTime(finalTime);
+            //   setFinalGenerationTime(finalTime);
+            // }
+          }
+        } catch (error) {
+          console.error('Error polling project status:', error)
+        }
+      }
+
+      // Start polling
+      tick()
+      pollingRef.current = setInterval(tick, 4000)
+
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current)
+          pollingRef.current = null
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    assistantMessageType,
+    isStreaming,
+    projectId,
+    stopStreaming,
+    trpcClient,
+    wasStreamAborted,
+  ])
+
+  const onSubmit = useCallback(
+    async (
+      message: string,
+      images?: ProcessedImage[],
+      originalFiles?: File[]
+    ) => {
+      if (isStreaming || (!message.trim() && (!images || images.length === 0)))
+        return
+
+      const isFirstMessage = false
+
       if (!isFirstMessage) {
+        let localPreviews: LocalImagePreview[] | undefined = undefined
+        if (originalFiles && originalFiles.length > 0) {
+          localPreviews = originalFiles.map((file) => ({
+            url: URL.createObjectURL(file),
+            file,
+          }))
+        }
+
         const userMsg: ChatMessageEntity = {
           role: 'USER',
           content: message,
@@ -134,15 +201,26 @@ export const ProjectView = ({ projectId }: Props) => {
           createdAt: new Date(),
           fragment: null,
           type: 'RESULT',
+          localImagePreviews: localPreviews,
         }
 
         setPendingUserMessage(userMsg)
       }
 
-      await startStreaming(message, isFirstMessage)
+      await startStreaming(message, isFirstMessage, images)
     },
     [isStreaming, startStreaming]
   )
+
+  useEffect(() => {
+    return () => {
+      if (pendingUserMessage?.localImagePreviews) {
+        pendingUserMessage.localImagePreviews.forEach((preview) => {
+          URL.revokeObjectURL(preview.url)
+        })
+      }
+    }
+  }, [pendingUserMessage])
 
   useEffect(() => {
     const lastMessageWithFragment = displayedMessages.findLast(

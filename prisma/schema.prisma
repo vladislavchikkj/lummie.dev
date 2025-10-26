@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Project {
@@ -31,6 +32,7 @@ model Message {
   project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   isFirst        Boolean     @default(false)
   generationTime Float?      // время генерации в секундах
+  images         Json?       // массив изображений в формате base64 с метаданными
 }
 
 model Fragment {

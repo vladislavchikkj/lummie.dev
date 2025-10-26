@@ -117,7 +117,7 @@ export default function RootLayout({
                 <SidebarProvider>
                   <DynamicNavbar />
                   <AppSidebar />
-                  <main className="w-full pt-[68px] ring-0">{children}</main>
+                  <main className="w-full ring-0">{children}</main>
                 </SidebarProvider>
                 <CookieConsent />
               </ThemeProvider>

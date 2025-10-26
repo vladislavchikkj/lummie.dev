@@ -1,4 +1,5 @@
 import { Fragment } from '@/generated/prisma'
+import type { ProcessedImage } from '@/lib/image-processing'
 
 export const CHAT_ROLES = {
   USER: 'USER' as const,
@@ -10,6 +11,11 @@ export const CHAT_MESSAGE_TYPES = {
   RESULT: 'RESULT' as const,
 }
 
+export interface LocalImagePreview {
+  url: string
+  file: File
+}
+
 export interface ChatMessageEntity {
   id: string
   content: string
@@ -19,6 +25,8 @@ export interface ChatMessageEntity {
   fragment: Fragment | null
   isFirst?: boolean
   generationTime?: number | null
+  images?: ProcessedImage[] | null | undefined
+  localImagePreviews?: LocalImagePreview[]
 }
 
 export type DisplayedMessageEntity = ChatMessageEntity & {
