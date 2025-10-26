@@ -230,11 +230,11 @@ export const MessageCard = memo(
       <>
         {role === 'USER' && (
           <div className="group mb-2 flex w-full justify-end">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <UserMessageActions content={content} />
               <Message from={messageRole}>
                 <MessageContent className="flex flex-col">
-                  <div className="text-base break-words sm:text-base">
+                  <div className="overflow-wrap-anywhere text-base break-words sm:text-base">
                     {content}
                   </div>
                 </MessageContent>
@@ -243,9 +243,9 @@ export const MessageCard = memo(
           </div>
         )}
         {role === 'ASSISTANT' && (
-          <div className="group mb-2 flex w-full">
-            <Message from={messageRole}>
-              <MessageContent className="flex flex-col">
+          <div className="group mb-2 flex w-full min-w-0">
+            <Message from={messageRole} className="w-full min-w-0">
+              <MessageContent className="flex min-w-0 flex-col">
                 <Response
                   className="flex-1 text-base sm:text-base"
                   useHardenedMarkdown={false}

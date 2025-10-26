@@ -57,7 +57,10 @@ export const ConversationContent = ({
   className,
   ...props
 }: ConversationContentProps) => (
-  <StickToBottom.Content className={cn('', className)} {...props} />
+  <StickToBottom.Content
+    className={cn('overflow-x-hidden', className)}
+    {...props}
+  />
 )
 
 export type ConversationScrollButtonProps = ComponentProps<typeof Button>

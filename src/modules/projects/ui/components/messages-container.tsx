@@ -51,7 +51,7 @@ export const MessagesContainer = ({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto">
         <Conversation messagesCount={messages.length}>
           <ConversationContent
             className={cn(
