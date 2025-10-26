@@ -10,6 +10,7 @@ import {
   ConversationScrollButton,
 } from '@/components/ui/shadcn-io/ai/conversation'
 import { PulsingLogo } from '@/components/ui/pulsing-logo'
+import type { ProcessedImage } from '@/lib/image-processing'
 
 interface Props {
   activeFragment: Fragment | null
@@ -22,6 +23,7 @@ interface Props {
     createdAt: Date
     fragment: Fragment | null
     generationTime?: number | null
+    images?: ProcessedImage[] | null | undefined
   }[]
   children: ReactNode
   projectCreating: boolean
@@ -94,6 +96,7 @@ export const MessagesContainer = ({
                       type={message.type}
                       isStreaming={isCurrentlyStreaming}
                       generationTime={message.generationTime}
+                      images={message.images}
                     />
                     {isLastUserMessage && (isStreaming || projectCreating) && (
                       <div className="mt-2 mb-4 flex items-center gap-2">

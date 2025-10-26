@@ -15,6 +15,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
 import { useTRPC } from '@/trpc/client'
@@ -28,19 +29,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  processImages,
+  validateImageFile,
+  type ProcessedImage,
+} from '@/lib/image-processing'
 
 interface Props {
   projectId: string
-  onSubmit?: (message: string) => void
+  onSubmit?: (message: string, images?: ProcessedImage[]) => void
   isStreaming?: boolean
   onStop?: () => void
 }
 
 const formSchema = z.object({
-  value: z
-    .string()
-    .min(1, { message: 'Value is required' })
-    .max(10000, { message: 'Value is too long' }),
+  value: z.string().max(10000, { message: 'Value is too long' }),
 })
 
 export const MessageForm = ({
@@ -55,6 +58,7 @@ export const MessageForm = ({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const [attachedImages, setAttachedImages] = useState<File[]>([])
+  const [isProcessingImages, setIsProcessingImages] = useState(false)
 
   const { data: usage } = useQuery({
     ...trpc.usage.status.queryOptions(),
@@ -68,35 +72,90 @@ export const MessageForm = ({
     },
   })
 
-  const formSubmit = (data: z.infer<typeof formSchema>) => {
+  const formSubmit = async (data: z.infer<typeof formSchema>) => {
     if (isStreaming) return
-    if (onSubmit) {
-      console.log('Calling onSubmit with value:', data.value)
-      console.log('Attached images:', attachedImages)
-      onSubmit(data.value)
+
+    // Проверяем что есть либо текст либо изображения
+    if (!data.value.trim() && attachedImages.length === 0) {
+      toast.error('Please enter a message or attach an image')
+      return
     }
-    form.reset()
-    setAttachedImages([])
+
+    if (onSubmit) {
+      try {
+        let processedImages: ProcessedImage[] | undefined = undefined
+
+        // Обрабатываем изображения перед отправкой
+        if (attachedImages.length > 0) {
+          setIsProcessingImages(true)
+          try {
+            processedImages = await processImages(attachedImages)
+            console.log('Processed images:', processedImages)
+          } catch (error) {
+            console.error('Error processing images:', error)
+            toast.error('Failed to process images')
+            setIsProcessingImages(false)
+            return
+          } finally {
+            setIsProcessingImages(false)
+          }
+        }
+
+        console.log('Calling onSubmit with value:', data.value)
+        console.log('Processed images:', processedImages)
+        // Если нет текста, отправляем пробел для совместимости
+        const messageText = data.value.trim() || ' '
+        onSubmit(messageText, processedImages)
+        form.reset()
+        setAttachedImages([])
+      } catch (error) {
+        console.error('Error in formSubmit:', error)
+        toast.error('Failed to send message')
+      }
+    }
   }
 
-  const isButtonDisabled = !form.formState.isValid && !isStreaming
+  const isButtonDisabled =
+    (!form.formState.isValid && attachedImages.length === 0 && !isStreaming) ||
+    isProcessingImages
   const showUsage = !!usage
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files) {
-      const imageFiles = Array.from(files).filter((file) =>
-        file.type.startsWith('image/')
-      )
-      setAttachedImages((prev) => [...prev, ...imageFiles])
+      const validFiles: File[] = []
+
+      Array.from(files).forEach((file) => {
+        const validation = validateImageFile(file)
+        if (validation.valid) {
+          validFiles.push(file)
+        } else {
+          toast.error(`${file.name}: ${validation.error}`)
+        }
+      })
+
+      if (validFiles.length > 0) {
+        setAttachedImages((prev) => [...prev, ...validFiles])
+        toast.success(`${validFiles.length} image(s) added`)
+      }
     }
+    // Сбросить input для возможности повторной загрузки того же файла
+    event.target.value = ''
   }
 
   const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files && files.length > 0) {
-      setAttachedImages((prev) => [...prev, files[0]])
+      const validation = validateImageFile(files[0])
+      if (validation.valid) {
+        setAttachedImages((prev) => [...prev, files[0]])
+        toast.success('Photo captured')
+      } else {
+        toast.error(validation.error || 'Invalid image file')
+      }
     }
+    // Сбросить input
+    event.target.value = ''
   }
 
   const handleTakePhoto = () => {
@@ -167,7 +226,7 @@ export const MessageForm = ({
         onSubmit={form.handleSubmit(formSubmit)}
         className={cn(
           'bg-muted border-border relative flex flex-col border',
-          showUsage ? 'rounded-t-none rounded-b-xl' : 'rounded-xl'
+          showUsage ? 'rounded-b-xl rounded-t-none' : 'rounded-xl'
         )}
       >
         {/* Attached Images Preview */}
@@ -184,7 +243,7 @@ export const MessageForm = ({
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="bg-destructive text-destructive-foreground absolute -top-2 -right-2 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="bg-destructive text-destructive-foreground absolute -right-2 -top-2 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
                 >
                   <X className="size-3" />
                 </button>
@@ -214,7 +273,7 @@ export const MessageForm = ({
             )}
           />
 
-          <div className="absolute right-2 bottom-2 flex items-center gap-1">
+          <div className="absolute bottom-2 right-2 flex items-center gap-1">
             {/* Hidden file inputs */}
             <input
               ref={fileInputRef}

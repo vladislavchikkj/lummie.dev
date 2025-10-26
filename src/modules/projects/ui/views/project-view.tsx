@@ -9,7 +9,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-import { ProjectHeader } from '@/modules/projects/ui/components/project-header'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 import { MessagesContainer } from '../components/messages-container'
@@ -23,6 +22,7 @@ import {
   TabState,
 } from '../../constants/chat'
 import { useTRPCClient } from '@/trpc/client'
+import type { ProcessedImage } from '@/lib/image-processing'
 
 interface Props {
   projectId: string
@@ -39,14 +39,14 @@ export const ProjectView = ({ projectId }: Props) => {
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessageEntity | null>(null)
   const [lastGenerationTime, setLastGenerationTime] = useState<number | null>(
-    null,
+    null
   )
   const [currentStreamingStartTime, setCurrentStreamingStartTime] = useState<
     number | null
   >(null)
   const streamingStartTimeRef = useRef<number | null>(null)
   const [finalGenerationTime, setFinalGenerationTime] = useState<number | null>(
-    null,
+    null
   )
   const [isFragmentFullscreen, setIsFragmentFullscreen] = useState(false)
 
@@ -80,8 +80,7 @@ export const ProjectView = ({ projectId }: Props) => {
       streamingStartTimeRef.current = null
     },
     onMessageTypeChange: setAssistantMessageType,
-    onContentUpdate: () => {
-    },
+    onContentUpdate: () => {},
     onStreamAborted: () => {
       setCurrentStreamingStartTime(null)
       streamingStartTimeRef.current = null
@@ -116,15 +115,13 @@ export const ProjectView = ({ projectId }: Props) => {
     lastGenerationTime,
     currentStreamingStartTime,
     finalGenerationTime,
-    onFirstMessageSubmit: (content: string) => {
-      startStreaming(content, true)
+    onFirstMessageSubmit: (content: string, images?: ProcessedImage[]) => {
+      startStreaming(content, true, images)
     },
-    onMessagesUpdate: () => {
-    },
+    onMessagesUpdate: () => {},
     onStreamingContentClear: clearStreamingContent,
     onPendingMessageClear: () => setPendingUserMessage(null),
   })
-
 
   const trpcClient = useTRPCClient()
 
@@ -132,14 +129,16 @@ export const ProjectView = ({ projectId }: Props) => {
     if (assistantMessageType !== 'CHAT' && !wasStreamAborted) {
       const tick = async () => {
         try {
-          const { status } = await trpcClient.projects.status.query({ id: projectId });
+          const { status } = await trpcClient.projects.status.query({
+            id: projectId,
+          })
           if (status === 'COMPLETED' || status === 'ERROR') {
-            stopStreaming();
-            refetchMessages();
+            stopStreaming()
+            refetchMessages()
             // setAssistantMessageType('CHAT'); // Optional: Reset to chat mode if needed
             if (pollingRef.current) {
-              clearInterval(pollingRef.current);
-              pollingRef.current = null;
+              clearInterval(pollingRef.current)
+              pollingRef.current = null
             }
             // // Optional: Update generation times or other states if required
             // const finalTime = currentStreamingStartTime ? (Date.now() - currentStreamingStartTime) / 1000 : null;
@@ -149,26 +148,38 @@ export const ProjectView = ({ projectId }: Props) => {
             // }
           }
         } catch (error) {
-          console.error('Error polling project status:', error);
+          console.error('Error polling project status:', error)
         }
-      };
+      }
 
       // Start polling
-      tick();
-      pollingRef.current = setInterval(tick, 4000);
+      tick()
+      pollingRef.current = setInterval(tick, 4000)
 
       return () => {
         if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
+          clearInterval(pollingRef.current)
+          pollingRef.current = null
         }
-      };
+      }
     }
-  }, [isStreaming])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    assistantMessageType,
+    isStreaming,
+    projectId,
+    stopStreaming,
+    trpcClient,
+    wasStreamAborted,
+  ])
 
   const onSubmit = useCallback(
-    async (message: string, isFirstMessage: boolean = false) => {
-      if (isStreaming || !message.trim()) return
+    async (message: string, images?: ProcessedImage[]) => {
+      // Проверяем что есть хоть что-то для отправки
+      if (isStreaming || (!message.trim() && (!images || images.length === 0)))
+        return
+
+      const isFirstMessage = false
 
       // Only create pending user message for non-first messages
       if (!isFirstMessage) {
@@ -184,14 +195,14 @@ export const ProjectView = ({ projectId }: Props) => {
         setPendingUserMessage(userMsg)
       }
 
-      await startStreaming(message, isFirstMessage)
+      await startStreaming(message, isFirstMessage, images)
     },
-    [isStreaming, startStreaming],
+    [isStreaming, startStreaming]
   )
 
   useEffect(() => {
     const lastMessageWithFragment = displayedMessages.findLast(
-      (message) => !!message.fragment,
+      (message) => !!message.fragment
     )
 
     if (
@@ -244,7 +255,7 @@ export const ProjectView = ({ projectId }: Props) => {
         }
       }
     },
-    [isMobile],
+    [isMobile]
   )
 
   if (isMobile && isFragmentFullscreen && activeFragment) {
@@ -299,8 +310,7 @@ export const ProjectView = ({ projectId }: Props) => {
             </Suspense>
           </ErrorBoundary>
 
-          <div
-            className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
+          <div className="from-background pointer-events-none absolute left-0 right-0 top-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
         {activeFragment && !isMobile && (

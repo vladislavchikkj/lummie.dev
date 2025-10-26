@@ -7,6 +7,7 @@ import {
   DisplayedMessageEntity,
   CHAT_ROLES,
 } from '../constants/chat'
+import type { ProcessedImage } from '@/lib/image-processing'
 
 interface UseChatMessagesProps {
   projectId: string
@@ -18,7 +19,7 @@ interface UseChatMessagesProps {
   lastGenerationTime: number | null
   currentStreamingStartTime: number | null
   finalGenerationTime: number | null
-  onFirstMessageSubmit: (content: string) => void
+  onFirstMessageSubmit: (content: string, images?: ProcessedImage[]) => void
   onMessagesUpdate: (messages: ChatMessageEntity[]) => void
   onStreamingContentClear: () => void
   onPendingMessageClear: () => void
@@ -68,9 +69,14 @@ export const useChatMessages = ({
       if (isUserFirstMsg && !hasSubmittedFirstMessage.current) {
         // For first message, add it to messages so it shows immediately
         // Then trigger streaming
-        setMessages(initialMessages)
+        // Cast JsonValue to ChatMessageEntity[] - Prisma types vs our interface
+        setMessages(initialMessages as unknown as ChatMessageEntity[])
         setLastMessageCount(initialMessages.length)
-        onFirstMessageSubmit(lastMessage.content)
+        // Extract images from the message if they exist
+        const images = lastMessage.images as unknown as
+          | ProcessedImage[]
+          | undefined
+        onFirstMessageSubmit(lastMessage.content, images)
         hasSubmittedFirstMessage.current = true
       } else {
         const shouldUpdate =
@@ -84,9 +90,10 @@ export const useChatMessages = ({
             (msg) => !msg.id.startsWith('temp-streaming-')
           )
 
-          setMessages(filteredMessages)
+          // Cast JsonValue to ChatMessageEntity[] - Prisma types vs our interface
+          setMessages(filteredMessages as unknown as ChatMessageEntity[])
           setLastMessageCount(filteredMessages.length)
-          onMessagesUpdate(filteredMessages)
+          onMessagesUpdate(filteredMessages as unknown as ChatMessageEntity[])
 
           if (streamingCompleted) {
             onPendingMessageClear()

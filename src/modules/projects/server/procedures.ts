@@ -4,6 +4,7 @@ import { protectedProcedure, createTRPCRouter } from '@/trpc/init'
 import { TRPCError } from '@trpc/server'
 import { consumeCredits } from '@/lib/usage'
 import { OpenAI } from 'openai'
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import { tools } from '@/modules/projects/tools'
 import { CREATE_PROJECT_FN_NAME } from '@/modules/projects/constants'
 import { availableFunctions } from '@/modules/projects/functions'
@@ -88,12 +89,28 @@ export const projectsRouter = createTRPCRouter({
   }),
   create: protectedProcedure
     .input(
-      z.object({
-        value: z
-          .string()
-          .min(1, { message: 'Value is required' })
-          .max(10000, { message: 'Value is too long' }),
-      })
+      z
+        .object({
+          value: z.string().max(10000, { message: 'Value is too long' }),
+          images: z
+            .array(
+              z.object({
+                data: z.string(),
+                mimeType: z.string(),
+                size: z.number(),
+                width: z.number(),
+                height: z.number(),
+              })
+            )
+            .nullable()
+            .optional(),
+        })
+        .refine(
+          (data) =>
+            data.value.trim().length > 0 ||
+            (data.images && data.images.length > 0),
+          { message: 'Either message text or images must be provided' }
+        )
     )
     .mutation(async ({ input, ctx }) => {
       try {
@@ -125,6 +142,7 @@ export const projectsRouter = createTRPCRouter({
               role: 'USER',
               type: 'RESULT',
               isFirst: true,
+              images: input.images || undefined,
             },
           },
         },
@@ -135,14 +153,30 @@ export const projectsRouter = createTRPCRouter({
 
   handleUserMessage: protectedProcedure
     .input(
-      z.object({
-        projectId: z.string().min(1, { message: 'Project ID is required' }),
-        value: z
-          .string()
-          .min(1, { message: 'Message is required' })
-          .max(10000, { message: 'Message is too long' }),
-        isFirst: z.boolean().optional(),
-      })
+      z
+        .object({
+          projectId: z.string().min(1, { message: 'Project ID is required' }),
+          value: z.string().max(10000, { message: 'Message is too long' }),
+          isFirst: z.boolean().optional(),
+          images: z
+            .array(
+              z.object({
+                data: z.string(),
+                mimeType: z.string(),
+                size: z.number(),
+                width: z.number(),
+                height: z.number(),
+              })
+            )
+            .nullable()
+            .optional(),
+        })
+        .refine(
+          (data) =>
+            data.value.trim().length > 0 ||
+            (data.images && data.images.length > 0),
+          { message: 'Either message text or images must be provided' }
+        )
     )
     .mutation(async function* ({ input, ctx, signal }) {
       try {
@@ -152,7 +186,12 @@ export const projectsRouter = createTRPCRouter({
             where: { id: input.projectId, userId: ctx.auth.userId },
             data: {
               messages: {
-                create: { content: input.value, role: 'USER', type: 'RESULT' },
+                create: {
+                  content: input.value,
+                  role: 'USER',
+                  type: 'RESULT',
+                  images: input.images || undefined,
+                },
               },
             },
           })
@@ -183,12 +222,48 @@ export const projectsRouter = createTRPCRouter({
           },
         })
 
-        const messagesForApi = history.map((msg) => {
-          return {
-            role: msg.role.toLowerCase() as 'user' | 'assistant',
-            content: msg.content,
+        interface ImageData {
+          data: string
+          mimeType: string
+          size: number
+          width: number
+          height: number
+        }
+
+        const messagesForApi: ChatCompletionMessageParam[] = history.map(
+          (msg) => {
+            const role = msg.role.toLowerCase() as 'user' | 'assistant'
+
+            // Если есть изображения, используем мультимодальный формат (только для user)
+            if (
+              role === 'user' &&
+              msg.images &&
+              Array.isArray(msg.images) &&
+              msg.images.length > 0
+            ) {
+              const content: Array<
+                | { type: 'text'; text: string }
+                | { type: 'image_url'; image_url: { url: string } }
+              > = [{ type: 'text', text: msg.content }]
+
+              // Добавляем изображения
+              const images = msg.images as unknown as ImageData[]
+              images.forEach((image) => {
+                content.push({
+                  type: 'image_url',
+                  image_url: {
+                    url: image.data,
+                  },
+                })
+              })
+
+              return { role: 'user' as const, content }
+            }
+
+            // Обычный текстовый формат
+            return { role, content: msg.content }
           }
-        })
+        )
 
         let assistantContent = ''
 
