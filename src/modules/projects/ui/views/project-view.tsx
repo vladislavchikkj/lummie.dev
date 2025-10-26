@@ -20,6 +20,7 @@ import {
   ChatMessageEntity,
   AssistantMessageType,
   TabState,
+  LocalImagePreview,
 } from '../../constants/chat'
 import { useTRPCClient } from '@/trpc/client'
 import type { ProcessedImage } from '@/lib/image-processing'
@@ -174,15 +175,25 @@ export const ProjectView = ({ projectId }: Props) => {
   ])
 
   const onSubmit = useCallback(
-    async (message: string, images?: ProcessedImage[]) => {
-      // Проверяем что есть хоть что-то для отправки
+    async (
+      message: string,
+      images?: ProcessedImage[],
+      originalFiles?: File[]
+    ) => {
       if (isStreaming || (!message.trim() && (!images || images.length === 0)))
         return
 
       const isFirstMessage = false
 
-      // Only create pending user message for non-first messages
       if (!isFirstMessage) {
+        let localPreviews: LocalImagePreview[] | undefined = undefined
+        if (originalFiles && originalFiles.length > 0) {
+          localPreviews = originalFiles.map((file) => ({
+            url: URL.createObjectURL(file),
+            file,
+          }))
+        }
+
         const userMsg: ChatMessageEntity = {
           role: 'USER',
           content: message,
@@ -190,6 +201,7 @@ export const ProjectView = ({ projectId }: Props) => {
           createdAt: new Date(),
           fragment: null,
           type: 'RESULT',
+          localImagePreviews: localPreviews,
         }
 
         setPendingUserMessage(userMsg)
@@ -199,6 +211,16 @@ export const ProjectView = ({ projectId }: Props) => {
     },
     [isStreaming, startStreaming]
   )
+
+  useEffect(() => {
+    return () => {
+      if (pendingUserMessage?.localImagePreviews) {
+        pendingUserMessage.localImagePreviews.forEach((preview) => {
+          URL.revokeObjectURL(preview.url)
+        })
+      }
+    }
+  }, [pendingUserMessage])
 
   useEffect(() => {
     const lastMessageWithFragment = displayedMessages.findLast(
@@ -310,7 +332,7 @@ export const ProjectView = ({ projectId }: Props) => {
             </Suspense>
           </ErrorBoundary>
 
-          <div className="from-background pointer-events-none absolute left-0 right-0 top-0 z-10 h-6 bg-gradient-to-b to-transparent" />
+          <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
         {activeFragment && !isMobile && (

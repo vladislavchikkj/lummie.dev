@@ -14,6 +14,8 @@ import { Response } from '@/components/ui/shadcn-io/ai/response'
 import { Tool } from '@/components/ui/shadcn-io/ai/tool'
 import { Reasoning } from '@/components/ui/shadcn-io/ai/reasoning'
 import type { ProcessedImage } from '@/lib/image-processing'
+import type { LocalImagePreview } from '../../constants/chat'
+import { ImagePreview } from './image-preview'
 
 interface FragmentCardProps {
   fragment: Fragment
@@ -213,6 +215,7 @@ interface MessageCardProps {
   isStreaming?: boolean
   generationTime?: number | null
   images?: ProcessedImage[] | null | undefined
+  localImagePreviews?: LocalImagePreview[]
 }
 
 export const MessageCard = memo(
@@ -226,8 +229,13 @@ export const MessageCard = memo(
     isStreaming = false,
     generationTime,
     images,
+    localImagePreviews,
   }: MessageCardProps) => {
     const messageRole = role.toLowerCase() as 'user' | 'assistant'
+
+    const hasLocalPreviews = localImagePreviews && localImagePreviews.length > 0
+    const hasDbImages = images && images.length > 0
+    const shouldShowLocalPreviews = hasLocalPreviews && !hasDbImages
 
     return (
       <>
@@ -237,26 +245,30 @@ export const MessageCard = memo(
               <UserMessageActions content={content} />
               <Message from={messageRole}>
                 <MessageContent className="flex flex-col gap-2">
-                  {/* Отображение изображений */}
-                  {images && images.length > 0 && (
+                  {shouldShowLocalPreviews && (
                     <div className="flex flex-wrap gap-2">
-                      {images.map((image, index) => (
-                        <div
-                          key={index}
-                          className="border-border overflow-hidden rounded-lg border"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={image.data}
-                            alt={`Attachment ${index + 1}`}
-                            className="max-h-60 max-w-full object-contain"
-                            loading="lazy"
-                          />
-                        </div>
+                      {localImagePreviews.map((preview, index) => (
+                        <ImagePreview
+                          key={preview.url}
+                          src={preview.url}
+                          alt={preview.file.name || `Attachment ${index + 1}`}
+                          isLocal={true}
+                        />
                       ))}
                     </div>
                   )}
-                  {/* Текст сообщения */}
+                  {hasDbImages && (
+                    <div className="flex flex-wrap gap-2">
+                      {images.map((image, index) => (
+                        <ImagePreview
+                          key={index}
+                          src={image.data}
+                          alt={`Attachment ${index + 1}`}
+                          isLocal={false}
+                        />
+                      ))}
+                    </div>
+                  )}
                   {content.trim() && (
                     <div className="overflow-wrap-anywhere text-base break-words sm:text-base">
                       {content}
@@ -317,7 +329,9 @@ export const MessageCard = memo(
       prevProps.isStreaming === nextProps.isStreaming &&
       prevProps.isActiveFragment === nextProps.isActiveFragment &&
       prevProps.fragment?.id === nextProps.fragment?.id &&
-      JSON.stringify(prevProps.images) === JSON.stringify(nextProps.images)
+      JSON.stringify(prevProps.images) === JSON.stringify(nextProps.images) &&
+      JSON.stringify(prevProps.localImagePreviews) ===
+        JSON.stringify(nextProps.localImagePreviews)
     )
   }
 )

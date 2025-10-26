@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/shadcn-io/ai/conversation'
 import { PulsingLogo } from '@/components/ui/pulsing-logo'
 import type { ProcessedImage } from '@/lib/image-processing'
+import type { LocalImagePreview } from '../../constants/chat'
 
 interface Props {
   activeFragment: Fragment | null
@@ -24,6 +25,7 @@ interface Props {
     fragment: Fragment | null
     generationTime?: number | null
     images?: ProcessedImage[] | null | undefined
+    localImagePreviews?: LocalImagePreview[]
   }[]
   children: ReactNode
   projectCreating: boolean
@@ -97,6 +99,7 @@ export const MessagesContainer = ({
                       isStreaming={isCurrentlyStreaming}
                       generationTime={message.generationTime}
                       images={message.images}
+                      localImagePreviews={message.localImagePreviews}
                     />
                     {isLastUserMessage && (isStreaming || projectCreating) && (
                       <div className="mt-2 mb-4 flex items-center gap-2">

@@ -37,7 +37,11 @@ import {
 
 interface Props {
   projectId: string
-  onSubmit?: (message: string, images?: ProcessedImage[]) => void
+  onSubmit?: (
+    message: string,
+    images?: ProcessedImage[],
+    originalFiles?: File[]
+  ) => void
   isStreaming?: boolean
   onStop?: () => void
 }
@@ -62,7 +66,7 @@ export const MessageForm = ({
 
   const { data: usage } = useQuery({
     ...trpc.usage.status.queryOptions(),
-    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+    enabled: !!userId,
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -75,7 +79,6 @@ export const MessageForm = ({
   const formSubmit = async (data: z.infer<typeof formSchema>) => {
     if (isStreaming) return
 
-    // Проверяем что есть либо текст либо изображения
     if (!data.value.trim() && attachedImages.length === 0) {
       toast.error('Please enter a message or attach an image')
       return
@@ -84,8 +87,9 @@ export const MessageForm = ({
     if (onSubmit) {
       try {
         let processedImages: ProcessedImage[] | undefined = undefined
+        const originalFiles =
+          attachedImages.length > 0 ? [...attachedImages] : []
 
-        // Обрабатываем изображения перед отправкой
         if (attachedImages.length > 0) {
           setIsProcessingImages(true)
           try {
@@ -103,9 +107,12 @@ export const MessageForm = ({
 
         console.log('Calling onSubmit with value:', data.value)
         console.log('Processed images:', processedImages)
-        // Если нет текста, отправляем пробел для совместимости
         const messageText = data.value.trim() || ' '
-        onSubmit(messageText, processedImages)
+        onSubmit(
+          messageText,
+          processedImages,
+          originalFiles.length > 0 ? originalFiles : undefined
+        )
         form.reset()
         setAttachedImages([])
       } catch (error) {
@@ -139,7 +146,6 @@ export const MessageForm = ({
         toast.success(`${validFiles.length} image(s) added`)
       }
     }
-    // Сбросить input для возможности повторной загрузки того же файла
     event.target.value = ''
   }
 
@@ -154,7 +160,6 @@ export const MessageForm = ({
         toast.error(validation.error || 'Invalid image file')
       }
     }
-    // Сбросить input
     event.target.value = ''
   }
 
@@ -167,7 +172,6 @@ export const MessageForm = ({
   }
 
   const handlePreviouslyAttached = () => {
-    // TODO: Implement previously attached images functionality
     console.log('Show previously attached images')
   }
 
@@ -184,18 +188,14 @@ export const MessageForm = ({
     }
   }
 
-  // Handle mobile keyboard viewport adjustment
   useEffect(() => {
     const handleResize = () => {
-      // Update CSS custom property for mobile viewport height
       const vh = window.visualViewport?.height || window.innerHeight
       document.documentElement.style.setProperty('--vh', `${vh}px`)
     }
 
-    // Initial setup
     handleResize()
 
-    // Listen for visual viewport changes (keyboard open/close)
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize)
       window.visualViewport.addEventListener('scroll', handleResize)
@@ -226,10 +226,9 @@ export const MessageForm = ({
         onSubmit={form.handleSubmit(formSubmit)}
         className={cn(
           'bg-muted border-border relative flex flex-col border',
-          showUsage ? 'rounded-b-xl rounded-t-none' : 'rounded-xl'
+          showUsage ? 'rounded-t-none rounded-b-xl' : 'rounded-xl'
         )}
       >
-        {/* Attached Images Preview */}
         {attachedImages.length > 0 && (
           <div className="flex flex-wrap gap-2 p-3 pb-0">
             {attachedImages.map((file, index) => (
@@ -243,7 +242,7 @@ export const MessageForm = ({
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="bg-destructive text-destructive-foreground absolute -right-2 -top-2 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="bg-destructive text-destructive-foreground absolute -top-2 -right-2 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
                 >
                   <X className="size-3" />
                 </button>
@@ -273,7 +272,7 @@ export const MessageForm = ({
             )}
           />
 
-          <div className="absolute bottom-2 right-2 flex items-center gap-1">
+          <div className="absolute right-2 bottom-2 flex items-center gap-1">
             {/* Hidden file inputs */}
             <input
               ref={fileInputRef}

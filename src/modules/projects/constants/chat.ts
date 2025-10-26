@@ -11,6 +11,11 @@ export const CHAT_MESSAGE_TYPES = {
   RESULT: 'RESULT' as const,
 }
 
+export interface LocalImagePreview {
+  url: string
+  file: File
+}
+
 export interface ChatMessageEntity {
   id: string
   content: string
@@ -21,6 +26,7 @@ export interface ChatMessageEntity {
   isFirst?: boolean
   generationTime?: number | null
   images?: ProcessedImage[] | null | undefined
+  localImagePreviews?: LocalImagePreview[]
 }
 
 export type DisplayedMessageEntity = ChatMessageEntity & {
