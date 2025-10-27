@@ -1,4 +1,4 @@
-const CACHE_NAME = 'luci-ai-v2'
+const CACHE_NAME = 'lummie'
 const urlsToCache = [
   '/',
   '/manifest.json',

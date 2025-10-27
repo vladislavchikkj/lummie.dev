@@ -263,14 +263,6 @@ export const MessageForm = ({
     return () => subscription.unsubscribe()
   }, [form])
 
-  // Debug logging
-  console.log('MessageForm Debug:', {
-    currentValue,
-    isEmptyField,
-    attachedImagesLength: attachedImages.length,
-    isRecording,
-  })
-
   // Disable button only when processing images
   // Allow voice input when field is empty, allow submit when field has content
   const isButtonDisabled = isProcessingImages

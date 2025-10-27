@@ -38,6 +38,16 @@ export const metadata: Metadata = {
         media: '(prefers-color-scheme: dark)',
       },
       {
+        url: '/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        url: '/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+      {
         url: '/icon-192x192.svg',
         sizes: '192x192',
         type: 'image/svg+xml',
@@ -49,6 +59,11 @@ export const metadata: Metadata = {
       },
     ],
     apple: [
+      {
+        url: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
       {
         url: '/apple-touch-icon.svg',
         sizes: '180x180',
@@ -113,6 +128,65 @@ export default function RootLayout({
       <TRPCReactProvider>
         <PWAProvider>
           <html lang="en" suppressHydrationWarning className="h-full">
+            <head>
+              {/* Дополнительные мета-теги для iOS PWA */}
+              <meta name="apple-mobile-web-app-capable" content="yes" />
+              <meta
+                name="apple-mobile-web-app-status-bar-style"
+                content="default"
+              />
+              <meta name="apple-mobile-web-app-title" content="Lummie" />
+              <meta name="mobile-web-app-capable" content="yes" />
+              <meta name="format-detection" content="telephone=no" />
+
+              {/* Apple Touch Icons */}
+              <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+              <link
+                rel="apple-touch-icon"
+                sizes="180x180"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="152x152"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="144x144"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="120x120"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="114x114"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="76x76"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="72x72"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="60x60"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="57x57"
+                href="/apple-touch-icon.png"
+              />
+            </head>
             <body
               className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
             >

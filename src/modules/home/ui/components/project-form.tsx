@@ -180,7 +180,6 @@ export const ProjectForm = () => {
         setIsProcessingImages(true)
         try {
           processedImages = await processImages(attachedImages)
-          console.log('Processed images:', processedImages)
         } catch (error) {
           console.error('Error processing images:', error)
           toast.error('Failed to process images')
