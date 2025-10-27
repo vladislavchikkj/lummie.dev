@@ -11,6 +11,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { DynamicNavbar } from '@/components/dynamic-navbar'
 import { PWAProvider } from '@/components/pwa-provider'
+import { SwipeGesturesProvider } from '@/components/swipe-gestures-provider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -60,6 +61,13 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: APP_NAME,
   },
+  // Дополнительные мета-теги для предотвращения стандартного поведения браузера
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'format-detection': 'telephone=no',
+  },
   formatDetection: {
     telephone: false,
   },
@@ -85,6 +93,8 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#000000' },
   ],
+  // Предотвращаем стандартные жесты браузера
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -115,9 +125,11 @@ export default function RootLayout({
                 <Toaster />
 
                 <SidebarProvider>
-                  <DynamicNavbar />
-                  <AppSidebar />
-                  <main className="w-full ring-0">{children}</main>
+                  <SwipeGesturesProvider>
+                    <DynamicNavbar />
+                    <AppSidebar />
+                    <main className="w-full ring-0">{children}</main>
+                  </SwipeGesturesProvider>
                 </SidebarProvider>
                 <CookieConsent />
               </ThemeProvider>

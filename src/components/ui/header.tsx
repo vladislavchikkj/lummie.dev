@@ -106,6 +106,7 @@ export const Header = ({
               ) : (
                 <Link
                   href="/"
+                  scroll={false}
                   className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
                 >
                   <Logo width={24} height={24} />
@@ -119,6 +120,7 @@ export const Header = ({
                 <Link
                   key={item.href}
                   href={item.href}
+                  scroll={false}
                   className={cn(
                     'hover:text-foreground px-3 py-2 text-sm font-medium transition-colors',
                     pathname === item.href
@@ -145,7 +147,7 @@ export const Header = ({
                   <Skeleton className="h-8 w-20 rounded-md" />
                 ) : hasNoCredits && !hasProAccess ? (
                   <Button asChild size="sm" className="h-8">
-                    <Link href="/pricing">
+                    <Link href="/pricing" scroll={false}>
                       <CrownIcon className="mr-2 h-4 w-4" />
                       Upgrade
                     </Link>

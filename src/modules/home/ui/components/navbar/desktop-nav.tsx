@@ -42,6 +42,7 @@ export const DesktopNav = ({ pathname, navItems }: DesktopNavProps) => (
               <DropdownMenuItem asChild>
                 <Link
                   href="/resources/docs"
+                  scroll={false}
                   className="text-muted-foreground hover:text-primary hover:bg-accent/10 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors"
                 >
                   <BookOpen className="h-4 w-4" />
@@ -51,6 +52,7 @@ export const DesktopNav = ({ pathname, navItems }: DesktopNavProps) => (
               <DropdownMenuItem asChild>
                 <Link
                   href="/resources/guides"
+                  scroll={false}
                   className="text-muted-foreground hover:text-primary hover:bg-accent/10 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors"
                 >
                   <PenTool className="h-4 w-4" />
@@ -65,6 +67,7 @@ export const DesktopNav = ({ pathname, navItems }: DesktopNavProps) => (
               <DropdownMenuItem asChild>
                 <Link
                   href="/resources/blog"
+                  scroll={false}
                   className="text-muted-foreground hover:text-primary hover:bg-accent/10 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors"
                 >
                   <Sparkles className="h-4 w-4" />
@@ -74,6 +77,7 @@ export const DesktopNav = ({ pathname, navItems }: DesktopNavProps) => (
               <DropdownMenuItem asChild>
                 <Link
                   href="/resources/community"
+                  scroll={false}
                   className="text-muted-foreground hover:text-primary hover:bg-accent/10 flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors"
                 >
                   <Users className="h-4 w-4" />
@@ -87,6 +91,7 @@ export const DesktopNav = ({ pathname, navItems }: DesktopNavProps) => (
         <Link
           key={item.href}
           href={item.href}
+          scroll={false}
           className={cn(
             'relative rounded-md px-3 py-2 text-sm font-medium transition-colors',
             pathname === item.href

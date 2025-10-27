@@ -189,7 +189,7 @@ export function AppSidebar() {
             size="icon"
             className="text-muted-foreground hover:text-foreground hover:bg-accent mb-4 h-8 w-8 md:hidden"
           >
-            <Link href={'/'} onClick={handleCloseSidebar}>
+            <Link href={'/'} onClick={handleCloseSidebar} scroll={false}>
               <Logo width={24} height={24} />
             </Link>
           </Button>
@@ -202,6 +202,7 @@ export function AppSidebar() {
             <Link
               href={'/'}
               onClick={handleCloseSidebar}
+              scroll={false}
               className="flex w-full items-center justify-center gap-1.5"
             >
               <MessageSquarePlus className="h-3.5 w-3.5" />
@@ -234,6 +235,7 @@ export function AppSidebar() {
                       <Link
                         href={`/projects/${latestProject.id}`}
                         onClick={handleCloseSidebar}
+                        scroll={false}
                         className="flex w-full items-center gap-3"
                       >
                         <ProjectName
@@ -286,6 +288,7 @@ export function AppSidebar() {
                         <Link
                           href={`/projects/${project.id}`}
                           onClick={handleCloseSidebar}
+                          scroll={false}
                           className="flex w-full items-center gap-3"
                         >
                           <ProjectName
@@ -414,6 +417,7 @@ export function AppSidebar() {
                         <Link
                           href={`/projects/${project.id}`}
                           onClick={handleCloseSidebar}
+                          scroll={false}
                           className="flex w-full items-center gap-3"
                         >
                           <ProjectName
@@ -468,6 +472,7 @@ export function AppSidebar() {
                         <Link
                           href={`/projects/${project.id}`}
                           onClick={handleCloseSidebar}
+                          scroll={false}
                           className="flex w-full items-center gap-3"
                         >
                           <ProjectName
@@ -544,7 +549,7 @@ export function AppSidebar() {
               asChild
               className="w-full justify-start text-gray-600 hover:bg-black/5 hover:text-black dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
             >
-              <Link href="/profile/billing">
+              <Link href="/profile/billing" scroll={false}>
                 <CreditCard className="mr-2 h-3 w-3" />
                 <span className="text-xs">Billing</span>
               </Link>
@@ -555,7 +560,7 @@ export function AppSidebar() {
               asChild
               className="w-full justify-start text-gray-600 hover:bg-black/5 hover:text-black dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
             >
-              <Link href="/profile">
+              <Link href="/profile" scroll={false}>
                 <User className="mr-2 h-3 w-3" />
                 <span className="text-xs">Profile</span>
               </Link>
