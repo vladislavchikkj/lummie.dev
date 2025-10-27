@@ -28,10 +28,10 @@ export async function consumeCredits() {
     throw new Error('User not authenticated')
   }
 
-  // const usegaTracker = await getUsageTracker()
-  // const result = await usegaTracker.consume(userId, GENERATION_COST)
+  const usegaTracker = await getUsageTracker()
+  const result = await usegaTracker.consume(userId, GENERATION_COST)
 
-  // return result
+  return result
 }
 
 export async function getUsageStatus() {
