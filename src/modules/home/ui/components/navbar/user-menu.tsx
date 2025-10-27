@@ -12,15 +12,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuShortcut,
 } from '@/components/ui/dropdown-menu'
-import {
-  Moon,
-  Sun,
-  User,
-  Settings,
-  LogOut,
-  MessageSquareDot,
-  CreditCard,
-} from 'lucide-react'
+import { Moon, Sun, Monitor, User, LogOut, CreditCard } from 'lucide-react'
 import { UserControl } from '@/components/user-control'
 import { cn } from '@/lib/utils'
 import type { UserResource } from '@clerk/types'
@@ -46,17 +38,38 @@ const UserMenuMobile = ({ theme, setTheme }: UserMenuMobileProps) => {
         <CreditCard className="h-4 w-4" />
         Billing
       </Link>
-      <button
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className={itemClasses}
-      >
-        {theme === 'dark' ? (
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => setTheme('light')}
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+            theme === 'light' ? 'bg-accent' : 'hover:bg-accent'
+          )}
+          title="Light theme"
+        >
           <Sun className="h-4 w-4" />
-        ) : (
+        </button>
+        <button
+          onClick={() => setTheme('dark')}
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+            theme === 'dark' ? 'bg-accent' : 'hover:bg-accent'
+          )}
+          title="Dark theme"
+        >
           <Moon className="h-4 w-4" />
-        )}
-        <span>Toggle Theme</span>
-      </button>
+        </button>
+        <button
+          onClick={() => setTheme('system')}
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+            theme === 'system' ? 'bg-accent' : 'hover:bg-accent'
+          )}
+          title="System theme"
+        >
+          <Monitor className="h-4 w-4" />
+        </button>
+      </div>
       <SignOutButton>
         <button className={cn(itemClasses, 'text-red-500 hover:bg-red-500/10')}>
           <LogOut className="h-4 w-4" />
@@ -123,16 +136,40 @@ const UserMenuDesktop = ({
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? (
-              <Sun className="mr-2 h-4 w-4" />
-            ) : (
-              <Moon className="mr-2 h-4 w-4" />
-            )}
-            <span>Toggle Theme</span>
-          </DropdownMenuItem>
+          <div className="px-2 py-1.5">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setTheme('light')}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                  theme === 'light' ? 'bg-accent' : 'hover:bg-accent'
+                )}
+                title="Light theme"
+              >
+                <Sun className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                  theme === 'dark' ? 'bg-accent' : 'hover:bg-accent'
+                )}
+                title="Dark theme"
+              >
+                <Moon className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setTheme('system')}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                  theme === 'system' ? 'bg-accent' : 'hover:bg-accent'
+                )}
+                title="System theme"
+              >
+                <Monitor className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={(e) => {

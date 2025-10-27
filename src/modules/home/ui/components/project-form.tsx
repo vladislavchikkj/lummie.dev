@@ -14,7 +14,7 @@ import {
   History,
   Upload,
   X,
-  Mic,
+  AudioLines,
   MicOff,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -109,6 +109,8 @@ const formSchema = z.object({
     .max(10000, { message: 'Value is too long' }),
 })
 
+const FORM_STORAGE_KEY = 'project-form-draft'
+
 export const ProjectForm = () => {
   const router = useRouter()
   const trpc = useTRPC()
@@ -121,10 +123,32 @@ export const ProjectForm = () => {
   const [isRecording, setIsRecording] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
+  // Functions to save/load form state
+  const saveFormState = (value: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(FORM_STORAGE_KEY, value)
+    }
+  }
+
+  const loadFormState = (): string => {
+    if (typeof window !== 'undefined') {
+      const savedValue = localStorage.getItem(FORM_STORAGE_KEY)
+      // Only return non-empty, trimmed values
+      return savedValue && savedValue.trim() ? savedValue : ''
+    }
+    return ''
+  }
+
+  const clearFormState = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(FORM_STORAGE_KEY)
+    }
+  }
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      value: '',
+      value: '', // Always start with empty string to ensure consistent SSR
     },
   })
 
@@ -133,6 +157,7 @@ export const ProjectForm = () => {
       onSuccess: (data) => {
         queryClient.invalidateQueries(trpc.projects.getMany.queryOptions())
         queryClient.invalidateQueries(trpc.usage.status.queryOptions())
+        clearFormState() // Очищаем сохраненное состояние после успешной отправки
         router.push(`/projects/${data.id}`)
       },
       onError: (error) => {
@@ -155,7 +180,6 @@ export const ProjectForm = () => {
         setIsProcessingImages(true)
         try {
           processedImages = await processImages(attachedImages)
-          console.log('Processed images:', processedImages)
         } catch (error) {
           console.error('Error processing images:', error)
           toast.error('Failed to process images')
@@ -332,10 +356,68 @@ export const ProjectForm = () => {
     }
   }
 
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    if (isPending) return
+
+    if (isRecording) {
+      // Если идет запись, останавливаем её (не отправляем форму)
+      stopVoiceRecording()
+    } else if (isEmptyField) {
+      // Если поле пустое и нет прикрепленных изображений, переключаем голосовой ввод
+      toggleVoiceRecording()
+    } else {
+      // Отправляем форму только если есть текст и запись не идет
+      form.handleSubmit(onSubmit)()
+    }
+  }
+
   const [isFocused, setIsFocused] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [showRotatingText, setShowRotatingText] = useState(false)
   const isPending = createProject.isPending || isProcessingImages
-  const isButtonDisabled =
-    isPending || (!form.formState.isValid && attachedImages.length === 0)
+
+  const currentValue = form.watch('value')
+  const isEmptyField = !currentValue?.trim() && attachedImages.length === 0
+
+  // Disable button only when processing images
+  // Allow voice input when field is empty, allow submit when field has content
+  const isButtonDisabled = isProcessingImages
+
+  // Set hydrated flag after component mounts and load saved state
+  useEffect(() => {
+    setIsHydrated(true)
+
+    // Load saved form state after hydration
+    const savedValue = loadFormState()
+    if (savedValue && savedValue.trim()) {
+      form.setValue('value', savedValue, {
+        shouldDirty: false,
+        shouldValidate: false,
+        shouldTouch: false,
+      })
+    }
+
+    // Delay showing rotating text to ensure smooth transition
+    const timer = setTimeout(() => {
+      setShowRotatingText(true)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [form])
+
+  // Save form state when value changes
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.value && value.value.trim()) {
+        // Save only non-empty values
+        saveFormState(value.value)
+      } else {
+        // Clear saved state if form is empty
+        clearFormState()
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
 
   // Cleanup voice recognition on unmount
   useEffect(() => {
@@ -431,17 +513,23 @@ export const ProjectForm = () => {
 
                   {!field.value && (
                     <div className="pointer-events-none absolute top-3 left-0">
-                      <RotatingText
-                        className="text-muted-foreground text-base"
-                        duration={3000}
-                        transition={{ ease: 'easeInOut' }}
-                        text={[
-                          'What would you like to build?',
-                          'Describe your idea...',
-                          'A landing page for a new SaaS...',
-                          'A blog post about AI...',
-                        ]}
-                      />
+                      {showRotatingText ? (
+                        <RotatingText
+                          className="text-muted-foreground text-base"
+                          duration={3000}
+                          transition={{ ease: 'easeInOut' }}
+                          text={[
+                            'What would you like to build?',
+                            'Describe your idea...',
+                            'A landing page for a new SaaS...',
+                            'A blog post about AI...',
+                          ]}
+                        />
+                      ) : (
+                        <span className="text-muted-foreground text-base">
+                          What would you like to build?
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -500,44 +588,6 @@ export const ProjectForm = () => {
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            'relative z-10 size-8 rounded-full',
-                            isRecording &&
-                              'bg-indigo-500 text-white hover:bg-indigo-600'
-                          )}
-                          onClick={toggleVoiceRecording}
-                        >
-                          {isRecording ? (
-                            <MicOff className="size-4" />
-                          ) : (
-                            <Mic className="size-4" />
-                          )}
-                        </Button>
-
-                        {/* Pulsing animation when recording */}
-                        {isRecording && (
-                          <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-                            <div className="ripple-single h-4 w-4 rounded-full bg-indigo-400 opacity-30"></div>
-                          </div>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        {isRecording ? 'Stop recording' : 'Start voice input'}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -573,19 +623,35 @@ export const ProjectForm = () => {
                   </Tooltip>
                 </TooltipProvider>
 
-                <Button
-                  disabled={isButtonDisabled}
-                  className={cn(
-                    'size-8 rounded-full',
-                    isButtonDisabled && 'bg-muted-foreground border'
+                <div className="relative">
+                  <Button
+                    disabled={isButtonDisabled}
+                    className={cn(
+                      'size-8 rounded-full',
+                      isButtonDisabled && 'bg-muted-foreground border',
+                      isRecording &&
+                        'bg-indigo-500 text-white hover:bg-indigo-600'
+                    )}
+                    onClick={handleButtonClick}
+                  >
+                    {isPending ? (
+                      <Loader2Icon className="size-4 animate-spin" />
+                    ) : isHydrated && isEmptyField && !isRecording ? (
+                      <AudioLines className="size-4" />
+                    ) : isRecording ? (
+                      <MicOff className="size-4" />
+                    ) : (
+                      <ArrowUpIcon />
+                    )}
+                  </Button>
+
+                  {/* Pulsing animation when recording */}
+                  {isHydrated && isRecording && (
+                    <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
+                      <div className="ripple-single h-4 w-4 rounded-full bg-indigo-400 opacity-30"></div>
+                    </div>
                   )}
-                >
-                  {isPending ? (
-                    <Loader2Icon className="size-4 animate-spin" />
-                  ) : (
-                    <ArrowUpIcon />
-                  )}
-                </Button>
+                </div>
               </div>
             </div>
           </form>

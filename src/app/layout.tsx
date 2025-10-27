@@ -11,6 +11,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { DynamicNavbar } from '@/components/dynamic-navbar'
 import { PWAProvider } from '@/components/pwa-provider'
+import { SwipeGesturesProvider } from '@/components/swipe-gestures-provider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,6 +38,16 @@ export const metadata: Metadata = {
         media: '(prefers-color-scheme: dark)',
       },
       {
+        url: '/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        url: '/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+      {
         url: '/icon-192x192.svg',
         sizes: '192x192',
         type: 'image/svg+xml',
@@ -49,6 +60,11 @@ export const metadata: Metadata = {
     ],
     apple: [
       {
+        url: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+      {
         url: '/apple-touch-icon.svg',
         sizes: '180x180',
         type: 'image/svg+xml',
@@ -59,6 +75,13 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: APP_NAME,
+  },
+  // Дополнительные мета-теги для предотвращения стандартного поведения браузера
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'format-detection': 'telephone=no',
   },
   formatDetection: {
     telephone: false,
@@ -85,6 +108,8 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#000000' },
   ],
+  // Предотвращаем стандартные жесты браузера
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -103,6 +128,65 @@ export default function RootLayout({
       <TRPCReactProvider>
         <PWAProvider>
           <html lang="en" suppressHydrationWarning className="h-full">
+            <head>
+              {/* Дополнительные мета-теги для iOS PWA */}
+              <meta name="apple-mobile-web-app-capable" content="yes" />
+              <meta
+                name="apple-mobile-web-app-status-bar-style"
+                content="default"
+              />
+              <meta name="apple-mobile-web-app-title" content="Lummie" />
+              <meta name="mobile-web-app-capable" content="yes" />
+              <meta name="format-detection" content="telephone=no" />
+
+              {/* Apple Touch Icons */}
+              <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+              <link
+                rel="apple-touch-icon"
+                sizes="180x180"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="152x152"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="144x144"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="120x120"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="114x114"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="76x76"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="72x72"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="60x60"
+                href="/apple-touch-icon.png"
+              />
+              <link
+                rel="apple-touch-icon"
+                sizes="57x57"
+                href="/apple-touch-icon.png"
+              />
+            </head>
             <body
               className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
             >
@@ -115,9 +199,11 @@ export default function RootLayout({
                 <Toaster />
 
                 <SidebarProvider>
-                  <DynamicNavbar />
-                  <AppSidebar />
-                  <main className="w-full ring-0">{children}</main>
+                  <SwipeGesturesProvider>
+                    <DynamicNavbar />
+                    <AppSidebar />
+                    <main className="w-full ring-0">{children}</main>
+                  </SwipeGesturesProvider>
                 </SidebarProvider>
                 <CookieConsent />
               </ThemeProvider>

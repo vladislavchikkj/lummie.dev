@@ -64,7 +64,7 @@ import {
   Upload,
   X,
   Sparkles,
-  Mic,
+  AudioLines,
   MicOff,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -115,8 +115,7 @@ const formSchema = z.object({
 })
 
 export const MessageForm = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  projectId: _projectId,
+  projectId,
   onStop,
   isStreaming,
   onSubmit,
@@ -133,6 +132,30 @@ export const MessageForm = ({
   const [isRecording, setIsRecording] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
+  // Functions to save/load form state
+  const FORM_STORAGE_KEY = `message-form-draft-${projectId}`
+
+  const saveFormState = (value: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(FORM_STORAGE_KEY, value)
+    }
+  }
+
+  const loadFormState = (): string => {
+    if (typeof window !== 'undefined') {
+      const savedValue = localStorage.getItem(FORM_STORAGE_KEY)
+      // Only return non-empty, trimmed values
+      return savedValue && savedValue.trim() ? savedValue : ''
+    }
+    return ''
+  }
+
+  const clearFormState = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(FORM_STORAGE_KEY)
+    }
+  }
+
   const { data: usage } = useQuery({
     ...trpc.usage.status.queryOptions(),
     enabled: !!userId,
@@ -141,15 +164,23 @@ export const MessageForm = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      value: initialValue || '',
+      value: '', // Always start with empty string to ensure consistent SSR
     },
   })
 
+  // Save form state when value changes
   useEffect(() => {
-    if (initialValue !== undefined) {
-      form.setValue('value', initialValue)
-    }
-  }, [initialValue, form])
+    const subscription = form.watch((value) => {
+      if (value.value && value.value.trim()) {
+        // Save only non-empty values
+        saveFormState(value.value)
+      } else {
+        // Clear saved state if form is empty
+        clearFormState()
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
 
   const formSubmit = async (data: z.infer<typeof formSchema>) => {
     if (isStreaming) return
@@ -188,6 +219,7 @@ export const MessageForm = ({
           processedImages,
           originalFiles.length > 0 ? originalFiles : undefined
         )
+        clearFormState() // Очищаем сохраненное состояние после успешной отправки
         form.reset()
         setAttachedImages([])
       } catch (error) {
@@ -197,9 +229,43 @@ export const MessageForm = ({
     }
   }
 
-  const isButtonDisabled =
-    (!form.formState.isValid && attachedImages.length === 0 && !isStreaming) ||
-    isProcessingImages
+  const [currentValue, setCurrentValue] = useState('')
+  const [isClient, setIsClient] = useState(false)
+  const isEmptyField = !currentValue.trim() && attachedImages.length === 0
+
+  // Initialize client-side state
+  useEffect(() => {
+    setIsClient(true)
+
+    // Set initial value if provided
+    if (initialValue !== undefined) {
+      form.setValue('value', initialValue)
+    } else {
+      // Load saved form state after hydration
+      const savedValue = loadFormState()
+      if (savedValue && savedValue.trim()) {
+        form.setValue('value', savedValue, {
+          shouldDirty: false,
+          shouldValidate: false,
+          shouldTouch: false,
+        })
+      }
+    }
+
+    setCurrentValue(form.getValues('value') || '')
+  }, [form, initialValue])
+
+  // Watch form changes safely
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      setCurrentValue(value.value || '')
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
+
+  // Disable button only when processing images
+  // Allow voice input when field is empty, allow submit when field has content
+  const isButtonDisabled = isProcessingImages
   const showUsage = !!usage && showUsagePanel
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -358,7 +424,14 @@ export const MessageForm = ({
     e.preventDefault()
     if (isStreaming && onStop) {
       onStop()
+    } else if (isRecording) {
+      // Если идет запись, останавливаем её (не отправляем форму)
+      stopVoiceRecording()
+    } else if (isEmptyField) {
+      // Если поле пустое и нет прикрепленных изображений, переключаем голосовой ввод
+      toggleVoiceRecording()
     } else {
+      // Отправляем форму только если есть текст и запись не идет
       form.handleSubmit(formSubmit)()
     }
   }
@@ -550,44 +623,6 @@ export const MessageForm = ({
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            'relative z-10 size-8 rounded-full',
-                            isRecording &&
-                              'bg-indigo-500 text-white hover:bg-indigo-600'
-                          )}
-                          onClick={toggleVoiceRecording}
-                        >
-                          {isRecording ? (
-                            <MicOff className="size-4" />
-                          ) : (
-                            <Mic className="size-4" />
-                          )}
-                        </Button>
-
-                        {/* Pulsing animation when recording */}
-                        {isRecording && (
-                          <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-                            <div className="ripple-single h-4 w-4 rounded-full bg-indigo-400 opacity-30"></div>
-                          </div>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        {isRecording ? 'Stop recording' : 'Start voice input'}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -623,20 +658,35 @@ export const MessageForm = ({
                   </Tooltip>
                 </TooltipProvider>
 
-                <Button
-                  disabled={isButtonDisabled}
-                  className={cn(
-                    'size-8 rounded-full',
-                    isButtonDisabled && 'bg-muted-foreground border'
+                <div className="relative">
+                  <Button
+                    disabled={isButtonDisabled}
+                    className={cn(
+                      'size-8 rounded-full',
+                      isButtonDisabled && 'bg-muted-foreground border',
+                      isRecording &&
+                        'bg-indigo-500 text-white hover:bg-indigo-600'
+                    )}
+                    onClick={handleButtonClick}
+                  >
+                    {isStreaming ? (
+                      <Loader2Icon className="size-4 animate-spin" />
+                    ) : isClient && isEmptyField && !isRecording ? (
+                      <AudioLines className="size-4" />
+                    ) : isRecording ? (
+                      <MicOff className="size-4" />
+                    ) : (
+                      <ArrowUpIcon />
+                    )}
+                  </Button>
+
+                  {/* Pulsing animation when recording */}
+                  {isClient && isRecording && (
+                    <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
+                      <div className="ripple-single h-4 w-4 rounded-full bg-indigo-400 opacity-30"></div>
+                    </div>
                   )}
-                  onClick={handleButtonClick}
-                >
-                  {isStreaming ? (
-                    <Loader2Icon className="size-4 animate-spin" />
-                  ) : (
-                    <ArrowUpIcon />
-                  )}
-                </Button>
+                </div>
               </div>
             </div>
           </form>

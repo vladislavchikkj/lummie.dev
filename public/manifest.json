@@ -1,6 +1,6 @@
 {
-  "name": "Luci AI",
-  "short_name": "Luci",
+  "name": "Lummie.dev",
+  "short_name": "Lummie",
   "description": "AI-powered development platform",
   "start_url": "/",
   "display": "standalone",
@@ -11,6 +11,23 @@
   "lang": "en",
   "categories": ["productivity", "developer", "utilities"],
   "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
     {
       "src": "/icon-192x192.svg",
       "sizes": "192x192",
@@ -32,20 +49,6 @@
       "src": "/logo.svg",
       "sizes": "any",
       "type": "image/svg+xml"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow"
     }
   ]
 }

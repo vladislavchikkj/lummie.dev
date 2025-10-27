@@ -11,14 +11,14 @@ export const AuthControls = ({ mobile }: AuthControlsProps) => (
     {mobile ? (
       <>
         <SheetClose asChild>
-          <Link href="/sign-up">
+          <Link href="/sign-up" scroll={false}>
             <Button variant="outline" className="w-full">
               Sign up
             </Button>
           </Link>
         </SheetClose>
         <SheetClose asChild>
-          <Link href="/sign-in">
+          <Link href="/sign-in" scroll={false}>
             <Button className="from-primary to-primary/80 w-full bg-gradient-to-r">
               Sign in
             </Button>
@@ -27,12 +27,12 @@ export const AuthControls = ({ mobile }: AuthControlsProps) => (
       </>
     ) : (
       <>
-        <Link href="/sign-up">
+        <Link href="/sign-up" scroll={false}>
           <Button variant="outline" size="sm" className="hover:bg-primary/10">
             Sign up
           </Button>
         </Link>
-        <Link href="/sign-in">
+        <Link href="/sign-in" scroll={false}>
           <Button
             size="sm"
             className="from-primary to-primary/80 hover:from-primary/90 bg-gradient-to-r"

@@ -286,3 +286,56 @@
     transform: scale(1.05);
   }
 }
+
+/* Отключение стандартного поведения Safari для свайпов */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: none;
+  }
+
+  /* Предотвращаем стандартные жесты навигации Safari */
+  html,
+  body {
+    overscroll-behavior-x: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Отключаем стандартные свайпы для навигации */
+  * {
+    overscroll-behavior-x: none;
+  }
+
+  /* Исправления для мобильного сайдбара на iPhone */
+  [data-sidebar='sidebar'][data-mobile='true'] {
+    width: 18rem !important;
+    max-width: 85vw !important;
+    overflow: hidden;
+    left: 0 !important;
+    right: auto !important;
+  }
+
+  /* Переопределяем стандартные стили SheetContent для мобильного сайдбара */
+  [data-sidebar='sidebar'][data-mobile='true'][data-slot='sheet-content'] {
+    width: 18rem !important;
+    max-width: 85vw !important;
+    left: 0 !important;
+    right: auto !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* Предотвращаем появление синей полоски */
+  [data-sidebar='sidebar'][data-mobile='true'] * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Убираем стандартные стили ширины для мобильного сайдбара */
+  @media (max-width: 640px) {
+    [data-sidebar='sidebar'][data-mobile='true'] {
+      width: 18rem !important;
+      max-width: 85vw !important;
+    }
+  }
+}
