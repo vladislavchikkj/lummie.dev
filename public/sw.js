@@ -1,12 +1,12 @@
-const CACHE_NAME = 'luci-ai-v1'
+const CACHE_NAME = 'luci-ai-v2'
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/logo.svg',
   '/logo-l.svg',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/apple-touch-icon.png',
+  '/icon-192x192.svg',
+  '/icon-512x512.svg',
+  '/apple-touch-icon.svg',
 ]
 
 // Install event - cache resources
@@ -14,7 +14,17 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Opened cache')
-      return cache.addAll(urlsToCache)
+      return cache.addAll(urlsToCache).catch((error) => {
+        console.error('Failed to cache some resources:', error)
+        // Cache individual files instead of failing completely
+        return Promise.allSettled(
+          urlsToCache.map((url) =>
+            cache
+              .add(url)
+              .catch((err) => console.warn(`Failed to cache ${url}:`, err))
+          )
+        )
+      })
     })
   )
 })

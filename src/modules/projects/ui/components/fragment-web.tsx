@@ -113,7 +113,6 @@ export function FragmentWeb({
         onLoad={() => setIsIframeLoading(false)}
         onError={() => setSandboxStatus('expired')}
         style={{
-          // Оптимизация для мобильных устройств
           ...(isMobile && {
             transform: 'scale(1)',
             transformOrigin: 'top left',
