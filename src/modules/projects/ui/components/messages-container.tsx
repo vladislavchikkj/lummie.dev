@@ -31,6 +31,7 @@ interface Props {
   projectCreating: boolean
   isStreaming?: boolean
   isMobile?: boolean
+  onEditUserMessage?: (content: string) => void
 }
 
 export const MessagesContainer = ({
@@ -41,6 +42,7 @@ export const MessagesContainer = ({
   messages,
   isStreaming = false,
   isMobile = false,
+  onEditUserMessage,
 }: Props) => {
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
@@ -100,6 +102,7 @@ export const MessagesContainer = ({
                       generationTime={message.generationTime}
                       images={message.images}
                       localImagePreviews={message.localImagePreviews}
+                      onEditUserMessage={onEditUserMessage}
                     />
                     {isLastUserMessage && (isStreaming || projectCreating) && (
                       <div className="mt-2 mb-4 flex items-center gap-2">
@@ -116,6 +119,7 @@ export const MessagesContainer = ({
               handleFragmentClick,
               isLastMessageUser,
               projectCreating,
+              onEditUserMessage,
             ])}
             {isLastMessageUser && projectCreating && !isStreaming && (
               <div className="min-h-[max(200px,40cqh)] py-4">

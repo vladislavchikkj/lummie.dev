@@ -31,32 +31,39 @@ export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
   }, [msBeforeNext])
 
   return (
-    <div className="bg-card border-border rounded-t-3xl border-2 border-b-0 p-3">
-      <div className="flex items-center gap-x-3">
-        <div className="flex-1">
-          <p className="text-sm font-medium">
-            {points} {hasProAccess ? '' : 'free'} credits remaining
-          </p>
-          <p className="text-muted-foreground text-xs leading-relaxed">
+    <div className="border-border bg-card rounded-t-2xl border p-2.5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary h-1 w-1 rounded-full"></div>
+            <span className="text-card-foreground text-sm font-semibold">
+              {points} {hasProAccess ? '' : 'free'} credits
+            </span>
+          </div>
+          <div className="bg-border h-4 w-px"></div>
+          <span className="text-muted-foreground text-xs font-medium">
             Resets in {resetTime}
-          </p>
+          </span>
         </div>
-        <div className="flex items-center gap-x-2">
+        <div className="flex items-center gap-2">
           {!hasProAccess && (
-            <Button asChild size="sm" variant="outline" className="rounded-xl">
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs font-medium"
+            >
               <Link href="/pricing">
-                <CrownIcon className="mr-2 size-4" /> Upgrade
+                <CrownIcon className="mr-1.5 size-3" /> Upgrade
               </Link>
             </Button>
           )}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-8 rounded-xl"
+          <button
             onClick={onClose}
+            className="text-muted-foreground hover:text-foreground flex h-6 w-6 items-center justify-center rounded-md transition-colors"
           >
-            <XIcon className="size-4" />
-          </Button>
+            <XIcon className="size-3.5" />
+          </button>
         </div>
       </div>
     </div>

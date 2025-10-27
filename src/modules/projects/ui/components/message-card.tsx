@@ -5,6 +5,7 @@ import {
   ChevronRightIcon,
   Code2Icon,
   Copy,
+  Edit,
   ThumbsDown,
   ThumbsUp,
 } from 'lucide-react'
@@ -123,7 +124,7 @@ const AssistantMessageActions = ({
         'text-muted-foreground flex items-center gap-1 transition-opacity',
         isStreaming
           ? 'opacity-0'
-          : 'opacity-0 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
+          : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
       )}
     >
       <Button
@@ -180,17 +181,45 @@ const AssistantMessageActions = ({
 
 interface UserMessageActionsProps {
   content: string
+  createdAt: Date
+  onEdit?: (content: string) => void
 }
 
-const UserMessageActions = ({ content }: UserMessageActionsProps) => {
+const UserMessageActions = ({
+  content,
+  createdAt,
+  onEdit,
+}: UserMessageActionsProps) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(content).catch((err) => {
       console.error('Failed to copy text: ', err)
     })
   }
 
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(content)
+    }
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
   return (
-    <div className="text-muted-foreground flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+    <div className="text-muted-foreground mr-4 flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 transition-all duration-200 hover:scale-110 sm:h-8 sm:w-8"
+        onClick={handleEdit}
+      >
+        <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <span className="sr-only">Edit message</span>
+      </Button>
       <Button
         variant="ghost"
         size="icon"
@@ -200,6 +229,9 @@ const UserMessageActions = ({ content }: UserMessageActionsProps) => {
         <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         <span className="sr-only">Copy</span>
       </Button>
+      <span className="text-muted-foreground/70 bg-muted/50 rounded px-1.5 py-0.5 text-xs sm:px-2 sm:py-1">
+        {formatTime(createdAt)}
+      </span>
     </div>
   )
 }
@@ -216,6 +248,7 @@ interface MessageCardProps {
   generationTime?: number | null
   images?: ProcessedImage[] | null | undefined
   localImagePreviews?: LocalImagePreview[]
+  onEditUserMessage?: (content: string) => void
 }
 
 export const MessageCard = memo(
@@ -223,6 +256,7 @@ export const MessageCard = memo(
     content,
     role,
     fragment,
+    createdAt,
     isActiveFragment,
     onFragmentClick,
     type,
@@ -230,6 +264,7 @@ export const MessageCard = memo(
     generationTime,
     images,
     localImagePreviews,
+    onEditUserMessage,
   }: MessageCardProps) => {
     const messageRole = role.toLowerCase() as 'user' | 'assistant'
 
@@ -241,8 +276,7 @@ export const MessageCard = memo(
       <>
         {role === 'USER' && (
           <div className="group mb-2 flex w-full justify-end">
-            <div className="flex min-w-0 items-center gap-2">
-              <UserMessageActions content={content} />
+            <div className="flex min-w-0 flex-col items-end gap-2">
               <Message from={messageRole}>
                 <MessageContent className="flex flex-col gap-2">
                   {shouldShowLocalPreviews && (
@@ -276,6 +310,11 @@ export const MessageCard = memo(
                   )}
                 </MessageContent>
               </Message>
+              <UserMessageActions
+                content={content}
+                createdAt={createdAt}
+                onEdit={onEditUserMessage}
+              />
             </div>
           </div>
         )}
@@ -329,6 +368,8 @@ export const MessageCard = memo(
       prevProps.isStreaming === nextProps.isStreaming &&
       prevProps.isActiveFragment === nextProps.isActiveFragment &&
       prevProps.fragment?.id === nextProps.fragment?.id &&
+      prevProps.createdAt.getTime() === nextProps.createdAt.getTime() &&
+      prevProps.onEditUserMessage === nextProps.onEditUserMessage &&
       JSON.stringify(prevProps.images) === JSON.stringify(nextProps.images) &&
       JSON.stringify(prevProps.localImagePreviews) ===
         JSON.stringify(nextProps.localImagePreviews)

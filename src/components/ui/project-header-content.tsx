@@ -1,8 +1,10 @@
 'use client'
 
-import { ChevronDown, Lock } from 'lucide-react'
+import { ChevronDown, Lock, Menu } from 'lucide-react'
 import Logo from '@/components/ui/logo'
 import { useSidebar } from '@/components/ui/sidebar'
+import { useIsMobile } from '@/hooks/use-mobile'
+import Link from 'next/link'
 
 interface ProjectHeaderContentProps {
   projectName: string
@@ -14,13 +16,25 @@ export const ProjectHeaderContent = ({
   isPrivate = false,
 }: ProjectHeaderContentProps) => {
   const { toggleSidebar } = useSidebar()
+  const isMobile = useIsMobile()
 
   return (
     <div
-      onClick={toggleSidebar}
-      className="flex cursor-pointer items-center gap-3 rounded-lg bg-transparent transition-colors"
+      className={`flex items-center gap-3 rounded-lg bg-transparent transition-colors ${isMobile ? 'cursor-pointer' : ''}`}
+      onClick={isMobile ? toggleSidebar : undefined}
     >
-      <Logo width={24} height={24} />
+      {isMobile ? (
+        <div className="flex items-center gap-1">
+          <Menu className="h-6 w-6" />
+        </div>
+      ) : (
+        <Link
+          href="/"
+          className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
+        >
+          <Logo width={24} height={24} />
+        </Link>
+      )}
 
       <div className="bg-border h-6 w-px" />
 

@@ -120,7 +120,11 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
         variant="ghost"
         size="sm"
         className="h-8 w-8 p-0 transition-all duration-200 hover:bg-transparent"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIsOpen(!isOpen)
+        }}
       >
         <MoreHorizontal className="text-muted-foreground hover:text-primary h-4 w-4 transition-colors duration-200 hover:bg-transparent" />
       </Button>
@@ -135,24 +139,28 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
           }}
         >
           <div
-            className="hover:bg-accent hover:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm transition-all duration-200 hover:translate-x-1"
-            onClick={() => {
+            className="hover:bg-accent hover:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm transition-colors duration-200"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               setNewName(currentName)
               setIsRenameDialogOpen(true)
               setIsOpen(false)
             }}
           >
-            <Edit2 className="mr-2 h-4 w-4 transition-transform duration-200" />
+            <Edit2 className="mr-2 h-4 w-4" />
             Rename
           </div>
           <div
-            className="hover:bg-accent relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm text-red-500 transition-all duration-200 hover:translate-x-1 hover:text-red-500"
-            onClick={() => {
+            className="hover:bg-accent relative flex cursor-pointer items-center rounded-lg px-2 py-1.5 text-sm text-red-500 transition-colors duration-200 hover:text-red-500"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
               setIsDeleteDialogOpen(true)
               setIsOpen(false)
             }}
           >
-            <Trash2 className="mr-2 h-4 w-4 transition-transform duration-200" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </div>
         </div>
@@ -170,7 +178,13 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsRenameDialogOpen(false)}
           />
-          <div className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl">
+          <div
+            className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+          >
             <div className="mb-4 flex items-center gap-3">
               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <Logo width={16} height={16} className="text-primary" />
@@ -232,7 +246,13 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsDeleteDialogOpen(false)}
           />
-          <div className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl">
+          <div
+            className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+          >
             <div className="mb-4 flex items-center gap-3">
               <div className="bg-destructive/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <Logo width={16} height={16} className="text-destructive" />
