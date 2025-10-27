@@ -95,8 +95,7 @@ export const ImageModal = ({ src, alt, isOpen, onClose }: ImageModalProps) => {
           <img
             src={src}
             alt={alt}
-            className="max-h-[calc(95vh-6rem)] max-w-[calc(95vw-1rem)] object-contain sm:max-h-[calc(90vh-8rem)] sm:max-w-[calc(90vw-2rem)]"
-            style={{ maxWidth: 'none', maxHeight: 'none' }}
+            className="h-auto max-h-[calc(95vh-6rem)] w-auto max-w-[calc(95vw-1rem)] object-contain sm:max-h-[calc(90vh-8rem)] sm:max-w-[calc(90vw-2rem)]"
           />
         </div>
 
