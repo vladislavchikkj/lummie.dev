@@ -53,6 +53,7 @@ interface Props {
   ) => void
   isStreaming?: boolean
   onStop?: () => void
+  initialValue?: string
 }
 
 const formSchema = z.object({
@@ -65,6 +66,7 @@ export const MessageForm = ({
   onStop,
   isStreaming,
   onSubmit,
+  initialValue,
 }: Props) => {
   const trpc = useTRPC()
   const { userId } = useAuth()
@@ -83,9 +85,15 @@ export const MessageForm = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      value: '',
+      value: initialValue || '',
     },
   })
+
+  useEffect(() => {
+    if (initialValue !== undefined) {
+      form.setValue('value', initialValue)
+    }
+  }, [initialValue, form])
 
   const formSubmit = async (data: z.infer<typeof formSchema>) => {
     if (isStreaming) return

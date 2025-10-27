@@ -50,6 +50,7 @@ export const ProjectView = ({ projectId }: Props) => {
     null
   )
   const [isFragmentFullscreen, setIsFragmentFullscreen] = useState(false)
+  const [editingMessage, setEditingMessage] = useState<string | null>(null)
 
   const lastMessageWithFragmentIdRef = useRef<string | null>(null)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -208,6 +209,7 @@ export const ProjectView = ({ projectId }: Props) => {
       }
 
       await startStreaming(message, isFirstMessage, images)
+      setEditingMessage(null)
     },
     [isStreaming, startStreaming]
   )
@@ -262,6 +264,10 @@ export const ProjectView = ({ projectId }: Props) => {
       setActiveFragment(null)
     }
   }, [isMobile, isFragmentFullscreen])
+
+  const handleEditUserMessage = useCallback((content: string) => {
+    setEditingMessage(content)
+  }, [])
 
   const handleFragmentClick = useCallback(
     (fragment: Fragment | null) => {
@@ -320,6 +326,7 @@ export const ProjectView = ({ projectId }: Props) => {
                 }
                 isStreaming={isStreaming}
                 isMobile={isMobile}
+                onEditUserMessage={handleEditUserMessage}
               >
                 <MessageForm
                   key={activeFragment ? 'narrow' : 'wide'}
@@ -327,6 +334,7 @@ export const ProjectView = ({ projectId }: Props) => {
                   onStop={handleStopStreaming}
                   isStreaming={isStreaming}
                   onSubmit={onSubmit}
+                  initialValue={editingMessage || undefined}
                 />
               </MessagesContainer>
             </Suspense>
