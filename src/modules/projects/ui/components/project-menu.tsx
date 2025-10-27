@@ -152,7 +152,7 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             Rename
           </div>
           <div
-            className="hover:bg-accent relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm text-red-500 transition-colors duration-200 hover:text-red-500"
+            className="hover:bg-accent relative flex cursor-pointer items-center rounded-lg px-2 py-1.5 text-sm text-red-500 transition-colors duration-200 hover:text-red-500"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -178,7 +178,13 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsRenameDialogOpen(false)}
           />
-          <div className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl">
+          <div
+            className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+          >
             <div className="mb-4 flex items-center gap-3">
               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <Logo width={16} height={16} className="text-primary" />
@@ -240,7 +246,13 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsDeleteDialogOpen(false)}
           />
-          <div className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl">
+          <div
+            className="bg-background relative z-[101] w-full max-w-md rounded-xl border p-6 shadow-xl"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+          >
             <div className="mb-4 flex items-center gap-3">
               <div className="bg-destructive/10 flex h-8 w-8 items-center justify-center rounded-full">
                 <Logo width={16} height={16} className="text-destructive" />
