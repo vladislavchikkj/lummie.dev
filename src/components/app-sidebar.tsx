@@ -5,16 +5,15 @@ import { useQuery } from '@tanstack/react-query'
 import {
   MessageSquarePlus,
   Loader2,
-  Home,
-  Settings,
   User,
-  Activity,
-  TrendingUp,
-  MessageCircle,
-  AlertCircle,
+  Cog,
+  FolderOpen,
+  MessageSquare,
+  XCircle,
   ChevronDown,
   ChevronRight,
   CreditCard,
+  Clock,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
@@ -125,6 +124,7 @@ export function AppSidebar() {
 
   // Состояние для сворачивания групп
   const [collapsedGroups, setCollapsedGroups] = useState({
+    latest: false,
     generating: false,
     recent: false,
     pending: false,
@@ -153,6 +153,9 @@ export function AppSidebar() {
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )
 
+  // Находим последний созданный элемент (самый новый по updatedAt)
+  const latestProject = sortedProjects?.[0]
+
   const { setOpen, setOpenMobile, isMobile } = useSidebar()
 
   const handleCloseSidebar = () => {
@@ -163,15 +166,17 @@ export function AppSidebar() {
     }
   }
 
+  // Фильтруем проекты, исключая последний (он будет показан в секции Latest)
+  const otherProjects = sortedProjects?.slice(1) || []
+
   const generatingProjects =
-    sortedProjects?.filter((p) => p.status === 'PENDING' && p.sandboxId) || []
+    otherProjects?.filter((p) => p.status === 'PENDING' && p.sandboxId) || []
 
   const pendingChats =
-    sortedProjects?.filter((p) => p.status === 'PENDING' && !p.sandboxId) || []
+    otherProjects?.filter((p) => p.status === 'PENDING' && !p.sandboxId) || []
   const completedProjects =
-    sortedProjects?.filter((p) => p.status === 'COMPLETED') || []
-  const errorProjects =
-    sortedProjects?.filter((p) => p.status === 'ERROR') || []
+    otherProjects?.filter((p) => p.status === 'COMPLETED') || []
+  const errorProjects = otherProjects?.filter((p) => p.status === 'ERROR') || []
 
   return (
     <Sidebar>
@@ -207,12 +212,59 @@ export function AppSidebar() {
       </div>
 
       <SidebarContent className="p-2">
-        {/* Generating Projects - только проекты с sandboxId */}
+        {/* Latest - последний созданный элемент */}
+        {latestProject && (
+          <SidebarGroup>
+            <CollapsibleGroupLabel
+              icon={Clock}
+              title="Latest"
+              count={1}
+              isCollapsed={collapsedGroups.latest}
+              onToggle={() => toggleGroup('latest')}
+            />
+            {!collapsedGroups.latest && (
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === `/projects/${latestProject.id}`}
+                      className="group relative h-10 rounded-lg transition-all duration-200 hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
+                    >
+                      <Link
+                        href={`/projects/${latestProject.id}`}
+                        onClick={handleCloseSidebar}
+                        className="flex w-full items-center gap-3"
+                      >
+                        <ProjectName
+                          project={{
+                            name: latestProject.name,
+                            status: latestProject.status,
+                            updatedAt: latestProject.updatedAt,
+                            sandboxId: latestProject.sandboxId,
+                          }}
+                        />
+                        <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                          <ProjectMenu
+                            projectId={latestProject.id}
+                            currentName={latestProject.name || 'Untitled Chat'}
+                          />
+                        </div>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            )}
+          </SidebarGroup>
+        )}
+
+        {/* Building Projects - только проекты с sandboxId */}
         {generatingProjects.length > 0 && (
           <SidebarGroup>
             <CollapsibleGroupLabel
-              icon={Activity}
-              title="Generating"
+              icon={Cog}
+              title="Building Projects"
               count={generatingProjects.length}
               isCollapsed={collapsedGroups.generating}
               onToggle={() => toggleGroup('generating')}
@@ -260,11 +312,11 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Recent Chats - завершенные чаты */}
+        {/* Project Chats - завершенные чаты */}
         <SidebarGroup>
           <CollapsibleGroupLabel
-            icon={TrendingUp}
-            title="Recent Chats"
+            icon={FolderOpen}
+            title="Project Chats"
             count={completedProjects.length}
             isCollapsed={collapsedGroups.recent}
             onToggle={() => toggleGroup('recent')}
@@ -335,12 +387,12 @@ export function AppSidebar() {
           )}
         </SidebarGroup>
 
-        {/* Pending Chats - обычные чаты в ожидании */}
+        {/* Text Chats - обычные чаты в ожидании */}
         {pendingChats.length > 0 && (
           <SidebarGroup>
             <CollapsibleGroupLabel
-              icon={MessageCircle}
-              title="Pending Chats"
+              icon={MessageSquare}
+              title="Text Chats"
               count={pendingChats.length}
               isCollapsed={collapsedGroups.pending}
               onToggle={() => toggleGroup('pending')}
@@ -388,12 +440,12 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Error Projects */}
+        {/* Failed Projects */}
         {errorProjects.length > 0 && (
           <SidebarGroup>
             <CollapsibleGroupLabel
-              icon={AlertCircle}
-              title="Failed"
+              icon={XCircle}
+              title="Failed Projects"
               count={errorProjects.length}
               variant="error"
               isCollapsed={collapsedGroups.failed}
@@ -454,21 +506,32 @@ export function AppSidebar() {
             <div className="grid grid-cols-3 gap-1 text-xs">
               <div className="text-center">
                 <div className="font-semibold text-black dark:text-white">
-                  {completedProjects.length}
+                  {completedProjects.length +
+                    (latestProject?.status === 'COMPLETED' ? 1 : 0)}
                 </div>
-                <div className="text-gray-500 dark:text-gray-400">Recent</div>
+                <div className="text-gray-500 dark:text-gray-400">Projects</div>
               </div>
               <div className="text-center">
                 <div className="font-semibold text-black dark:text-white">
-                  {pendingChats.length}
+                  {pendingChats.length +
+                    (latestProject?.status === 'PENDING' &&
+                    !latestProject?.sandboxId
+                      ? 1
+                      : 0)}
                 </div>
-                <div className="text-gray-500 dark:text-gray-400">Pending</div>
+                <div className="text-gray-500 dark:text-gray-400">
+                  Text Chats
+                </div>
               </div>
               <div className="text-center">
                 <div className="font-semibold text-black dark:text-white">
-                  {generatingProjects.length}
+                  {generatingProjects.length +
+                    (latestProject?.status === 'PENDING' &&
+                    latestProject?.sandboxId
+                      ? 1
+                      : 0)}
                 </div>
-                <div className="text-gray-500 dark:text-gray-400">Active</div>
+                <div className="text-gray-500 dark:text-gray-400">Building</div>
               </div>
             </div>
           </div>
