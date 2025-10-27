@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Loader2, Slash, TimerOff } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { cn } from '@/lib/utils'
 import { Fragment } from '@/generated/prisma'
+import { useTRPC } from '@/trpc/client'
 
 const Spinner = () => (
   <div className="bg-background absolute inset-0 flex items-center justify-center">
@@ -44,6 +46,20 @@ export function FragmentWeb({
 }: FragmentWebProps) {
   const [sandboxStatus, setSandboxStatus] = useState<SandboxStatus>('checking')
   const [isIframeLoading, setIsIframeLoading] = useState(true)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const trpc = useTRPC()
+  const queryClient = useQueryClient()
+
+  const generateScreenshotMutation = useMutation(
+    trpc.projects.generateAndSaveScreenshot.mutationOptions({
+      onSuccess: () => {
+        // Инвалидируем кэш списка проектов чтобы обновить скриншоты
+        queryClient.invalidateQueries(
+          trpc.projects.getManyWithPreview.queryOptions()
+        )
+      },
+    })
+  )
 
   useEffect(() => {
     setSandboxStatus('checking')
@@ -85,6 +101,24 @@ export function FragmentWeb({
     }
   }, [data.sandboxUrl, refreshKey])
 
+  // Обработчик загрузки iframe
+  const handleIframeLoad = () => {
+    setIsIframeLoading(false)
+
+    // Ждем достаточно времени для полной загрузки контента iframe
+    // Современные веб-приложения могут загружаться дольше
+    setTimeout(() => {
+      // Проверяем, что у нас есть URL и нет скриншота
+      if (data.sandboxUrl && !data.screenshot) {
+        console.log('Generating screenshot for fragment:', data.id)
+        generateScreenshotMutation.mutate({
+          fragmentId: data.id,
+          url: data.sandboxUrl,
+        })
+      }
+    }, 2000)
+  }
+
   if (sandboxStatus === 'checking') {
     return <div className="bg-background h-full w-full" />
   }
@@ -102,6 +136,7 @@ export function FragmentWeb({
       {isIframeLoading && <Spinner />}
 
       <iframe
+        ref={iframeRef}
         key={`${data.id}-${refreshKey}`}
         className={cn(
           'h-full w-full border-0 transition-opacity duration-300',
@@ -109,11 +144,10 @@ export function FragmentWeb({
         )}
         src={data.sandboxUrl}
         title="Fragment Preview"
-        sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-        onLoad={() => setIsIframeLoading(false)}
+        sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads"
+        onLoad={handleIframeLoad}
         onError={() => setSandboxStatus('expired')}
         style={{
-          // Оптимизация для мобильных устройств
           ...(isMobile && {
             transform: 'scale(1)',
             transformOrigin: 'top left',

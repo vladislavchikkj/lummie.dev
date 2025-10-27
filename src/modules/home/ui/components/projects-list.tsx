@@ -2,6 +2,7 @@
 
 import { useMemo, useState, memo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { useQuery } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
@@ -26,6 +27,7 @@ interface FragmentPreview {
   sandboxUrl: string
   title: string
   files: JsonValue
+  screenshot: string | null
 }
 
 const PreviewIframe = memo(({ sandboxUrl }: { sandboxUrl: string }) => {
@@ -53,6 +55,24 @@ const PreviewIframe = memo(({ sandboxUrl }: { sandboxUrl: string }) => {
 })
 
 PreviewIframe.displayName = 'PreviewIframe'
+
+const PreviewScreenshot = memo(({ screenshot }: { screenshot: string }) => {
+  return (
+    <div className="relative h-full w-full">
+      <Image
+        src={screenshot}
+        alt="Project Preview"
+        fill
+        className="object-cover"
+        style={{
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
+  )
+})
+
+PreviewScreenshot.displayName = 'PreviewScreenshot'
 
 const ProjectCardSkeleton = () => (
   <div className="group bg-card relative flex h-full flex-col overflow-hidden rounded-xl border">
@@ -278,10 +298,10 @@ export const ProjectsList = () => {
                 className="flex flex-1 flex-col"
               >
                 <div className="bg-muted/10 relative aspect-video w-full overflow-hidden">
-                  {previewFragment && previewFragment.sandboxUrl ? (
-                    <div className="pointer-events-none h-full w-full">
-                      <PreviewIframe sandboxUrl={previewFragment.sandboxUrl} />
-                    </div>
+                  {previewFragment && previewFragment.screenshot ? (
+                    <PreviewScreenshot
+                      screenshot={previewFragment.screenshot}
+                    />
                   ) : (
                     <div className="from-muted/20 to-muted/40 flex h-full w-full items-center justify-center bg-gradient-to-br">
                       <div className="text-center">
@@ -291,7 +311,9 @@ export const ProjectsList = () => {
                           className="text-muted-foreground/60 mx-auto mb-2"
                         />
                         <p className="text-muted-foreground/60 text-xs">
-                          No preview available
+                          {previewFragment && previewFragment.sandboxUrl
+                            ? 'Screenshot will be created when you open the project'
+                            : 'No preview available'}
                         </p>
                       </div>
                     </div>

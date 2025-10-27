@@ -9,6 +9,7 @@ import { tools } from '@/modules/projects/tools'
 import { CREATE_PROJECT_FN_NAME } from '@/modules/projects/constants'
 import { availableFunctions } from '@/modules/projects/functions'
 import { generateChatName } from '@/lib/chat-name-generator'
+import puppeteer from 'puppeteer'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -69,6 +70,7 @@ export const projectsRouter = createTRPCRouter({
                 title: true,
                 files: true,
                 sandboxUrl: true,
+                screenshot: true,
               },
             },
           },
@@ -420,5 +422,128 @@ export const projectsRouter = createTRPCRouter({
       }
 
       return { status: project.status }
+    }),
+
+  updateFragmentScreenshot: protectedProcedure
+    .input(
+      z.object({
+        fragmentId: z.string().min(1, { message: 'Fragment ID is required' }),
+        screenshot: z
+          .string()
+          .min(1, { message: 'Screenshot data is required' }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Проверяем, что фрагмент принадлежит пользователю
+      const fragment = await prisma.fragment.findFirst({
+        where: {
+          id: input.fragmentId,
+          message: {
+            project: {
+              userId: ctx.auth.userId,
+            },
+          },
+        },
+      })
+
+      if (!fragment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Fragment not found or access denied',
+        })
+      }
+
+      // Обновляем скриншот
+      const updatedFragment = await prisma.fragment.update({
+        where: {
+          id: input.fragmentId,
+        },
+        data: {
+          screenshot: input.screenshot,
+        },
+      })
+
+      return updatedFragment
+    }),
+
+  generateAndSaveScreenshot: protectedProcedure
+    .input(
+      z.object({
+        fragmentId: z.string().min(1, { message: 'Fragment ID is required' }),
+        url: z.string().url({ message: 'Valid URL is required' }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Проверяем, что фрагмент принадлежит пользователю
+      const fragment = await prisma.fragment.findFirst({
+        where: {
+          id: input.fragmentId,
+          message: {
+            project: {
+              userId: ctx.auth.userId,
+            },
+          },
+        },
+      })
+
+      if (!fragment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Fragment not found or access denied',
+        })
+      }
+
+      let browser
+      try {
+        // Запускаем Puppeteer с настройками для Linux/Vercel
+        browser = await puppeteer.launch({
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: true,
+        })
+
+        // Открываем новую страницу
+        const page = await browser.newPage()
+
+        // Устанавливаем размер окна
+        await page.setViewport({ width: 1200, height: 800 })
+
+        // Переходим по URL и ждем полной загрузки
+        await page.goto(input.url, {
+          waitUntil: 'networkidle0',
+          timeout: 30000,
+        })
+
+        // Делаем скриншот в base64
+        const screenshotBase64 = await page.screenshot({
+          encoding: 'base64',
+          fullPage: false,
+        })
+
+        // Формируем Data URL
+        const dataUrl = `data:image/png;base64,${screenshotBase64}`
+
+        // Сохраняем dataUrl в базу данных
+        const updatedFragment = await prisma.fragment.update({
+          where: {
+            id: input.fragmentId,
+          },
+          data: {
+            screenshot: dataUrl,
+          },
+        })
+
+        return updatedFragment
+      } catch (error) {
+        console.error('Screenshot generation failed:', error)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to generate screenshot',
+        })
+      } finally {
+        // Обязательно закрываем браузер
+        if (browser) {
+          await browser.close()
+        }
+      }
     }),
 })
