@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/sidebar'
 import { ProjectMenu } from '@/modules/projects/ui/components/project-menu'
 import { cn } from '@/lib/utils'
+import Logo from './ui/logo'
 
 const CollapsibleGroupLabel = ({
   icon: Icon,
@@ -174,33 +175,31 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <div className="px-4 py-2">
-        <div className="space-y-2">
+      <div className="p-4">
+        <div className="flex flex-col items-start gap-4">
+          {/* Home button - only icon on mobile, hidden on desktop */}
           <Button
             asChild
             variant="ghost"
-            className="group text-foreground h-10 w-full justify-start rounded-lg font-medium transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent mb-4 h-8 w-8 md:hidden"
           >
-            <Link
-              href={'/'}
-              onClick={handleCloseSidebar}
-              className="flex items-center gap-3"
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
+            <Link href={'/'} onClick={handleCloseSidebar}>
+              <Logo width={24} height={24} />
             </Link>
           </Button>
 
+          {/* New Chat button - minimal Vercel style */}
           <Button
             asChild
-            className="group h-10 w-full rounded-lg bg-black font-medium text-white shadow-sm transition-all duration-200 hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+            className="bg-foreground text-background hover:bg-foreground/90 h-8 flex-1 rounded-md text-sm font-medium"
           >
             <Link
               href={'/'}
               onClick={handleCloseSidebar}
-              className="flex items-center gap-2"
+              className="flex w-full items-center justify-center gap-1.5"
             >
-              <MessageSquarePlus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-12" />
+              <MessageSquarePlus className="h-3.5 w-3.5" />
               <span>New Chat</span>
             </Link>
           </Button>

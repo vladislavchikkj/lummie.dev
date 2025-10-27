@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTRPC } from '@/trpc/client'
 import { UsagePopover } from '@/modules/home/ui/components/navbar/usage-popover'
 import { useSidebar } from '@/components/ui/sidebar'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const navItems = [
   { href: '/enterprise', label: 'Enterprise' },
@@ -54,6 +55,7 @@ export const Header = ({
   const { isLoaded, has, userId } = useAuth()
   const trpc = useTRPC()
   const { toggleSidebar } = useSidebar()
+  const isMobile = useIsMobile()
 
   const { data: usage, isLoading: isUsageLoading } = useQuery({
     ...trpc.usage.status.queryOptions(),
@@ -93,12 +95,23 @@ export const Header = ({
       <div className="mx-auto flex w-full items-center justify-between">
         <div className="flex items-center gap-4">
           {leftContent || (
-            <div
-              onClick={toggleSidebar}
-              className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
-            >
-              <Logo width={24} height={24} />
-            </div>
+            <>
+              {isMobile ? (
+                <div
+                  onClick={toggleSidebar}
+                  className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
+                >
+                  <Logo width={24} height={24} />
+                </div>
+              ) : (
+                <Link
+                  href="/"
+                  className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
+                >
+                  <Logo width={24} height={24} />
+                </Link>
+              )}
+            </>
           )}
           {showDesktopNav && (
             <div className="hidden md:flex">
