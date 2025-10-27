@@ -14,6 +14,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronRight,
+  CreditCard,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
@@ -173,26 +174,26 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <div className="p-4">
+      <div className="px-4 py-2">
         <div className="space-y-2">
           <Button
             asChild
             variant="ghost"
-            className="group text-foreground h-10 w-full justify-start rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] hover:bg-black/5 dark:hover:bg-white/5"
+            className="group text-foreground h-10 w-full justify-start rounded-lg font-medium transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5"
           >
             <Link
               href={'/'}
               onClick={handleCloseSidebar}
               className="flex items-center gap-3"
             >
-              <Home className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+              <Home className="h-4 w-4" />
               <span>Home</span>
             </Link>
           </Button>
 
           <Button
             asChild
-            className="group h-10 w-full rounded-lg bg-black font-medium text-white shadow-sm transition-all duration-200 hover:scale-[1.02] hover:bg-black/90 active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-white/90"
+            className="group h-10 w-full rounded-lg bg-black font-medium text-white shadow-sm transition-all duration-200 hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
           >
             <Link
               href={'/'}
@@ -229,7 +230,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/projects/${project.id}`}
-                        className="group relative h-10 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
+                        className="group relative h-10 rounded-lg transition-all duration-200 hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
                       >
                         <Link
                           href={`/projects/${project.id}`}
@@ -305,7 +306,7 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={pathname === `/projects/${project.id}`}
-                      className="group relative h-10 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
+                      className="group relative h-10 rounded-lg transition-all duration-200 hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
                     >
                       <Link
                         href={`/projects/${project.id}`}
@@ -357,7 +358,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/projects/${project.id}`}
-                        className="group relative h-10 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
+                        className="group relative h-10 rounded-lg transition-all duration-200 hover:bg-black/5 data-[active=true]:bg-black/10 data-[active=true]:text-black dark:hover:bg-white/5 dark:data-[active=true]:bg-white/10 dark:data-[active=true]:text-white"
                       >
                         <Link
                           href={`/projects/${project.id}`}
@@ -411,7 +412,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/projects/${project.id}`}
-                        className="group relative h-10 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:bg-red-50/50 dark:hover:bg-red-950/10"
+                        className="group relative h-10 rounded-lg transition-all duration-200 hover:bg-red-50/50 dark:hover:bg-red-950/10"
                       >
                         <Link
                           href={`/projects/${project.id}`}
@@ -443,7 +444,7 @@ export function AppSidebar() {
         )}
 
         {/* Quick Actions & Stats */}
-        <div className="mt-auto space-y-3 p-4">
+        <div className="mt-auto space-y-3">
           {/* Stats */}
           <div className="rounded-lg border border-black/10 bg-black/2 p-3 dark:border-white/10 dark:bg-white/2">
             <div className="mb-2 flex items-center gap-2">
@@ -478,18 +479,24 @@ export function AppSidebar() {
             <Button
               variant="ghost"
               size="sm"
+              asChild
               className="w-full justify-start text-gray-600 hover:bg-black/5 hover:text-black dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
             >
-              <Settings className="mr-2 h-3 w-3" />
-              <span className="text-xs">Settings</span>
+              <Link href="/profile/billing">
+                <CreditCard className="mr-2 h-3 w-3" />
+                <span className="text-xs">Billing</span>
+              </Link>
             </Button>
             <Button
               variant="ghost"
               size="sm"
+              asChild
               className="w-full justify-start text-gray-600 hover:bg-black/5 hover:text-black dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
             >
-              <User className="mr-2 h-3 w-3" />
-              <span className="text-xs">Profile</span>
+              <Link href="/profile">
+                <User className="mr-2 h-3 w-3" />
+                <span className="text-xs">Profile</span>
+              </Link>
             </Button>
           </div>
         </div>
