@@ -16,12 +16,19 @@ import {
   saveSuccessResult,
   updateFragmentFilesInDb,
 } from './data'
+import { projectChannel } from '@/inngest/channels'
 
 export const codeAgentFunction = inngest.createFunction(
   { id: 'code-agent' },
   { event: 'code-agent/run' },
-  async ({ event, step }) => {
-    // Проверяем статус проекта перед началом генерации
+  async ({ event, step, publish }) => {
+
+    await publish(projectChannel(event.data.projectId).status({
+      functionId: 'code-agent',
+      phase: 'started',
+      message: 'start creating project'
+    }))
+
     const projectStatus = await step.run('check-project-status', async () => {
       const project = await prisma.project.findUnique({
         where: { id: event.data.projectId },
@@ -62,22 +69,32 @@ export const codeAgentFunction = inngest.createFunction(
 
     const startTime = Date.now()
     const sandboxId = await step.run('get-sandbox-id', async () => {
+      await publish(projectChannel(event.data.projectId).status({
+        functionId: 'get-sandbox-id',
+        phase: 'started',
+        message: 'Getting sandbox ID'
+      }))
       const sandbox = await Sandbox.create('luci-ai-nextjs')
       await sandbox.setTimeout(SANDBOX_TIMEOUT)
       await prisma.project.update({
         where: { id: event.data.projectId },
         data: { sandboxId: sandbox.sandboxId },
       })
+      await publish(projectChannel(event.data.projectId).status({
+        functionId: 'get-sandbox-id',
+        phase: 'started',
+        message: 'Created sandbox for the project'
+      }))
       return sandbox.sandboxId
     })
 
     const previousMessages = await step.run('get-previous-messages', () =>
-      getPreviousMessages(event.data.projectId)
+      getPreviousMessages(event.data.projectId),
     )
 
     const state = createState<AgentState>(
       { summary: '', files: {} },
-      { messages: previousMessages }
+      { messages: previousMessages },
     )
 
     const codeAgent = createCodingAgent(sandboxId)
@@ -96,27 +113,42 @@ export const codeAgentFunction = inngest.createFunction(
     const result = await network.run(event.data.value, { state })
 
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
-      result.state.data.summary
+      result.state.data.summary,
     )
     const { output: responseOutput } = await responseGenerator.run(
-      result.state.data.summary
+      result.state.data.summary,
     )
 
     const isError = !result.state.data.summary
     if (isError) {
+      await publish(projectChannel(event.data.projectId).status({
+        functionId: 'code-agent',
+        phase: 'failed',
+        message: 'Failed to generate summary'
+      }))
       await step.run('save-error-result', () =>
-        saveErrorResult(event.data.projectId)
+        saveErrorResult(event.data.projectId),
       )
       return { error: 'Failed to generate summary.' }
     }
 
     const sandboxUrl = await step.run('get-sandbox-url', async () => {
+      await publish(projectChannel(event.data.projectId).status({
+        functionId: 'get-sandbox-url',
+        phase: 'started',
+        message: 'Getting sandbox URL'
+      }))
       const sandbox = await getSandbox(sandboxId)
       const host = await sandbox.getHost(3000)
       return `https://${host}`
     })
 
     await step.run('process-and-save-files', async () => {
+      await publish(projectChannel(event.data.projectId).status({
+        functionId: 'process-and-save-files',
+        phase: 'started',
+        message: 'Processing and saving files',
+      }))
       const sandbox = await getSandbox(sandboxId)
       const allSandboxFiles = await getAllSandboxTextFiles(sandbox)
 
@@ -137,12 +169,18 @@ export const codeAgentFunction = inngest.createFunction(
       })
     })
 
+    await publish(projectChannel(event.data.projectId).status({
+      functionId: 'code-agent',
+      phase: 'completed',
+      message: 'Project created successfully'
+    }))
+
     return {
       message: 'Project processed successfully',
       url: sandboxUrl,
       summary: result.state.data.summary,
     }
-  }
+  },
 )
 
 export const updateProjectFunction = inngest.createFunction(

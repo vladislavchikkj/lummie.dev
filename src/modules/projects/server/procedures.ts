@@ -10,6 +10,9 @@ import { CREATE_PROJECT_FN_NAME } from '@/modules/projects/constants'
 import { availableFunctions } from '@/modules/projects/functions'
 import { generateChatName } from '@/lib/chat-name-generator'
 import puppeteer from 'puppeteer'
+import { getSubscriptionToken } from '@inngest/realtime'
+import { inngest } from '@/inngest/client'
+import { PROJECT_CHANNEL_TOPIC, projectChannel, ProjectChannelToken } from '@/inngest/channels'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -540,10 +543,22 @@ export const projectsRouter = createTRPCRouter({
           message: 'Failed to generate screenshot',
         })
       } finally {
-        // Обязательно закрываем браузер
         if (browser) {
           await browser.close()
         }
       }
     }),
+  getSubscribeToken: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, { message: 'Project ID is required' }),
+      })
+    )
+    .query(async ({ input }): Promise<ProjectChannelToken> => {
+      const token = await getSubscriptionToken(inngest, {
+        channel: projectChannel(input.projectId),
+        topics: [PROJECT_CHANNEL_TOPIC],
+      });
+      return token
+    })
 })

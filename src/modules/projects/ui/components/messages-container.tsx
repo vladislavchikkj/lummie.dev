@@ -1,5 +1,5 @@
 import { ReactNode, useMemo, useCallback } from 'react'
-import { ReasoningLoading } from './reasoning-loading'
+import { ReasoningRealtime } from './reasoning-loading'
 import { cn } from '@/lib/utils'
 
 import { MessageCard } from './message-card'
@@ -14,6 +14,7 @@ import type { ProcessedImage } from '@/lib/image-processing'
 import type { LocalImagePreview } from '../../constants/chat'
 
 interface Props {
+  projectId: string
   activeFragment: Fragment | null
   setActiveFragment: (fragment: Fragment | null) => void
   messages: {
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export const MessagesContainer = ({
+  projectId,
   activeFragment,
   setActiveFragment,
   children,
@@ -84,8 +86,8 @@ export const MessagesContainer = ({
                       'flex flex-col',
                       isLastAssistantMessage && 'min-h-[max(200px,40cqh)]',
                       isLastUserMessage &&
-                        !shouldShowReasoningLoading &&
-                        'min-h-[max(200px,40cqh)]'
+                      !shouldShowReasoningLoading &&
+                      'min-h-[max(200px,40cqh)]',
                     )}
                   >
                     <MessageCard
@@ -123,7 +125,7 @@ export const MessagesContainer = ({
             ])}
             {isLastMessageUser && projectCreating && !isStreaming && (
               <div className="min-h-[max(200px,40cqh)] py-4">
-                <ReasoningLoading />
+                <ReasoningRealtime projectId={projectId} />
               </div>
             )}
           </ConversationContent>

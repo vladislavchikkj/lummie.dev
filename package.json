@@ -20,6 +20,7 @@
     "@hookform/resolvers": "^5.2.1",
     "@icons-pack/react-simple-icons": "^13.7.0",
     "@inngest/agent-kit": "^0.9.0",
+    "@inngest/realtime": "^0.4.4",
     "@monaco-editor/react": "^4.7.0",
     "@opentelemetry/winston-transport": "^0.14.1",
     "@prisma/client": "^6.13.0",
@@ -122,5 +123,13 @@
     "tsx": "^4.20.3",
     "tw-animate-css": "^1.3.6",
     "typescript": "5.9.2"
+  },
+  "overrides": {
+    "@inngest/realtime": {
+      "inngest": "$inngest"
+    },
+    "@inngest/agent-kit": {
+      "inngest": "$inngest"
+    }
   }
 }
