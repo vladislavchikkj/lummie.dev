@@ -1,177 +1,50 @@
 'use client'
 
-import {
-  Task,
-  TaskContent,
-  TaskItem,
-  TaskItemFile,
-  TaskTrigger,
-} from '@/components/ui/shadcn-io/ai/task'
-import {
-  SiReact,
-  SiTailwindcss,
-  SiTypescript,
-} from '@icons-pack/react-simple-icons'
-import { nanoid } from 'nanoid'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useProjectRealtimeStatus } from '@/modules/projects/hooks/useProjectRealtimeStatus'
+import { ReasoningDisplay } from './reasoning-display'
+import { BrainIcon } from 'lucide-react'
 
-const ALL_POSSIBLE_TASKS = [
-  { value: 'Analyzing project requirements...' },
-  { value: 'Scanning project structure...' },
-  { value: 'Identifying key components...' },
-  {
-    value: (
-      <span className="inline-flex items-center gap-1">
-        Reading{' '}
-        <TaskItemFile>
-          <SiTypescript className="size-4" color="#3178C6" />
-          <span>tsconfig.json</span>
-        </TaskItemFile>
-      </span>
-    ),
-  },
-  { value: 'Planning UI/UX flow...' },
-  { value: 'Generating component skeletons...' },
-  {
-    value: (
-      <span className="inline-flex items-center gap-1">
-        Creating{' '}
-        <TaskItemFile>
-          <SiReact className="size-4" color="#149ECA" />
-          <span>layout.tsx</span>
-        </TaskItemFile>
-      </span>
-    ),
-  },
-  {
-    value: (
-      <span className="inline-flex items-center gap-1">
-        Applying styles from{' '}
-        <TaskItemFile>
-          <SiTailwindcss className="size-4" color="#38BDF8" />
-          <span>tailwind.config.js</span>
-        </TaskItemFile>
-      </span>
-    ),
-  },
-  { value: 'Assembling main page...' },
-  { value: 'Finalizing structure...' },
-  { value: 'Optimizing imports...' },
-  { value: 'Running preliminary checks...' },
-  { value: 'Configuring routing...' },
-  { value: 'Setting up data fetching...' },
-]
+type ReasoningRealtimeProps = {
+  projectId: string
+  maxVisible?: number
+  isGenerating?: boolean
+}
 
-const shuffleArray = <T,>(array: T[]): T[] => {
-  const newArray = [...array]
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+export const ReasoningRealtime = ({
+  projectId,
+  maxVisible = 20,
+  isGenerating = true,
+}: ReasoningRealtimeProps) => {
+  const { data, state, error } = useProjectRealtimeStatus(projectId)
+  const isConnected = state === 'active'
+  const isError = !!error
+
+  const visibleEvents = maxVisible
+    ? data.slice(-maxVisible).map((msg) => msg.data)
+    : data.map((msg) => msg.data)
+
+  if (isError) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-red-500">
+        <span>Connection error: {error.message}</span>
+      </div>
+    )
   }
-  return newArray
-}
 
-type TaskType = {
-  key: string
-  value: React.ReactNode
-  isExiting?: boolean
-}
-
-export const ReasoningLoading = () => {
-  const MAX_TASKS_VISIBLE = 3
-  const [tasks, setTasks] = useState<TaskType[]>([])
-  const [phase, setPhase] = useState<'INITIAL_FILL' | 'FADING_OUT' | 'CYCLING'>(
-    'INITIAL_FILL'
-  )
-
-  const taskQueue = useMemo(
-    () =>
-      shuffleArray(ALL_POSSIBLE_TASKS).map((task) => ({
-        ...task,
-        key: nanoid(),
-      })),
-    []
-  )
-
-  const indexRef = useRef(0)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    const cleanup = () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-
-    if (phase === 'INITIAL_FILL') {
-      const addTaskSequentially = (taskIndex: number) => {
-        if (taskIndex >= MAX_TASKS_VISIBLE) {
-          timerRef.current = setTimeout(() => {
-            setPhase('FADING_OUT')
-          }, 2000)
-          return
-        }
-
-        const delay = Math.random() * 1500 + 800
-        timerRef.current = setTimeout(() => {
-          setTasks((prevTasks) => {
-            const newTask = taskQueue[taskIndex]
-            indexRef.current = taskIndex + 1
-            return [...prevTasks, newTask]
-          })
-          addTaskSequentially(taskIndex + 1)
-        }, delay)
-      }
-
-      addTaskSequentially(0)
-    }
-
-    if (phase === 'FADING_OUT') {
-      setTasks((prevTasks) => prevTasks.map((t) => ({ ...t, isExiting: true })))
-
-      timerRef.current = setTimeout(() => {
-        setPhase('CYCLING')
-        setTasks([])
-      }, 800)
-    }
-
-    if (phase === 'CYCLING') {
-      const scheduleNextTask = () => {
-        const delay = Math.random() * 3000 + 2000
-        timerRef.current = setTimeout(() => {
-          setTasks((prevTasks) => {
-            const nextTaskToAdd = taskQueue[indexRef.current]
-            indexRef.current = (indexRef.current + 1) % taskQueue.length
-
-            const updatedTasks = [...prevTasks, nextTaskToAdd]
-            if (updatedTasks.length > MAX_TASKS_VISIBLE) {
-              return updatedTasks.slice(1)
-            }
-            return updatedTasks
-          })
-          scheduleNextTask()
-        }, delay)
-      }
-      scheduleNextTask()
-    }
-
-    return cleanup
-  }, [phase, taskQueue])
+  if (isConnected && data.length === 0) {
+    return (
+      <div className="flex items-start gap-3 text-sm">
+        <BrainIcon className="text-muted-foreground mt-0.5 size-4" />
+        <span className="animate-shimmer bg-[linear-gradient(110deg,#64748b,45%,#e2e8f0,55%,#64748b)] bg-[length:200%_100%] bg-clip-text text-transparent dark:bg-[linear-gradient(110deg,#64748b,45%,#cbd5e1,55%,#64748b)]">
+          Thinking...
+        </span>
+      </div>
+    )
+  }
 
   return (
-    <div className="group is-assistant flex w-full flex-row-reverse items-end justify-end gap-2">
-      <div className="text-foreground flex flex-col gap-2 overflow-hidden rounded-2xl px-4 py-3 group-[.is-assistant]:ml-4 group-[.is-assistant]:max-w-full">
-        <div className="is-user:dark flex flex-col gap-4">
-          <Task className="w-full">
-            <TaskTrigger title="Generating Project..." />
-            <TaskContent>
-              {tasks.map((task) => (
-                <TaskItem key={task.key} data-exiting={task.isExiting}>
-                  {task.value}
-                </TaskItem>
-              ))}
-            </TaskContent>
-          </Task>
-        </div>
-      </div>
+    <div className="w-full">
+      <ReasoningDisplay events={visibleEvents} isStreaming={isGenerating} />
     </div>
   )
 }

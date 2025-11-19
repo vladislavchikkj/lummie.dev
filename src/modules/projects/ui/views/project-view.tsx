@@ -318,6 +318,7 @@ export const ProjectView = ({ projectId }: Props) => {
           >
             <Suspense fallback={null}>
               <MessagesContainer
+                projectId={projectId}
                 activeFragment={activeFragment}
                 setActiveFragment={handleFragmentClick}
                 messages={displayedMessages || []}

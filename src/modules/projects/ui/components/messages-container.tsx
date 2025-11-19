@@ -1,5 +1,6 @@
 import { ReactNode, useMemo, useCallback } from 'react'
-import { ReasoningLoading } from './reasoning-loading'
+import { ReasoningRealtime } from './reasoning-loading'
+import { ReasoningDisplay } from './reasoning-display'
 import { cn } from '@/lib/utils'
 
 import { MessageCard } from './message-card'
@@ -12,8 +13,10 @@ import {
 import { PulsingLogo } from '@/components/ui/pulsing-logo'
 import type { ProcessedImage } from '@/lib/image-processing'
 import type { LocalImagePreview } from '../../constants/chat'
+import type { ReasoningEvent } from '@/inngest/types'
 
 interface Props {
+  projectId: string
   activeFragment: Fragment | null
   setActiveFragment: (fragment: Fragment | null) => void
   messages: {
@@ -26,6 +29,7 @@ interface Props {
     generationTime?: number | null
     images?: ProcessedImage[] | null | undefined
     localImagePreviews?: LocalImagePreview[]
+    reasoningSteps?: ReasoningEvent[] | null
   }[]
   children: ReactNode
   projectCreating: boolean
@@ -35,6 +39,7 @@ interface Props {
 }
 
 export const MessagesContainer = ({
+  projectId,
   activeFragment,
   setActiveFragment,
   children,
@@ -88,6 +93,16 @@ export const MessagesContainer = ({
                         'min-h-[max(200px,40cqh)]'
                     )}
                   >
+                    {message.role === 'ASSISTANT' &&
+                      message.reasoningSteps &&
+                      message.reasoningSteps.length > 0 && (
+                        <div className="mb-4 ml-0 px-3 sm:ml-4 sm:px-4">
+                          <ReasoningDisplay
+                            events={message.reasoningSteps}
+                            isHistorical={true}
+                          />
+                        </div>
+                      )}
                     <MessageCard
                       content={message.content}
                       role={message.role}
@@ -122,8 +137,11 @@ export const MessagesContainer = ({
               onEditUserMessage,
             ])}
             {isLastMessageUser && projectCreating && !isStreaming && (
-              <div className="min-h-[max(200px,40cqh)] py-4">
-                <ReasoningLoading />
+              <div className="ml-0 min-h-[max(200px,40cqh)] px-3 py-4 sm:ml-4 sm:px-4">
+                <ReasoningRealtime
+                  projectId={projectId}
+                  isGenerating={projectCreating}
+                />
               </div>
             )}
           </ConversationContent>
