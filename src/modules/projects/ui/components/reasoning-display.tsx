@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   BrainIcon,
   ChevronDownIcon,
+  File,
 } from 'lucide-react'
 import type { ReasoningEvent } from '@/inngest/types'
 import {
@@ -63,6 +64,24 @@ const StreamingText = ({ text }: { text: string }) => {
   return (
     <div className="text-muted-foreground whitespace-pre-wrap">
       {displayedText}
+    </div>
+  )
+}
+
+const FilesList = ({ files }: { files: string[] }) => {
+  if (!files || files.length === 0) return null
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {files.map((file, index) => (
+        <span
+          key={`${file}-${index}`}
+          className="text-muted-foreground bg-muted/50 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium"
+        >
+          <File className="size-3" />
+          <span className="max-w-[200px] truncate">{file}</span>
+        </span>
+      ))}
     </div>
   )
 }
@@ -206,7 +225,7 @@ export const ReasoningDisplay = ({
 
   return (
     <div className={cn('flex flex-col gap-3', className)}>
-      {groupedEvents.map((item) => {
+      {groupedEvents.map((item, index) => {
         const { event, thinkingContent } = item
 
         if (item.type === 'thinking') {
@@ -215,7 +234,7 @@ export const ReasoningDisplay = ({
 
           return (
             <Reasoning
-              key={`thinking-${event.timestamp}`}
+              key={`thinking-${event.timestamp}-${index}`}
               isStreaming={isThinking}
               defaultOpen={isThinking}
               duration={duration}
@@ -250,7 +269,7 @@ export const ReasoningDisplay = ({
 
         return (
           <div
-            key={`${event.timestamp}-${event.title}`}
+            key={`action-${event.timestamp}-${event.title}-${index}`}
             className="flex items-start gap-3"
           >
             <div className="mt-0.5 shrink-0">{icon}</div>
@@ -290,6 +309,10 @@ export const ReasoningDisplay = ({
                     </p>
                   )}
                 </>
+              )}
+
+              {event.metadata?.files && (
+                <FilesList files={event.metadata.files} />
               )}
             </div>
           </div>

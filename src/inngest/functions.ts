@@ -34,8 +34,7 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description:
-        'Initializing workspace environment and verifying project configuration to ensure everything is ready for development',
+      description: `Analyzing your request: "${event.data.value.substring(0, 100)}${event.data.value.length > 100 ? '...' : ''}"`,
       timestamp: thinkingStart,
     })
 
@@ -83,24 +82,14 @@ export const codeAgentFunction = inngest.createFunction(
       duration: (Date.now() - thinkingStart) / 1000,
     })
 
-    await publishReasoningEvent({
-      type: 'action',
-      phase: 'completed',
-      title: 'Checked project structure',
-      description:
-        'Validated existing files and dependencies to understand the current project state',
-      timestamp: Date.now(),
-    })
-
     const startTime = Date.now()
 
     const sandboxStart = Date.now()
     await publishReasoningEvent({
       type: 'action',
       phase: 'started',
-      title: 'Creating sandbox environment',
-      description:
-        'Setting up an isolated cloud development environment with all necessary tools and dependencies for your project',
+      title: 'Setting up development environment',
+      description: 'Creating isolated sandbox with Node.js and required tools',
       timestamp: sandboxStart,
     })
 
@@ -117,9 +106,8 @@ export const codeAgentFunction = inngest.createFunction(
     await publishReasoningEvent({
       type: 'action',
       phase: 'completed',
-      title: 'Creating sandbox environment',
-      description:
-        'Successfully initialized secure development environment with Node.js, npm, and all required tooling',
+      title: 'Environment ready',
+      description: 'Development environment initialized successfully',
       timestamp: Date.now(),
       duration: (Date.now() - sandboxStart) / 1000,
     })
@@ -134,7 +122,7 @@ export const codeAgentFunction = inngest.createFunction(
       phase: 'started',
       title: 'Thinking',
       description:
-        'Analyzing your requirements, planning component architecture, and designing the optimal solution structure for your needs',
+        'Planning project architecture and selecting optimal approach',
       timestamp: planningStart,
     })
 
@@ -144,15 +132,6 @@ export const codeAgentFunction = inngest.createFunction(
       title: 'Thinking',
       timestamp: Date.now(),
       duration: (Date.now() - planningStart) / 1000,
-    })
-
-    await publishReasoningEvent({
-      type: 'action',
-      phase: 'completed',
-      title: 'Read project layout',
-      description:
-        'Analyzed project structure and existing code to maintain consistency with your codebase',
-      timestamp: Date.now(),
     })
 
     const state = createState<AgentState>(
@@ -183,8 +162,7 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description:
-        'Building your project by implementing components, writing clean code, installing dependencies, and ensuring everything works together seamlessly',
+      description: 'Building project structure and implementing functionality',
       timestamp: buildingStart,
     })
 
@@ -196,14 +174,6 @@ export const codeAgentFunction = inngest.createFunction(
       title: 'Thinking',
       timestamp: Date.now(),
       duration: (Date.now() - buildingStart) / 1000,
-    })
-
-    await publishReasoningEvent({
-      type: 'action',
-      phase: 'completed',
-      title: 'Created project structure',
-      description: 'Generated all necessary files and components',
-      timestamp: Date.now(),
     })
 
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
@@ -233,9 +203,8 @@ export const codeAgentFunction = inngest.createFunction(
     await publishReasoningEvent({
       type: 'action',
       phase: 'started',
-      title: 'Reviewing work',
-      description:
-        'Performing final quality checks, optimizing code, running tests, and preparing your project for deployment',
+      title: 'Finalizing project',
+      description: 'Running final checks and preparing deployment',
       timestamp: reviewStart,
     })
 
@@ -259,9 +228,8 @@ export const codeAgentFunction = inngest.createFunction(
       const completionEvent: ReasoningEvent = {
         type: 'action',
         phase: 'completed',
-        title: 'Reviewing work',
-        description:
-          'Successfully completed all checks. Your project is ready and deployed!',
+        title: 'Project ready',
+        description: 'Your project is successfully deployed and ready to use!',
         timestamp: Date.now(),
         duration: (Date.now() - reviewStart) / 1000,
       }
@@ -289,9 +257,8 @@ export const codeAgentFunction = inngest.createFunction(
       projectChannel(event.data.projectId).status({
         type: 'action',
         phase: 'completed',
-        title: 'Reviewing work',
-        description:
-          'Successfully completed all checks. Your project is ready and deployed!',
+        title: 'Project ready',
+        description: 'Your project is successfully deployed and ready to use!',
         timestamp: Date.now(),
         duration: (Date.now() - reviewStart) / 1000,
       })

@@ -34,8 +34,35 @@ export const createCodingAgent = (sandboxId: string) =>
         parameters: z.object({
           command: z.string(),
         }),
-        handler: async ({ command }, { step }) => {
-          return await step?.run('terminal', async () => {
+        handler: async ({ command }, options: Tool.Options<AgentState>) => {
+          const publishEvent = options.network.state.data.publishEvent
+
+          if (publishEvent) {
+            const isInstall =
+              command.includes('npm install') || command.includes('npm i')
+            const isBuild =
+              command.includes('npm run build') || command.includes('build')
+
+            if (isInstall || isBuild) {
+              const actionStart = Date.now()
+              const title = isInstall
+                ? 'Installing dependencies'
+                : 'Building project'
+              const description = command
+
+              await publishEvent({
+                type: 'action',
+                phase: 'started',
+                title,
+                description,
+                timestamp: actionStart,
+                metadata: { command },
+              })
+            }
+          }
+
+          const startTime = Date.now()
+          const result = await options.step?.run('terminal', async () => {
             const buffers = { stdout: '', stderr: '' }
             try {
               const sandbox = await getSandbox(sandboxId)
@@ -55,6 +82,31 @@ export const createCodingAgent = (sandboxId: string) =>
               return `Command failed: ${e} \nstdout: ${buffers.stdout} \nstderr: ${buffers.stderr}`
             }
           })
+
+          if (publishEvent) {
+            const isInstall =
+              command.includes('npm install') || command.includes('npm i')
+            const isBuild =
+              command.includes('npm run build') || command.includes('build')
+
+            if (isInstall || isBuild) {
+              const title = isInstall
+                ? 'Installed dependencies'
+                : 'Built project'
+
+              await publishEvent({
+                type: 'action',
+                phase: 'completed',
+                title,
+                description: command,
+                timestamp: Date.now(),
+                duration: (Date.now() - startTime) / 1000,
+                metadata: { command },
+              })
+            }
+          }
+
+          return result
         },
       }),
       createTool({
@@ -69,6 +121,22 @@ export const createCodingAgent = (sandboxId: string) =>
           ),
         }),
         handler: async ({ files }, options: Tool.Options<AgentState>) => {
+          const publishEvent = options.network.state.data.publishEvent
+
+          if (publishEvent) {
+            const filesList = files.map((f) => f.path).join(', ')
+            const actionStart = Date.now()
+            await publishEvent({
+              type: 'action',
+              phase: 'started',
+              title: `Creating ${files.length} file${files.length > 1 ? 's' : ''}`,
+              description: `Writing: ${filesList}`,
+              timestamp: actionStart,
+              metadata: { files: files.map((f) => f.path) },
+            })
+          }
+
+          const startTime = Date.now()
           const newFiles = await options.step?.run(
             'createOrUpdateFiles',
             async () => {
@@ -85,8 +153,22 @@ export const createCodingAgent = (sandboxId: string) =>
               }
             }
           )
+
           if (typeof newFiles === 'object') {
             options.network.state.data.files = newFiles
+
+            if (publishEvent) {
+              const filesList = files.map((f) => f.path).join(', ')
+              await publishEvent({
+                type: 'action',
+                phase: 'completed',
+                title: `Created ${files.length} file${files.length > 1 ? 's' : ''}`,
+                description: `Successfully wrote: ${filesList}`,
+                timestamp: Date.now(),
+                duration: (Date.now() - startTime) / 1000,
+                metadata: { files: files.map((f) => f.path) },
+              })
+            }
           }
         },
       }),
@@ -96,8 +178,22 @@ export const createCodingAgent = (sandboxId: string) =>
         parameters: z.object({
           files: z.array(z.string()),
         }),
-        handler: async ({ files }, { step }) => {
-          return await step?.run('readFiles', async () => {
+        handler: async ({ files }, options: Tool.Options<AgentState>) => {
+          const publishEvent = options.network.state.data.publishEvent
+
+          if (publishEvent && files.length > 0) {
+            const filesList = files.join(', ')
+            await publishEvent({
+              type: 'action',
+              phase: 'completed',
+              title: `Read ${files.length} file${files.length > 1 ? 's' : ''}`,
+              description: `Analyzed: ${filesList}`,
+              timestamp: Date.now(),
+              metadata: { files },
+            })
+          }
+
+          return await options.step?.run('readFiles', async () => {
             try {
               const sandbox = await getSandbox(sandboxId)
               const context = []
