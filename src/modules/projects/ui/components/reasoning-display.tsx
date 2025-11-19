@@ -1,13 +1,13 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { 
-  Search, 
-  FileText, 
-  Wrench, 
+import {
+  Search,
+  FileText,
+  Wrench,
   CheckCircle2,
   BrainIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
 } from 'lucide-react'
 import type { ReasoningEvent } from '@/inngest/types'
 import {
@@ -16,11 +16,13 @@ import {
   ReasoningContent,
 } from '@/components/ui/shadcn-io/ai/reasoning'
 import { Loader } from '@/components/ui/shadcn-io/ai/loader'
+import { useEffect, useState } from 'react'
 
 interface ReasoningDisplayProps {
   events: ReasoningEvent[]
   className?: string
   isStreaming?: boolean
+  isHistorical?: boolean // Indicates data loaded from DB (not realtime)
 }
 
 type GroupedEvent = {
@@ -29,10 +31,51 @@ type GroupedEvent = {
   thinkingContent?: string
 }
 
-export const ReasoningDisplay = ({ 
-  events, 
+// Animated "Thinking..." component with shimmer effect
+const ThinkingText = () => {
+  return (
+    <p className="relative inline-block">
+      <span className="animate-shimmer bg-[linear-gradient(110deg,#64748b,45%,#e2e8f0,55%,#64748b)] bg-[length:200%_100%] bg-clip-text text-transparent dark:bg-[linear-gradient(110deg,#64748b,45%,#cbd5e1,55%,#64748b)]">
+        Thinking...
+      </span>
+    </p>
+  )
+}
+
+// Streaming text effect component - shows typing animation
+const StreamingText = ({ text }: { text: string }) => {
+  const [displayedText, setDisplayedText] = useState('')
+
+  useEffect(() => {
+    // Start animation from the beginning
+    setDisplayedText('')
+    let currentIndex = 0
+
+    const interval = setInterval(() => {
+      if (currentIndex <= text.length) {
+        setDisplayedText(text.slice(0, currentIndex))
+        currentIndex++
+      } else {
+        clearInterval(interval)
+      }
+    }, 10)
+
+    return () => clearInterval(interval)
+  }, [text])
+
+  return (
+    <div className="text-muted-foreground whitespace-pre-wrap">
+      {displayedText}
+    </div>
+  )
+}
+
+export const ReasoningDisplay = ({
+  events,
   className,
-  isStreaming = false 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isStreaming = false,
+  isHistorical = false,
 }: ReasoningDisplayProps) => {
   if (!events || events.length === 0) {
     return null
@@ -42,42 +85,46 @@ export const ReasoningDisplay = ({
   // First, identify which started events have matching completed events
   const usedIndices = new Set<number>()
   const groupedEvents: GroupedEvent[] = []
-  
+
   for (let i = 0; i < events.length; i++) {
     if (usedIndices.has(i)) continue
-    
+
     const event = events[i]
-    
+
     // If this is a started event, look for matching completed event
     if (event.phase === 'started') {
       let matchedIndex = -1
-      
+
       // Look for matching completed event in the rest of the array
       for (let j = i + 1; j < events.length; j++) {
         const candidate = events[j]
-        
+
         // For thinking events - match by type
-        if (event.type === 'thinking' && 
-            candidate.type === 'thinking' && 
-            candidate.phase === 'completed') {
+        if (
+          event.type === 'thinking' &&
+          candidate.type === 'thinking' &&
+          candidate.phase === 'completed'
+        ) {
           matchedIndex = j
           break
         }
-        
+
         // For action/step events - match by type and title
-        if ((event.type === 'action' || event.type === 'step') &&
-            event.type === candidate.type &&
-            event.title === candidate.title &&
-            candidate.phase === 'completed') {
+        if (
+          (event.type === 'action' || event.type === 'step') &&
+          event.type === candidate.type &&
+          event.title === candidate.title &&
+          candidate.phase === 'completed'
+        ) {
           matchedIndex = j
           break
         }
       }
-      
+
       if (matchedIndex !== -1) {
         const completedEvent = events[matchedIndex]
         usedIndices.add(matchedIndex)
-        
+
         if (event.type === 'thinking') {
           groupedEvents.push({
             type: 'thinking',
@@ -85,30 +132,30 @@ export const ReasoningDisplay = ({
               ...completedEvent,
               description: event.description,
             },
-            thinkingContent: event.description
+            thinkingContent: event.description,
           })
         } else {
           // For action/step, use completed event
           groupedEvents.push({
             type: event.type,
-            event: completedEvent
+            event: completedEvent,
           })
         }
         continue
       }
     }
-    
+
     // Single event without matching pair
     if (event.type === 'thinking') {
       groupedEvents.push({
         type: 'thinking',
         event,
-        thinkingContent: event.description
+        thinkingContent: event.description,
       })
     } else {
       groupedEvents.push({
         type: event.type,
-        event
+        event,
       })
     }
   }
@@ -116,8 +163,9 @@ export const ReasoningDisplay = ({
   const getActionIcon = (title: string, phase?: ReasoningEvent['phase']) => {
     const isCompleted = phase === 'completed'
     const isFailed = phase === 'failed'
-    const isInProgress = phase === 'started' || phase === 'in-progress' || !phase
-    
+    const isInProgress =
+      phase === 'started' || phase === 'in-progress' || !phase
+
     const iconClass = cn(
       'size-4',
       isCompleted && 'text-foreground',
@@ -126,16 +174,30 @@ export const ReasoningDisplay = ({
     )
 
     // Match icons based on title keywords
-    if (title.toLowerCase().includes('check') || title.toLowerCase().includes('read')) {
+    if (
+      title.toLowerCase().includes('check') ||
+      title.toLowerCase().includes('read')
+    ) {
       return <Search className={iconClass} />
     }
-    if (title.toLowerCase().includes('creat') || title.toLowerCase().includes('save')) {
+    if (
+      title.toLowerCase().includes('creat') ||
+      title.toLowerCase().includes('save')
+    ) {
       return <FileText className={iconClass} />
     }
-    if (title.toLowerCase().includes('review') || title.toLowerCase().includes('build') || title.toLowerCase().includes('work')) {
-      return isInProgress ? <Loader size={16} className={iconClass} /> : <Wrench className={iconClass} />
+    if (
+      title.toLowerCase().includes('review') ||
+      title.toLowerCase().includes('build') ||
+      title.toLowerCase().includes('work')
+    ) {
+      return isInProgress ? (
+        <Loader size={16} className={iconClass} />
+      ) : (
+        <Wrench className={iconClass} />
+      )
     }
-    
+
     return isInProgress ? (
       <Loader size={16} className={iconClass} />
     ) : (
@@ -149,23 +211,27 @@ export const ReasoningDisplay = ({
   }
 
   const isInProgress = (phase?: ReasoningEvent['phase']) => {
-    return phase === 'started' || phase === 'in-progress' || !phase
+    // Для исторических данных (из БД) - никогда не показываем как "в процессе"
+    if (isHistorical) return false
+
+    // Только события с явным статусом started/in-progress считаются активными
+    // События без phase или с другими статусами считаются завершенными
+    return phase === 'started' || phase === 'in-progress'
   }
 
   return (
     <div className={cn('flex flex-col gap-3', className)}>
-      {groupedEvents.map((item, index) => {
+      {groupedEvents.map((item) => {
         const { event, thinkingContent } = item
-        const isLast = index === groupedEvents.length - 1
-        const showAsStreaming = isStreaming && isLast
 
         if (item.type === 'thinking') {
           const duration = event.duration || 0
-          const isThinking = isInProgress(event.phase) || showAsStreaming
+          // Показываем анимацию только если событие реально в процессе (не завершено)
+          const isThinking = isInProgress(event.phase)
 
           return (
-            <Reasoning 
-              key={`${event.timestamp}-${index}`}
+            <Reasoning
+              key={`thinking-${event.timestamp}`}
               isStreaming={isThinking}
               defaultOpen={isThinking}
               duration={duration}
@@ -173,7 +239,7 @@ export const ReasoningDisplay = ({
               <ReasoningTrigger>
                 <BrainIcon className="size-4" />
                 {isThinking ? (
-                  <p>Thinking...</p>
+                  <ThinkingText />
                 ) : (
                   <p>Thought for {formatDuration(duration)}</p>
                 )}
@@ -181,7 +247,11 @@ export const ReasoningDisplay = ({
               </ReasoningTrigger>
               {thinkingContent && (
                 <ReasoningContent>
-                  {thinkingContent}
+                  {isThinking ? (
+                    <StreamingText text={thinkingContent} />
+                  ) : (
+                    thinkingContent
+                  )}
                 </ReasoningContent>
               )}
             </Reasoning>
@@ -193,20 +263,19 @@ export const ReasoningDisplay = ({
         const duration = event.duration ? formatDuration(event.duration) : null
         const isCompleted = event.phase === 'completed'
         const isFailed = event.phase === 'failed'
-        const loading = isInProgress(event.phase) || showAsStreaming
+        // Показываем анимацию только если событие реально в процессе (не завершено)
+        const loading = isInProgress(event.phase)
 
         return (
           <div
-            key={`${event.timestamp}-${index}`}
+            key={`${event.timestamp}-${event.title}`}
             className="flex items-start gap-3"
           >
-            <div className="mt-0.5 shrink-0">
-              {icon}
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span 
+            <div className="mt-0.5 shrink-0">{icon}</div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
                   className={cn(
                     'text-[14px] leading-tight',
                     isCompleted && 'text-foreground',
@@ -217,19 +286,29 @@ export const ReasoningDisplay = ({
                   {event.title}
                 </span>
                 {duration && !loading && (
-                  <span className="text-[12px] text-muted-foreground/60">
+                  <span className="text-muted-foreground/60 text-[12px]">
                     {duration}
                   </span>
                 )}
               </div>
-              
-              {/* Показываем description только для событий в процессе выполнения */}
-              {event.description && loading && (
-                <p className={cn(
-                  "text-[13px] text-muted-foreground/80 mt-1 leading-snug"
-                )}>
-                  {event.description}
-                </p>
+
+              {/* Показываем description для всех событий */}
+              {event.description && (
+                <>
+                  {loading ? (
+                    <div className="mt-1 text-[13px] leading-snug">
+                      <StreamingText text={event.description} />
+                    </div>
+                  ) : (
+                    <p
+                      className={cn(
+                        'text-muted-foreground/80 mt-1 text-[13px] leading-snug'
+                      )}
+                    >
+                      {event.description}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -238,4 +317,3 @@ export const ReasoningDisplay = ({
     </div>
   )
 }
-

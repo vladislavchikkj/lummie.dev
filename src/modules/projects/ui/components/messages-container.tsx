@@ -97,7 +97,10 @@ export const MessagesContainer = ({
                       message.reasoningSteps &&
                       message.reasoningSteps.length > 0 && (
                         <div className="mb-4 ml-0 px-3 sm:ml-4 sm:px-4">
-                          <ReasoningDisplay events={message.reasoningSteps} />
+                          <ReasoningDisplay
+                            events={message.reasoningSteps}
+                            isHistorical={true}
+                          />
                         </div>
                       )}
                     <MessageCard
@@ -135,7 +138,10 @@ export const MessagesContainer = ({
             ])}
             {isLastMessageUser && projectCreating && !isStreaming && (
               <div className="ml-0 min-h-[max(200px,40cqh)] px-3 py-4 sm:ml-4 sm:px-4">
-                <ReasoningRealtime projectId={projectId} />
+                <ReasoningRealtime
+                  projectId={projectId}
+                  isGenerating={projectCreating}
+                />
               </div>
             )}
           </ConversationContent>

@@ -35,7 +35,8 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description: 'Initializing workspace and checking project status',
+      description:
+        'Initializing workspace environment and verifying project configuration to ensure everything is ready for development',
       timestamp: thinkingStart,
     })
 
@@ -89,6 +90,8 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'action',
       phase: 'completed',
       title: 'Checked project structure',
+      description:
+        'Validated existing files and dependencies to understand the current project state',
       timestamp: Date.now(),
     })
 
@@ -99,7 +102,8 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'action',
       phase: 'started',
       title: 'Creating sandbox environment',
-      description: 'Setting up isolated development environment',
+      description:
+        'Setting up an isolated cloud development environment with all necessary tools and dependencies for your project',
       timestamp: sandboxStart,
     })
 
@@ -116,7 +120,9 @@ export const codeAgentFunction = inngest.createFunction(
     await publishReasoningEvent({
       type: 'action',
       phase: 'completed',
-      title: 'Created sandbox environment',
+      title: 'Creating sandbox environment',
+      description:
+        'Successfully initialized secure development environment with Node.js, npm, and all required tooling',
       timestamp: Date.now(),
       duration: (Date.now() - sandboxStart) / 1000,
     })
@@ -130,7 +136,8 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description: 'Analyzing requirements and designing solution architecture',
+      description:
+        'Analyzing your requirements, planning component architecture, and designing the optimal solution structure for your needs',
       timestamp: planningStart,
     })
 
@@ -145,7 +152,9 @@ export const codeAgentFunction = inngest.createFunction(
     await publishReasoningEvent({
       type: 'action',
       phase: 'completed',
-      title: 'Read layout',
+      title: 'Read project layout',
+      description:
+        'Analyzed project structure and existing code to maintain consistency with your codebase',
       timestamp: Date.now(),
     })
 
@@ -177,7 +186,8 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description: 'Building your project and implementing requirements',
+      description:
+        'Building your project by implementing components, writing clean code, installing dependencies, and ensuring everything works together seamlessly',
       timestamp: buildingStart,
     })
 
@@ -212,7 +222,8 @@ export const codeAgentFunction = inngest.createFunction(
         type: 'action',
         phase: 'failed',
         title: 'Project generation failed',
-        description: 'Unable to complete project generation',
+        description:
+          'Encountered an unexpected error during code generation. Please try again or contact support if the issue persists',
         timestamp: Date.now(),
       })
       await step.run('save-error-result', () =>
@@ -226,7 +237,8 @@ export const codeAgentFunction = inngest.createFunction(
       type: 'action',
       phase: 'started',
       title: 'Reviewing work',
-      description: 'Verifying implementation and preparing deployment',
+      description:
+        'Performing final quality checks, optimizing code, running tests, and preparing your project for deployment',
       timestamp: reviewStart,
     })
 
@@ -252,10 +264,21 @@ export const codeAgentFunction = inngest.createFunction(
         type: 'action',
         phase: 'completed',
         title: 'Reviewing work',
+        description:
+          'Successfully completed all checks. Your project is ready and deployed!',
         timestamp: Date.now(),
         duration: (Date.now() - reviewStart) / 1000,
       }
       reasoningSteps.push(completionEvent)
+
+      // Фильтруем события перед сохранением в БД - оставляем только завершенные
+      // Это предотвращает показ анимаций на исторических данных после перезагрузки
+      const completedReasoningSteps = reasoningSteps.filter(
+        (event) =>
+          event.phase === 'completed' ||
+          event.phase === 'failed' ||
+          !event.phase
+      )
 
       await saveSuccessResult({
         projectId: event.data.projectId,
@@ -264,7 +287,7 @@ export const codeAgentFunction = inngest.createFunction(
         sandboxUrl: sandboxUrl,
         allSandboxFiles: allSandboxFiles,
         generationTime: generationTime,
-        reasoningSteps: reasoningSteps,
+        reasoningSteps: completedReasoningSteps,
       })
     })
 
@@ -274,6 +297,8 @@ export const codeAgentFunction = inngest.createFunction(
         type: 'action',
         phase: 'completed',
         title: 'Reviewing work',
+        description:
+          'Successfully completed all checks. Your project is ready and deployed!',
         timestamp: Date.now(),
         duration: (Date.now() - reviewStart) / 1000,
       })
