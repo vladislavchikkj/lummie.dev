@@ -22,7 +22,6 @@ export const codeAgentFunction = inngest.createFunction(
   { id: 'code-agent' },
   { event: 'code-agent/run' },
   async ({ event, step, publish }) => {
-    // Track all reasoning steps
     const reasoningSteps: ReasoningEvent[] = []
 
     const publishReasoningEvent = async (reasoningEvent: ReasoningEvent) => {
@@ -46,7 +45,6 @@ export const codeAgentFunction = inngest.createFunction(
         select: { status: true, sandboxId: true },
       })
 
-      // Если проект уже завершен или в процессе, не запускаем генерацию
       if (project?.status === 'COMPLETED') {
         console.log(
           `Project ${event.data.projectId} is already completed, skipping generation`
@@ -54,7 +52,6 @@ export const codeAgentFunction = inngest.createFunction(
         return { shouldSkip: true, status: project.status }
       }
 
-      // Если проект уже в процессе генерации и есть sandboxId, не создаем новый
       if (project?.status === 'PENDING' && project.sandboxId) {
         console.log(
           `Project ${event.data.projectId} is already in progress with sandbox ${project.sandboxId}, skipping generation`
@@ -259,7 +256,6 @@ export const codeAgentFunction = inngest.createFunction(
 
       const generationTime = (Date.now() - startTime) / 1000
 
-      // Добавляем финальное событие завершения в массив перед сохранением
       const completionEvent: ReasoningEvent = {
         type: 'action',
         phase: 'completed',
@@ -271,8 +267,6 @@ export const codeAgentFunction = inngest.createFunction(
       }
       reasoningSteps.push(completionEvent)
 
-      // Фильтруем события перед сохранением в БД - оставляем только завершенные
-      // Это предотвращает показ анимаций на исторических данных после перезагрузки
       const completedReasoningSteps = reasoningSteps.filter(
         (event) =>
           event.phase === 'completed' ||
@@ -291,7 +285,6 @@ export const codeAgentFunction = inngest.createFunction(
       })
     })
 
-    // Отправляем событие завершения в realtime канал ПОСЛЕ сохранения
     await publish(
       projectChannel(event.data.projectId).status({
         type: 'action',

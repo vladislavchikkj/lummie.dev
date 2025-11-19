@@ -22,7 +22,7 @@ interface ReasoningDisplayProps {
   events: ReasoningEvent[]
   className?: string
   isStreaming?: boolean
-  isHistorical?: boolean // Indicates data loaded from DB (not realtime)
+  isHistorical?: boolean
 }
 
 type GroupedEvent = {
@@ -31,7 +31,6 @@ type GroupedEvent = {
   thinkingContent?: string
 }
 
-// Animated "Thinking..." component with shimmer effect
 const ThinkingText = () => {
   return (
     <p className="relative inline-block">
@@ -42,12 +41,10 @@ const ThinkingText = () => {
   )
 }
 
-// Streaming text effect component - shows typing animation
 const StreamingText = ({ text }: { text: string }) => {
   const [displayedText, setDisplayedText] = useState('')
 
   useEffect(() => {
-    // Start animation from the beginning
     setDisplayedText('')
     let currentIndex = 0
 
@@ -81,8 +78,6 @@ export const ReasoningDisplay = ({
     return null
   }
 
-  // Group events - merge started/completed pairs for both thinking and action events
-  // First, identify which started events have matching completed events
   const usedIndices = new Set<number>()
   const groupedEvents: GroupedEvent[] = []
 
@@ -91,15 +86,12 @@ export const ReasoningDisplay = ({
 
     const event = events[i]
 
-    // If this is a started event, look for matching completed event
     if (event.phase === 'started') {
       let matchedIndex = -1
 
-      // Look for matching completed event in the rest of the array
       for (let j = i + 1; j < events.length; j++) {
         const candidate = events[j]
 
-        // For thinking events - match by type
         if (
           event.type === 'thinking' &&
           candidate.type === 'thinking' &&
@@ -109,7 +101,6 @@ export const ReasoningDisplay = ({
           break
         }
 
-        // For action/step events - match by type and title
         if (
           (event.type === 'action' || event.type === 'step') &&
           event.type === candidate.type &&
@@ -135,7 +126,6 @@ export const ReasoningDisplay = ({
             thinkingContent: event.description,
           })
         } else {
-          // For action/step, use completed event
           groupedEvents.push({
             type: event.type,
             event: completedEvent,
@@ -145,7 +135,6 @@ export const ReasoningDisplay = ({
       }
     }
 
-    // Single event without matching pair
     if (event.type === 'thinking') {
       groupedEvents.push({
         type: 'thinking',
@@ -173,7 +162,6 @@ export const ReasoningDisplay = ({
       isInProgress && 'text-muted-foreground'
     )
 
-    // Match icons based on title keywords
     if (
       title.toLowerCase().includes('check') ||
       title.toLowerCase().includes('read')
@@ -211,11 +199,8 @@ export const ReasoningDisplay = ({
   }
 
   const isInProgress = (phase?: ReasoningEvent['phase']) => {
-    // Для исторических данных (из БД) - никогда не показываем как "в процессе"
     if (isHistorical) return false
 
-    // Только события с явным статусом started/in-progress считаются активными
-    // События без phase или с другими статусами считаются завершенными
     return phase === 'started' || phase === 'in-progress'
   }
 
@@ -226,7 +211,6 @@ export const ReasoningDisplay = ({
 
         if (item.type === 'thinking') {
           const duration = event.duration || 0
-          // Показываем анимацию только если событие реально в процессе (не завершено)
           const isThinking = isInProgress(event.phase)
 
           return (
@@ -258,12 +242,10 @@ export const ReasoningDisplay = ({
           )
         }
 
-        // Action or Step events
         const icon = getActionIcon(event.title, event.phase)
         const duration = event.duration ? formatDuration(event.duration) : null
         const isCompleted = event.phase === 'completed'
         const isFailed = event.phase === 'failed'
-        // Показываем анимацию только если событие реально в процессе (не завершено)
         const loading = isInProgress(event.phase)
 
         return (
@@ -292,7 +274,6 @@ export const ReasoningDisplay = ({
                 )}
               </div>
 
-              {/* Показываем description для всех событий */}
               {event.description && (
                 <>
                   {loading ? (

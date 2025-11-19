@@ -19,7 +19,6 @@ export const ReasoningRealtime = ({
   const isConnected = state === 'active'
   const isError = !!error
 
-  // Limit visible messages if needed
   const visibleEvents = maxVisible
     ? data.slice(-maxVisible).map((msg) => msg.data)
     : data.map((msg) => msg.data)
