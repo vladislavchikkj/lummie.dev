@@ -2,7 +2,7 @@ import { Sandbox } from '@e2b/code-interpreter'
 import { createNetwork, createState } from '@inngest/agent-kit'
 import { inngest } from './client'
 import { prisma } from '@/lib/db'
-import { FileOperation, SANDBOX_TIMEOUT } from './types'
+import { FileOperation, SANDBOX_TIMEOUT, ReasoningEvent } from './types'
 import { getAllSandboxTextFiles, getSandbox, parseAgentOutput } from './utils'
 import {
   AgentState,
@@ -22,12 +22,22 @@ export const codeAgentFunction = inngest.createFunction(
   { id: 'code-agent' },
   { event: 'code-agent/run' },
   async ({ event, step, publish }) => {
+    // Track all reasoning steps
+    const reasoningSteps: ReasoningEvent[] = []
 
-    await publish(projectChannel(event.data.projectId).status({
-      functionId: 'code-agent',
+    const publishReasoningEvent = async (reasoningEvent: ReasoningEvent) => {
+      reasoningSteps.push(reasoningEvent)
+      await publish(projectChannel(event.data.projectId).status(reasoningEvent))
+    }
+
+    const thinkingStart = Date.now()
+    await publishReasoningEvent({
+      type: 'thinking',
       phase: 'started',
-      message: 'start creating project'
-    }))
+      title: 'Thinking',
+      description: 'Initializing workspace and checking project status',
+      timestamp: thinkingStart,
+    })
 
     const projectStatus = await step.run('check-project-status', async () => {
       const project = await prisma.project.findUnique({
@@ -67,34 +77,86 @@ export const codeAgentFunction = inngest.createFunction(
       }
     }
 
+    await publishReasoningEvent({
+      type: 'thinking',
+      phase: 'completed',
+      title: 'Thinking',
+      timestamp: Date.now(),
+      duration: (Date.now() - thinkingStart) / 1000,
+    })
+
+    await publishReasoningEvent({
+      type: 'action',
+      phase: 'completed',
+      title: 'Checked project structure',
+      timestamp: Date.now(),
+    })
+
     const startTime = Date.now()
+
+    const sandboxStart = Date.now()
+    await publishReasoningEvent({
+      type: 'action',
+      phase: 'started',
+      title: 'Creating sandbox environment',
+      description: 'Setting up isolated development environment',
+      timestamp: sandboxStart,
+    })
+
     const sandboxId = await step.run('get-sandbox-id', async () => {
-      await publish(projectChannel(event.data.projectId).status({
-        functionId: 'get-sandbox-id',
-        phase: 'started',
-        message: 'Getting sandbox ID'
-      }))
       const sandbox = await Sandbox.create('luci-ai-nextjs')
       await sandbox.setTimeout(SANDBOX_TIMEOUT)
       await prisma.project.update({
         where: { id: event.data.projectId },
         data: { sandboxId: sandbox.sandboxId },
       })
-      await publish(projectChannel(event.data.projectId).status({
-        functionId: 'get-sandbox-id',
-        phase: 'started',
-        message: 'Created sandbox for the project'
-      }))
       return sandbox.sandboxId
     })
 
+    await publishReasoningEvent({
+      type: 'action',
+      phase: 'completed',
+      title: 'Created sandbox environment',
+      timestamp: Date.now(),
+      duration: (Date.now() - sandboxStart) / 1000,
+    })
+
     const previousMessages = await step.run('get-previous-messages', () =>
-      getPreviousMessages(event.data.projectId),
+      getPreviousMessages(event.data.projectId)
     )
 
+    const planningStart = Date.now()
+    await publishReasoningEvent({
+      type: 'thinking',
+      phase: 'started',
+      title: 'Thinking',
+      description: 'Analyzing requirements and designing solution architecture',
+      timestamp: planningStart,
+    })
+
+    await publishReasoningEvent({
+      type: 'thinking',
+      phase: 'completed',
+      title: 'Thinking',
+      timestamp: Date.now(),
+      duration: (Date.now() - planningStart) / 1000,
+    })
+
+    await publishReasoningEvent({
+      type: 'action',
+      phase: 'completed',
+      title: 'Read layout',
+      timestamp: Date.now(),
+    })
+
     const state = createState<AgentState>(
-      { summary: '', files: {} },
-      { messages: previousMessages },
+      {
+        summary: '',
+        files: {},
+        reasoningSteps: reasoningSteps,
+        publishEvent: publishReasoningEvent,
+      },
+      { messages: previousMessages }
     )
 
     const codeAgent = createCodingAgent(sandboxId)
@@ -110,45 +172,71 @@ export const codeAgentFunction = inngest.createFunction(
       },
     })
 
+    const buildingStart = Date.now()
+    await publishReasoningEvent({
+      type: 'thinking',
+      phase: 'started',
+      title: 'Thinking',
+      description: 'Building your project and implementing requirements',
+      timestamp: buildingStart,
+    })
+
     const result = await network.run(event.data.value, { state })
 
+    await publishReasoningEvent({
+      type: 'thinking',
+      phase: 'completed',
+      title: 'Thinking',
+      timestamp: Date.now(),
+      duration: (Date.now() - buildingStart) / 1000,
+    })
+
+    await publishReasoningEvent({
+      type: 'action',
+      phase: 'completed',
+      title: 'Created project structure',
+      description: 'Generated all necessary files and components',
+      timestamp: Date.now(),
+    })
+
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
-      result.state.data.summary,
+      result.state.data.summary
     )
     const { output: responseOutput } = await responseGenerator.run(
-      result.state.data.summary,
+      result.state.data.summary
     )
 
     const isError = !result.state.data.summary
     if (isError) {
-      await publish(projectChannel(event.data.projectId).status({
-        functionId: 'code-agent',
+      await publishReasoningEvent({
+        type: 'action',
         phase: 'failed',
-        message: 'Failed to generate summary'
-      }))
+        title: 'Project generation failed',
+        description: 'Unable to complete project generation',
+        timestamp: Date.now(),
+      })
       await step.run('save-error-result', () =>
-        saveErrorResult(event.data.projectId),
+        saveErrorResult(event.data.projectId)
       )
       return { error: 'Failed to generate summary.' }
     }
 
+    const reviewStart = Date.now()
+    await publishReasoningEvent({
+      type: 'action',
+      phase: 'started',
+      title: 'Reviewing work',
+      description: 'Verifying implementation and preparing deployment',
+      timestamp: reviewStart,
+    })
+
     const sandboxUrl = await step.run('get-sandbox-url', async () => {
-      await publish(projectChannel(event.data.projectId).status({
-        functionId: 'get-sandbox-url',
-        phase: 'started',
-        message: 'Getting sandbox URL'
-      }))
       const sandbox = await getSandbox(sandboxId)
       const host = await sandbox.getHost(3000)
       return `https://${host}`
     })
 
     await step.run('process-and-save-files', async () => {
-      await publish(projectChannel(event.data.projectId).status({
-        functionId: 'process-and-save-files',
-        phase: 'started',
-        message: 'Processing and saving files',
-      }))
       const sandbox = await getSandbox(sandboxId)
       const allSandboxFiles = await getAllSandboxTextFiles(sandbox)
 
@@ -159,6 +247,16 @@ export const codeAgentFunction = inngest.createFunction(
 
       const generationTime = (Date.now() - startTime) / 1000
 
+      // Добавляем финальное событие завершения в массив перед сохранением
+      const completionEvent: ReasoningEvent = {
+        type: 'action',
+        phase: 'completed',
+        title: 'Reviewing work',
+        timestamp: Date.now(),
+        duration: (Date.now() - reviewStart) / 1000,
+      }
+      reasoningSteps.push(completionEvent)
+
       await saveSuccessResult({
         projectId: event.data.projectId,
         newProjectName: parseAgentOutput(fragmentTitleOutput),
@@ -166,21 +264,27 @@ export const codeAgentFunction = inngest.createFunction(
         sandboxUrl: sandboxUrl,
         allSandboxFiles: allSandboxFiles,
         generationTime: generationTime,
+        reasoningSteps: reasoningSteps,
       })
     })
 
-    await publish(projectChannel(event.data.projectId).status({
-      functionId: 'code-agent',
-      phase: 'completed',
-      message: 'Project created successfully'
-    }))
+    // Отправляем событие завершения в realtime канал ПОСЛЕ сохранения
+    await publish(
+      projectChannel(event.data.projectId).status({
+        type: 'action',
+        phase: 'completed',
+        title: 'Reviewing work',
+        timestamp: Date.now(),
+        duration: (Date.now() - reviewStart) / 1000,
+      })
+    )
 
     return {
       message: 'Project processed successfully',
       url: sandboxUrl,
       summary: result.state.data.summary,
     }
-  },
+  }
 )
 
 export const updateProjectFunction = inngest.createFunction(

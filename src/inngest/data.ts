@@ -44,6 +44,7 @@ interface SaveSuccessResultArgs {
   sandboxUrl: string
   allSandboxFiles: { [path: string]: string }
   generationTime?: number
+  reasoningSteps?: any[]
 }
 
 export async function saveSuccessResult(args: SaveSuccessResultArgs) {
@@ -54,6 +55,7 @@ export async function saveSuccessResult(args: SaveSuccessResultArgs) {
     sandboxUrl,
     allSandboxFiles,
     generationTime,
+    reasoningSteps,
   } = args
 
   return await prisma.$transaction([
@@ -71,6 +73,7 @@ export async function saveSuccessResult(args: SaveSuccessResultArgs) {
         role: 'ASSISTANT',
         type: 'RESULT',
         generationTime: generationTime,
+        reasoningSteps: reasoningSteps,
         fragment: {
           create: {
             sandboxUrl: sandboxUrl,

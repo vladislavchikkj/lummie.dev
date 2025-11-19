@@ -3,16 +3,12 @@
 import { InngestSubscriptionState, useInngestSubscription } from '@inngest/realtime/hooks'
 import { useTRPCClient } from '@/trpc/client'
 import { ProjectChannelToken } from '@/inngest/channels'
+import type { ReasoningEvent } from '@/inngest/types'
 
 type RealtimeMessage = {
   channel: string;
   topic: string;
-  data: {
-    functionId: string;
-    phase: "started" | "in-progress" | "completed" | "failed";
-    step?: string;
-    message: string;
-  };
+  data: ReasoningEvent;
 };
 
 type UseProjectRealtimeReturn = {

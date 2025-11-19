@@ -30,8 +30,9 @@ model Message {
   fragment       Fragment?
   project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   isFirst        Boolean     @default(false)
-  generationTime Float?      // время генерации в секундах
-  images         Json?       // массив изображений в формате base64 с метаданными
+  generationTime Float?      // Generation time in seconds
+  images         Json?       // Array of images in base64 format with metadata
+  reasoningSteps Json?       // Array of reasoning steps (thinking, actions, steps) shown during generation
 }
 
 model Fragment {

@@ -8,10 +8,13 @@ import {
 import z from 'zod'
 import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from '@/prompt'
 import { getSandbox, lastAssistantTextMessageContent } from './utils'
+import type { ReasoningEvent } from './types'
 
 export interface AgentState {
   summary: string
   files: { [path: string]: string }
+  reasoningSteps: ReasoningEvent[]
+  publishEvent?: (event: ReasoningEvent) => Promise<void>
 }
 
 export const createCodingAgent = (sandboxId: string) =>

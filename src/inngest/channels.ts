@@ -8,10 +8,13 @@ export const projectChannel = channel((projectId: string) => `project:${projectI
   .addTopic(
     topic(PROJECT_CHANNEL_TOPIC).schema(
       z.object({
-        functionId: z.string(),
-        phase: z.enum(['started', 'in-progress', 'completed', 'failed']),
-        message: z.string()
-        // timestamp: z.string().optional(), if needed to calc duration
+        type: z.enum(['thinking', 'action', 'step']),
+        phase: z.enum(['started', 'in-progress', 'completed', 'failed']).optional(),
+        title: z.string(),
+        description: z.string().optional(),
+        duration: z.number().optional(), // Duration in seconds
+        timestamp: z.number(),
+        metadata: z.record(z.any()).optional(),
       }),
     ),
   )
