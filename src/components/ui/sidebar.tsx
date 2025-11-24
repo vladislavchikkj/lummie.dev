@@ -65,8 +65,16 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
+  const isMobileQuery = useIsMobile()
+  const [isMounted, setIsMounted] = React.useState(false)
   const [openMobile, setOpenMobile] = React.useState(false)
+  
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+  
+  // До монтирования считаем что это десктоп (false) для консистентности SSR
+  const isMobile = isMounted ? isMobileQuery : false
 
   const [_open, _setOpen] = React.useState(defaultOpen)
   const open = openProp ?? _open
@@ -107,17 +115,24 @@ function SidebarProvider({
     const isSidebarOpen = isMobile ? openMobile : open
 
     if (isSidebarOpen) {
-      // Сохраняем текущую позицию скролла
+      // Сохраняем текущую позицию скролла и ширину scrollbar
       const scrollY = window.scrollY
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
       document.body.style.width = '100%'
+      // Сохраняем место для scrollbar, чтобы предотвратить смещение UI
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`
+      }
     } else {
       // Восстанавливаем скролл
       const scrollY = document.body.style.top
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
+      document.body.style.paddingRight = ''
       if (scrollY) {
         window.scrollTo(0, parseInt(scrollY || '0') * -1)
       }
@@ -128,6 +143,7 @@ function SidebarProvider({
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
+      document.body.style.paddingRight = ''
     }
   }, [isMobile, open, openMobile])
 

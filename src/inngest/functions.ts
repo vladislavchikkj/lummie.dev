@@ -9,6 +9,7 @@ import {
   createCodingAgent,
   fragmentTitleGenerator,
   responseGenerator,
+  reasoningGenerator,
 } from './agents'
 import {
   getPreviousMessages,
@@ -29,13 +30,20 @@ export const codeAgentFunction = inngest.createFunction(
       await publish(projectChannel(event.data.projectId).status(reasoningEvent))
     }
 
-    const thinkingStart = Date.now()
+    const initialThinkingStart = Date.now()
+
+    const { output: reasoningOutput } = await reasoningGenerator.run(
+      `User request: "${event.data.value}"\n\nWhat are you thinking about this request? What's your approach?`
+    )
+
+    const reasoningText = parseAgentOutput(reasoningOutput)
+
     await publishReasoningEvent({
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description: `Analyzing your request: "${event.data.value.substring(0, 100)}${event.data.value.length > 100 ? '...' : ''}"`,
-      timestamp: thinkingStart,
+      description: reasoningText,
+      timestamp: initialThinkingStart,
     })
 
     const projectStatus = await step.run('check-project-status', async () => {
@@ -79,7 +87,7 @@ export const codeAgentFunction = inngest.createFunction(
       phase: 'completed',
       title: 'Thinking',
       timestamp: Date.now(),
-      duration: (Date.now() - thinkingStart) / 1000,
+      duration: (Date.now() - initialThinkingStart) / 1000,
     })
 
     const startTime = Date.now()
@@ -116,14 +124,19 @@ export const codeAgentFunction = inngest.createFunction(
       getPreviousMessages(event.data.projectId)
     )
 
-    const planningStart = Date.now()
+    const planningThinkingStart = Date.now()
+    const { output: planningReasoningOutput } = await reasoningGenerator.run(
+      `User request: "${event.data.value}"\n\nNow that the environment is ready, what's your detailed plan for building this? What structure and files will you create?`
+    )
+
+    const planningReasoningText = parseAgentOutput(planningReasoningOutput)
+
     await publishReasoningEvent({
       type: 'thinking',
       phase: 'started',
       title: 'Thinking',
-      description:
-        'Planning project architecture and selecting optimal approach',
-      timestamp: planningStart,
+      description: planningReasoningText,
+      timestamp: planningThinkingStart,
     })
 
     await publishReasoningEvent({
@@ -131,7 +144,7 @@ export const codeAgentFunction = inngest.createFunction(
       phase: 'completed',
       title: 'Thinking',
       timestamp: Date.now(),
-      duration: (Date.now() - planningStart) / 1000,
+      duration: (Date.now() - planningThinkingStart) / 1000,
     })
 
     const state = createState<AgentState>(
@@ -157,24 +170,7 @@ export const codeAgentFunction = inngest.createFunction(
       },
     })
 
-    const buildingStart = Date.now()
-    await publishReasoningEvent({
-      type: 'thinking',
-      phase: 'started',
-      title: 'Thinking',
-      description: 'Building project structure and implementing functionality',
-      timestamp: buildingStart,
-    })
-
     const result = await network.run(event.data.value, { state })
-
-    await publishReasoningEvent({
-      type: 'thinking',
-      phase: 'completed',
-      title: 'Thinking',
-      timestamp: Date.now(),
-      duration: (Date.now() - buildingStart) / 1000,
-    })
 
     const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(
       result.state.data.summary

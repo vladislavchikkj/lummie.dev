@@ -122,6 +122,7 @@ export const createCodingAgent = (sandboxId: string) =>
         }),
         handler: async ({ files }, options: Tool.Options<AgentState>) => {
           const publishEvent = options.network.state.data.publishEvent
+          const operationId = `files-${Date.now()}-${files.map((f) => f.path).join('-')}`
 
           if (publishEvent) {
             const filesList = files.map((f) => f.path).join(', ')
@@ -132,7 +133,10 @@ export const createCodingAgent = (sandboxId: string) =>
               title: `Creating ${files.length} file${files.length > 1 ? 's' : ''}`,
               description: `Writing: ${filesList}`,
               timestamp: actionStart,
-              metadata: { files: files.map((f) => f.path) },
+              metadata: {
+                files: files.map((f) => f.path),
+                operationId,
+              },
             })
           }
 
@@ -166,7 +170,10 @@ export const createCodingAgent = (sandboxId: string) =>
                 description: `Successfully wrote: ${filesList}`,
                 timestamp: Date.now(),
                 duration: (Date.now() - startTime) / 1000,
-                metadata: { files: files.map((f) => f.path) },
+                metadata: {
+                  files: files.map((f) => f.path),
+                  operationId,
+                },
               })
             }
           }
@@ -215,6 +222,7 @@ export const createCodingAgent = (sandboxId: string) =>
 
         if (network) {
           const lastMessage = lastAssistantTextMessageContent(result)
+
           if (lastMessage?.includes('<task_summary>')) {
             network.state.data.summary = lastMessage
           }
@@ -239,5 +247,29 @@ export const responseGenerator = createAgent({
   system: RESPONSE_PROMPT,
   model: openai({
     model: 'gpt-4o',
+  }),
+})
+
+export const reasoningGenerator = createAgent({
+  name: 'reasoning-generator',
+  description: 'Generates detailed reasoning about the current task',
+  system: `You are an expert AI developer thinking through coding tasks step-by-step, like OpenAI's o1 model.
+
+When given a user request, think out loud in first person about:
+1. Understanding: What does the user really want? What's the core problem or goal?
+2. Approach: What's the best way to solve this? What architecture or patterns fit?
+3. Planning: What files, components, or structure will I need?
+4. Considerations: What edge cases, challenges, or decisions should I think about?
+
+Write 3-5 sentences of clear, strategic thinking. Be specific about technical choices.
+Think like a senior developer planning the project architecture.
+
+Example style:
+"I'm analyzing this request for a landing page. The user wants something modern and responsive, so I'm thinking Next.js with Tailwind for styling. I'll need to create a main page component with hero section, features, and CTA. The key challenge will be making it look professional without overcomplicating the structure. I'll start with a clean layout and add interactive elements progressively."`,
+  model: openai({
+    model: 'gpt-4o-mini',
+    defaultParameters: {
+      temperature: 0.8,
+    },
   }),
 })

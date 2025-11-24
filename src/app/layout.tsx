@@ -12,6 +12,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { DynamicNavbar } from '@/components/dynamic-navbar'
 import { PWAProvider } from '@/components/pwa-provider'
 import { SwipeGesturesProvider } from '@/components/swipe-gestures-provider'
+import { ScrollbarGutterFix } from '@/components/scrollbar-gutter-fix'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -200,6 +201,7 @@ export default function RootLayout({
 
                 <SidebarProvider>
                   <SwipeGesturesProvider>
+                    <ScrollbarGutterFix />
                     <DynamicNavbar />
                     <AppSidebar />
                     <main className="w-full ring-0">{children}</main>

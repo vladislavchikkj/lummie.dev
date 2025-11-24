@@ -154,9 +154,10 @@ export const ProjectsList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('latest')
 
+  // Данные могут быть prefetch-ены на сервере, поэтому enabled=true
+  // Запрос не будет выполняться повторно если данные уже есть в кэше
   const { data: projects, isLoading } = useQuery({
     ...trpc.projects.getManyWithPreview.queryOptions(),
-    enabled: !!user, // Выполнять запрос только если пользователь авторизован
     refetchInterval: (query) => {
       const isAnyProjectPending = query.state.data?.some(
         (p) => p.status === 'PENDING'
@@ -209,13 +210,13 @@ export const ProjectsList = () => {
     return sorted.slice(0, 6)
   }, [projects, searchQuery, sortBy])
 
-  if (!user) return null
-
+  // Используем suppressHydrationWarning для заголовка, так как имя пользователя
+  // доступно только на клиенте после загрузки Clerk
   return (
     <div className="flex w-full max-w-7xl flex-col gap-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-semibold">
-          {user?.firstName}&apos;s Workspace
+        <h2 className="text-2xl font-semibold" suppressHydrationWarning>
+          {user?.firstName ? `${user.firstName}'s Workspace` : 'Your Workspace'}
         </h2>
 
         <div className="flex items-center gap-x-2">

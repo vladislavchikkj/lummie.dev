@@ -222,8 +222,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html {
+    /* Резервируем место для scrollbar на Windows, чтобы предотвратить смещение UI */
+    scrollbar-gutter: stable;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    /* Резервируем место для scrollbar на Windows */
+    scrollbar-gutter: stable;
   }
 
   button:not([disabled]),

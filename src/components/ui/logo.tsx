@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 
 interface LogoProps {
   width?: number
@@ -12,24 +11,43 @@ interface LogoProps {
 }
 
 const Logo = ({ width, height, theme: propTheme, className }: LogoProps) => {
-  const { theme: systemTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme } = useTheme()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Если передан пропс темы - используем его напрямую
+  if (propTheme) {
+    const logoSrc = propTheme === 'light' ? '/logo.svg' : '/logo-l.svg'
+    return (
+      <Image
+        src={logoSrc}
+        alt="logo"
+        width={width}
+        height={height}
+        className={`logo ${className}`}
+      />
+    )
+  }
 
-  const currentTheme = propTheme ?? (mounted ? systemTheme : 'dark')
-  const logoSrc = currentTheme === 'light' ? '/logo.svg' : '/logo-l.svg'
-
+  // Для автоматической темы рендерим оба логотипа и скрываем через CSS
+  // Это гарантирует одинаковый HTML на сервере и клиенте
   return (
-    <Image
-      src={logoSrc}
-      alt="logo"
-      width={width}
-      height={height}
-      className={`logo ${className}`}
-    />
+    <>
+      {/* Light theme logo - показывается только в light mode */}
+      <Image
+        src="/logo.svg"
+        alt="logo"
+        width={width}
+        height={height}
+        className={`logo ${className} block dark:hidden`}
+      />
+      {/* Dark theme logo - показывается только в dark mode */}
+      <Image
+        src="/logo-l.svg"
+        alt="logo"
+        width={width}
+        height={height}
+        className={`logo ${className} hidden dark:block`}
+      />
+    </>
   )
 }
 

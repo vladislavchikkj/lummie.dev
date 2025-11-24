@@ -17,6 +17,8 @@ model Project {
   status    ProjectStatus @default(PENDING)
   sandboxId String?
   messages  Message[]
+
+  @@index([userId, updatedAt(sort: Desc)])
 }
 
 model Message {
@@ -33,6 +35,8 @@ model Message {
   generationTime Float?      // Generation time in seconds
   images         Json?       // Array of images in base64 format with metadata
   reasoningSteps Json?       // Array of reasoning steps (thinking, actions, steps) shown during generation
+
+  @@index([projectId, createdAt(sort: Desc)])
 }
 
 model Fragment {

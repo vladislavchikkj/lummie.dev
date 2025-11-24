@@ -4,22 +4,19 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useScroll } from '@/hooks/use-scroll'
 import { SignedIn, SignedOut, useAuth } from '@clerk/nextjs'
-import { Sheet } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AuthControls } from '@/modules/home/ui/components/navbar/auth-controls'
 import { UserMenu } from '@/modules/home/ui/components/navbar/user-menu'
-import { MobileNav } from '@/modules/home/ui/components/navbar/mobile-nav'
 import Logo from '@/components/ui/logo'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { CrownIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { CrownIcon, Menu } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
 import { formatDuration, intervalToDuration } from 'date-fns'
 import { useQuery } from '@tanstack/react-query'
 import { useTRPC } from '@/trpc/client'
 import { UsagePopover } from '@/modules/home/ui/components/navbar/usage-popover'
 import { useSidebar } from '@/components/ui/sidebar'
-import { useIsMobile } from '@/hooks/use-mobile'
 
 const navItems = [
   { href: '/enterprise', label: 'Enterprise' },
@@ -27,12 +24,20 @@ const navItems = [
   { href: '/resources', label: 'Resources' },
 ]
 
-const AuthSkeleton = () => {
+const AuthSkeletonDesktop = () => {
   return (
     <div className="flex min-w-[100px] items-center gap-2">
       <Skeleton className="h-6 w-6 rounded-full" />
       <Skeleton className="h-6 w-6 rounded-full" />
-      <Skeleton className="h-8 w-8" />
+      <Skeleton className="h-8 w-8 rounded-md" />
+    </div>
+  )
+}
+
+const AuthSkeletonMobile = () => {
+  return (
+    <div className="flex items-center">
+      <Skeleton className="h-8 w-8 rounded-full" />
     </div>
   )
 }
@@ -55,7 +60,14 @@ export const Header = ({
   const { isLoaded, has, userId } = useAuth()
   const trpc = useTRPC()
   const { toggleSidebar } = useSidebar()
-  const isMobile = useIsMobile()
+
+  // Используем состояние для отслеживания монтирования клиента
+  // чтобы избежать hydration mismatch
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const { data: usage, isLoading: isUsageLoading } = useQuery({
     ...trpc.usage.status.queryOptions(),
@@ -86,32 +98,31 @@ export const Header = ({
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 left-0 z-50 border-b border-transparent bg-transparent px-4 py-2 transition-all duration-300',
+        'fixed top-0 right-0 left-0 z-50 flex h-14 min-h-14 items-center border-b border-transparent bg-transparent px-4 py-2 transition-all duration-300',
         isScrolled &&
           applyScrollStyles &&
           'bg-background/95 border-border shadow-sm backdrop-blur-xl'
       )}
     >
-      <div className="mx-auto flex w-full items-center justify-between">
+      <div className="mx-auto flex h-full w-full items-center justify-between">
         <div className="flex items-center gap-4">
           {leftContent || (
             <>
-              {isMobile ? (
-                <div
-                  onClick={toggleSidebar}
-                  className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
-                >
-                  <Logo width={24} height={24} />
-                </div>
-              ) : (
-                <Link
-                  href="/"
-                  scroll={false}
-                  className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80"
-                >
-                  <Logo width={24} height={24} />
-                </Link>
-              )}
+              {/* Desktop: Link to home */}
+              <Link
+                href="/"
+                scroll={false}
+                className="hidden cursor-pointer items-center gap-1 transition-all hover:opacity-80 md:flex"
+              >
+                <Logo width={24} height={24} />
+              </Link>
+              {/* Mobile: Toggle sidebar */}
+              <div
+                onClick={toggleSidebar}
+                className="flex cursor-pointer items-center gap-1 transition-all hover:opacity-80 md:hidden"
+              >
+                <Menu className="h-6 w-6" />
+              </div>
             </>
           )}
           {showDesktopNav && (
@@ -135,8 +146,8 @@ export const Header = ({
           )}
         </div>
         <div className="hidden min-w-[100px] items-center gap-1 md:flex">
-          {!isLoaded ? (
-            <AuthSkeleton />
+          {!isMounted || !isLoaded ? (
+            <AuthSkeletonDesktop />
           ) : (
             <>
               <SignedOut>
@@ -166,13 +177,20 @@ export const Header = ({
             </>
           )}
         </div>
-        <div className="md:hidden">
-          <Sheet>
-            <MobileNav
-              pathname={mobilePathname || pathname}
-              navItems={navItems}
-            />
-          </Sheet>
+        <div className="flex items-center gap-1 md:hidden">
+          {!isMounted || !isLoaded ? (
+            <AuthSkeletonMobile />
+          ) : (
+            <>
+              <SignedOut>
+                <AuthControls />
+              </SignedOut>
+              <SignedIn>
+                {/* UsagePopover скрыт на мобильных, поэтому не показываем скелетон и сам компонент */}
+                <UserMenu />
+              </SignedIn>
+            </>
+          )}
         </div>
       </div>
     </header>

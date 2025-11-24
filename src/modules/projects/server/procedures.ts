@@ -9,6 +9,7 @@ import { tools } from '@/modules/projects/tools'
 import { CREATE_PROJECT_FN_NAME } from '@/modules/projects/constants'
 import { availableFunctions } from '@/modules/projects/functions'
 import { generateChatName } from '@/lib/chat-name-generator'
+import { CHAT_SYSTEM_PROMPT } from '@/prompt'
 import puppeteer from 'puppeteer'
 import { getSubscriptionToken } from '@inngest/realtime'
 import { inngest } from '@/inngest/client'
@@ -52,6 +53,7 @@ export const projectsRouter = createTRPCRouter({
     return projects
   }),
   getManyWithPreview: protectedProcedure.query(async ({ ctx }) => {
+    // Загружаем только 6 последних проектов для главной страницы
     const projects = await prisma.project.findMany({
       where: {
         userId: ctx.auth.userId,
@@ -59,6 +61,7 @@ export const projectsRouter = createTRPCRouter({
       orderBy: {
         updatedAt: 'desc',
       },
+      take: 12, // Берем больше чтобы отфильтровать проекты без фрагментов
       include: {
         messages: {
           where: {
@@ -269,6 +272,15 @@ export const projectsRouter = createTRPCRouter({
             return { role, content: msg.content }
           }
         )
+
+        // Добавляем системный промпт для обычных сообщений (не для первого сообщения проекта)
+        // Это обеспечивает структурированные ответы в markdown формате
+        if (!input.isFirst && messagesForApi.length > 0) {
+          messagesForApi.unshift({
+            role: 'system',
+            content: CHAT_SYSTEM_PROMPT,
+          })
+        }
 
         let assistantContent = ''
 

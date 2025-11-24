@@ -39,47 +39,49 @@ export const BonusPopover = () => {
   }
 
   return (
-    <Popover onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="hover:bg-accent relative rounded-full"
-          aria-label="Bonuses"
-        >
-          <Gift className="h-5 w-5" />
+    <div className="hidden md:block">
+      <Popover onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hover:bg-accent relative rounded-full"
+            aria-label="Bonuses"
+          >
+            <Gift className="h-5 w-5" />
 
-          {showIndicator && (
-            <div className="absolute top-1.5 right-1.5 flex h-2 w-2">
-              <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
-              <span className="bg-primary/90 relative inline-flex h-2 w-2 rounded-full"></span>
+            {showIndicator && (
+              <div className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+                <span className="bg-primary/90 relative inline-flex h-2 w-2 rounded-full"></span>
+              </div>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-80">
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <h4 className="leading-none font-medium">Referral Bonus</h4>
+              <p className="text-muted-foreground text-sm">
+                Share this promo code with a friend. When they use it, you both
+                get a bonus!
+              </p>
             </div>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <h4 className="leading-none font-medium">Referral Bonus</h4>
-            <p className="text-muted-foreground text-sm">
-              Share this promo code with a friend. When they use it, you both
-              get a bonus!
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="grid flex-1 gap-2">
-              <Label htmlFor="promo-code" className="sr-only">
-                Promo Code
-              </Label>
-              <Input id="promo-code" value={promoCode} readOnly />
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
+                <Label htmlFor="promo-code" className="sr-only">
+                  Promo Code
+                </Label>
+                <Input id="promo-code" value={promoCode} readOnly />
+              </div>
+              <Button size="sm" className="px-3" onClick={handleCopy}>
+                <span className="sr-only">Copy</span>
+                <Copy className="h-4 w-4" />
+              </Button>
             </div>
-            <Button size="sm" className="px-3" onClick={handleCopy}>
-              <span className="sr-only">Copy</span>
-              <Copy className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
