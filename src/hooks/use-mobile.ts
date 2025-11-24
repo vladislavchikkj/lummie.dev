@@ -15,5 +15,7 @@ export function useIsMobile() {
     return () => mql.removeEventListener('change', onChange)
   }, [])
 
-  return !!isMobile
+  // Возвращаем false по умолчанию для консистентности между сервером и клиентом
+  // Это предотвращает hydration mismatch
+  return isMobile ?? false
 }

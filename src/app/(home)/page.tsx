@@ -3,8 +3,20 @@ import { APP_DESCRIPTION, APP_NAME } from '../constants'
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect'
 import { ProjectsList } from '@/modules/home/ui/components/projects-list'
 import Logo from '@/components/ui/logo'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { trpc, getQueryClient } from '@/trpc/server'
+import { auth } from '@clerk/nextjs/server'
 
-const Page = () => {
+const Page = async () => {
+  const { userId } = await auth()
+  const queryClient = getQueryClient()
+
+  if (userId) {
+    await queryClient.prefetchQuery(
+      trpc.projects.getManyWithPreview.queryOptions()
+    )
+  }
+
   return (
     <section className="pt-40 pb-20">
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center px-5">
@@ -21,9 +33,15 @@ const Page = () => {
           <ProjectForm />
         </div>
 
-        <div className="relative z-10 mx-auto mt-48 min-h-[400px] w-full max-w-7xl">
-          <ProjectsList />
-        </div>
+        {userId ? (
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <div className="relative z-10 mx-auto mt-48 min-h-[400px] w-full max-w-7xl">
+              <ProjectsList />
+            </div>
+          </HydrationBoundary>
+        ) : ( 
+          <div className="min-h-[50vh]" />
+        )}
       </div>
     </section>
   )

@@ -92,97 +92,103 @@ const UserMenuDesktop = ({
   signOut: () => void
 }) => {
   return (
-    <div className="flex items-center gap-0.5">
-      <NotificationsPopover />
-      <BonusPopover />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-accent"
-            aria-label="Open user menu"
+    <div className="ml-auto flex items-center justify-center gap-0.5">
+      <div className="flex-shrink-0">
+        <NotificationsPopover />
+      </div>
+      <div className="flex-shrink-0">
+        <BonusPopover />
+      </div>
+      <div className="flex flex-shrink-0 items-center justify-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-accent rounded-full md:rounded-md [&_.cl-userButtonAvatarBox]:!rounded-full md:[&_.cl-userButtonAvatarBox]:!rounded-md [&_.cl-userButtonBox]:!rounded-full md:[&_.cl-userButtonBox]:!rounded-md [&_.cl-userButtonTrigger]:!rounded-full md:[&_.cl-userButtonTrigger]:!rounded-md"
+              aria-label="Open user menu"
+            >
+              <UserControl />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 w-60"
           >
-            <UserControl />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          className="data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 w-60"
-        >
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm leading-none font-medium">My Account</p>
-              <p className="text-muted-foreground text-xs leading-none">
-                {user?.primaryEmailAddress?.toString()}
-              </p>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm leading-none font-medium">My Account</p>
+                <p className="text-muted-foreground text-xs leading-none">
+                  {user?.primaryEmailAddress?.toString()}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                  <DropdownMenuShortcut>⇧P</DropdownMenuShortcut>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/profile/billing">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  <span>Billing</span>
+                  <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-1.5">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={cn(
+                    'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                    theme === 'light' ? 'bg-accent' : 'hover:bg-accent'
+                  )}
+                  title="Light theme"
+                >
+                  <Sun className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={cn(
+                    'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                    theme === 'dark' ? 'bg-accent' : 'hover:bg-accent'
+                  )}
+                  title="Dark theme"
+                >
+                  <Moon className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setTheme('system')}
+                  className={cn(
+                    'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                    theme === 'system' ? 'bg-accent' : 'hover:bg-accent'
+                  )}
+                  title="System theme"
+                >
+                  <Monitor className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-                <DropdownMenuShortcut>⇧P</DropdownMenuShortcut>
-              </Link>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault()
+                signOut()
+              }}
+              className="text-red-500 focus:bg-red-500/10 focus:text-red-500"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sign Out</span>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/profile/billing">
-                <CreditCard className="mr-2 h-4 w-4" />
-                <span>Billing</span>
-                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <div className="px-2 py-1.5">
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setTheme('light')}
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-                  theme === 'light' ? 'bg-accent' : 'hover:bg-accent'
-                )}
-                title="Light theme"
-              >
-                <Sun className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setTheme('dark')}
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-                  theme === 'dark' ? 'bg-accent' : 'hover:bg-accent'
-                )}
-                title="Dark theme"
-              >
-                <Moon className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setTheme('system')}
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-                  theme === 'system' ? 'bg-accent' : 'hover:bg-accent'
-                )}
-                title="System theme"
-              >
-                <Monitor className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault()
-              signOut()
-            }}
-            className="text-red-500 focus:bg-red-500/10 focus:text-red-500"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Sign Out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

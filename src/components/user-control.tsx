@@ -2,6 +2,7 @@
 import { dark } from '@clerk/themes'
 import { UserButton } from '@clerk/nextjs'
 import { useCurrentTheme } from '@/hooks/use-current-theme'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface Props {
   showName?: boolean
@@ -9,15 +10,16 @@ interface Props {
 
 export const UserControl = ({ showName }: Props) => {
   const currentTheme = useCurrentTheme()
+  const isMobile = useIsMobile()
 
   return (
     <UserButton
       showName={showName}
       appearance={{
         elements: {
-          userButtonBox: 'rounded-md!',
-          userButtonAvatarBox: 'rounded-md! size-8!',
-          userButtonTrigger: 'rounded-md!',
+          userButtonBox: isMobile ? 'rounded-full!' : 'rounded-md!',
+          userButtonAvatarBox: isMobile ? 'rounded-full! size-8!' : 'rounded-md! size-8!',
+          userButtonTrigger: isMobile ? 'rounded-full!' : 'rounded-md!',
         },
         baseTheme: currentTheme === 'dark' ? dark : undefined,
       }}

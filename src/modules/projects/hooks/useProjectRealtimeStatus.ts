@@ -1,47 +1,54 @@
-"use client";
+'use client'
 
-import { InngestSubscriptionState, useInngestSubscription } from '@inngest/realtime/hooks'
+import {
+  InngestSubscriptionState,
+  useInngestSubscription,
+} from '@inngest/realtime/hooks'
 import { useTRPCClient } from '@/trpc/client'
 import { ProjectChannelToken } from '@/inngest/channels'
 import type { ReasoningEvent } from '@/inngest/types'
 
 type RealtimeMessage = {
-  channel: string;
-  topic: string;
-  data: ReasoningEvent;
-};
+  channel: string
+  topic: string
+  data: ReasoningEvent
+}
 
 type UseProjectRealtimeReturn = {
-  data: RealtimeMessage[];
-  error: Error | null;
-  freshData: RealtimeMessage[];
-  latestData: RealtimeMessage | null;
-  state: InngestSubscriptionState;
-};
+  data: RealtimeMessage[]
+  error: Error | null
+  freshData: RealtimeMessage[]
+  latestData: RealtimeMessage | null
+  state: InngestSubscriptionState
+}
 
-export function useProjectRealtimeStatus(projectId: string): UseProjectRealtimeReturn {
+export function useProjectRealtimeStatus(
+  projectId: string
+): UseProjectRealtimeReturn {
   const trpcClient = useTRPCClient()
   const refreshToken = async (): Promise<ProjectChannelToken | null> => {
     try {
-      const result = await trpcClient.projects.getSubscribeToken.query({ projectId });
-      return result ?? null;
+      const result = await trpcClient.projects.getSubscribeToken.query({
+        projectId,
+      })
+      return result ?? null
     } catch (err) {
-      console.error("[useProjectRealtime] Failed to fetch token:", err);
-      return null;
+      console.error('[useProjectRealtime] Failed to fetch token:', err)
+      return null
     }
-  };
+  }
 
   const subscription = useInngestSubscription({
     refreshToken,
-  });
+  })
 
-  const { data, error, freshData, state, latestData } = subscription;
+  const { data, error, freshData, state, latestData } = subscription
 
   return {
-    data: data ,
+    data: data,
     error,
     freshData: freshData ?? [],
     latestData,
     state,
-  };
+  }
 }

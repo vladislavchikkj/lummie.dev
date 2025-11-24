@@ -30,7 +30,15 @@ interface Props {
 }
 
 export const ProjectView = ({ projectId }: Props) => {
-  const isMobile = useIsMobile()
+  const isMobileQuery = useIsMobile()
+  const [isMounted, setIsMounted] = useState(false)
+  
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+  
+  // До монтирования считаем что это десктоп для консистентности SSR
+  const isMobile = isMounted ? isMobileQuery : false
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
   const [tabState, setTabState] = useState<TabState>('preview')
   const [assistantMessageType, setAssistantMessageType] =

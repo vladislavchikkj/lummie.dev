@@ -124,7 +124,7 @@ const AssistantMessageActions = ({
         'text-muted-foreground flex items-center gap-1 transition-opacity',
         isStreaming
           ? 'opacity-0'
-          : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
+          : 'opacity-100 sm:opacity-80 sm:group-hover:opacity-100'
       )}
     >
       <Button
@@ -210,7 +210,7 @@ const UserMessageActions = ({
   }
 
   return (
-    <div className="text-muted-foreground mr-4 flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+    <div className="text-muted-foreground mr-4 flex items-center gap-1 opacity-100 transition-opacity sm:opacity-80 sm:group-hover:opacity-100">
       <Button
         variant="ghost"
         size="icon"

@@ -76,10 +76,14 @@ export const Reasoning = memo(
     }, [isStreaming, startTime, setDuration])
 
     // Auto-open when streaming starts, auto-close when streaming ends (once only)
+    // BUT only when in uncontrolled mode (no 'open' prop provided)
     useEffect(() => {
+      // Skip auto-close logic if in controlled mode (open prop is provided)
+      const isControlled = open !== undefined
+      
       if (isStreaming && !isOpen) {
         setIsOpen(true)
-      } else if (!isStreaming && isOpen && !defaultOpen && !hasAutoClosedRef) {
+      } else if (!isStreaming && isOpen && !defaultOpen && !hasAutoClosedRef && !isControlled) {
         // Add a small delay before closing to allow user to see the content
         const timer = setTimeout(() => {
           setIsOpen(false)
@@ -87,9 +91,16 @@ export const Reasoning = memo(
         }, AUTO_CLOSE_DELAY)
         return () => clearTimeout(timer)
       }
-    }, [isStreaming, isOpen, defaultOpen, setIsOpen, hasAutoClosedRef])
+    }, [isStreaming, isOpen, defaultOpen, setIsOpen, hasAutoClosedRef, open])
 
     const handleOpenChange = (newOpen: boolean) => {
+      console.log('Reasoning: handleOpenChange', { 
+        newOpen, 
+        currentIsOpen: isOpen, 
+        isControlled: open !== undefined,
+        hasAutoClosedRef,
+        isStreaming 
+      })
       setIsOpen(newOpen)
     }
 

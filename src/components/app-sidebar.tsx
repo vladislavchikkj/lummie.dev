@@ -52,7 +52,7 @@ const CollapsibleGroupLabel = ({
   onToggle: () => void
 }) => {
   const baseClasses =
-    'animate-in slide-in-from-top-1 flex items-center gap-2 px-2 py-1 text-xs font-medium duration-300 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors'
+    'flex items-center gap-2 px-2 py-1 text-xs font-medium cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors'
   const colorClasses =
     variant === 'error'
       ? 'text-red-600 dark:text-red-400'
@@ -70,7 +70,7 @@ const CollapsibleGroupLabel = ({
       <Badge
         variant={variant === 'error' ? 'destructive' : 'outline'}
         className={cn(
-          'animate-in zoom-in-50 ml-auto text-xs duration-300',
+          'ml-auto text-xs',
           variant === 'error'
             ? 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300'
             : 'border-black/10 bg-black/5 dark:border-white/10 dark:bg-white/5'
@@ -181,23 +181,28 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <div className="p-4">
-        <div className="flex flex-col items-start gap-4">
-          {/* Home button - only icon on mobile, hidden on desktop */}
+        <div className="flex flex-col gap-3 md:gap-4">
+          {/* Home button - with text on mobile, hidden on desktop */}
           <Button
             asChild
             variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground hover:bg-accent mb-4 h-8 w-8 md:hidden"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent h-9 w-full justify-start gap-2 md:hidden"
           >
-            <Link href={'/'} onClick={handleCloseSidebar} scroll={false}>
+            <Link
+              href={'/'}
+              onClick={handleCloseSidebar}
+              scroll={false}
+              className="gap-4! p-0!"
+            >
               <Logo width={24} height={24} />
+              <span className="text-sm font-medium">Home</span>
             </Link>
           </Button>
 
           {/* New Chat button - minimal Vercel style */}
           <Button
             asChild
-            className="bg-foreground text-background hover:bg-foreground/90 h-8 flex-1 rounded-md text-sm font-medium"
+            className="bg-foreground text-background hover:bg-foreground/90 h-9 w-full rounded-md text-sm font-medium"
           >
             <Link
               href={'/'}
@@ -246,7 +251,14 @@ export function AppSidebar() {
                             sandboxId: latestProject.sandboxId,
                           }}
                         />
-                        <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                        <div
+                          className={cn(
+                            'ml-auto transition-opacity',
+                            isMobile
+                              ? 'opacity-100'
+                              : 'opacity-0 group-hover:opacity-100'
+                          )}
+                        >
                           <ProjectMenu
                             projectId={latestProject.id}
                             currentName={latestProject.name || 'Untitled Chat'}
@@ -274,12 +286,8 @@ export function AppSidebar() {
             {!collapsedGroups.generating && (
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {generatingProjects.map((project, index) => (
-                    <SidebarMenuItem
-                      key={project.id}
-                      className="animate-in slide-in-from-left-1 duration-300"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
+                  {generatingProjects.map((project) => (
+                    <SidebarMenuItem key={project.id}>
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/projects/${project.id}`}
@@ -299,7 +307,14 @@ export function AppSidebar() {
                               sandboxId: project.sandboxId,
                             }}
                           />
-                          <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                          <div
+                            className={cn(
+                              'ml-auto transition-opacity',
+                              isMobile
+                                ? 'opacity-100'
+                                : 'opacity-0 group-hover:opacity-100'
+                            )}
+                          >
                             <ProjectMenu
                               projectId={project.id}
                               currentName={project.name || 'Untitled Chat'}
@@ -351,12 +366,8 @@ export function AppSidebar() {
                 )}
 
                 {/* Показываем завершенные чаты */}
-                {completedProjects.map((project, index) => (
-                  <SidebarMenuItem
-                    key={project.id}
-                    className="animate-in slide-in-from-left-1 duration-300"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
+                {completedProjects.map((project) => (
+                  <SidebarMenuItem key={project.id}>
                     <SidebarMenuButton
                       asChild
                       isActive={pathname === `/projects/${project.id}`}
@@ -375,7 +386,14 @@ export function AppSidebar() {
                             sandboxId: project.sandboxId,
                           }}
                         />
-                        <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                        <div
+                          className={cn(
+                            'ml-auto transition-opacity',
+                            isMobile
+                              ? 'opacity-100'
+                              : 'opacity-0 group-hover:opacity-100'
+                          )}
+                        >
                           <ProjectMenu
                             projectId={project.id}
                             currentName={project.name || 'Untitled Chat'}
@@ -403,12 +421,8 @@ export function AppSidebar() {
             {!collapsedGroups.pending && (
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {pendingChats.map((project, index) => (
-                    <SidebarMenuItem
-                      key={project.id}
-                      className="animate-in slide-in-from-left-1 duration-300"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
+                  {pendingChats.map((project) => (
+                    <SidebarMenuItem key={project.id}>
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/projects/${project.id}`}
@@ -428,7 +442,14 @@ export function AppSidebar() {
                               sandboxId: project.sandboxId,
                             }}
                           />
-                          <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                          <div
+                            className={cn(
+                              'ml-auto transition-opacity',
+                              isMobile
+                                ? 'opacity-100'
+                                : 'opacity-0 group-hover:opacity-100'
+                            )}
+                          >
                             <ProjectMenu
                               projectId={project.id}
                               currentName={project.name || 'Untitled Chat'}
@@ -458,12 +479,8 @@ export function AppSidebar() {
             {!collapsedGroups.failed && (
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {errorProjects.map((project, index) => (
-                    <SidebarMenuItem
-                      key={project.id}
-                      className="animate-in slide-in-from-left-1 duration-300"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
+                  {errorProjects.map((project) => (
+                    <SidebarMenuItem key={project.id}>
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === `/projects/${project.id}`}
@@ -483,7 +500,14 @@ export function AppSidebar() {
                               sandboxId: project.sandboxId,
                             }}
                           />
-                          <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
+                          <div
+                            className={cn(
+                              'ml-auto transition-opacity',
+                              isMobile
+                                ? 'opacity-100'
+                                : 'opacity-0 group-hover:opacity-100'
+                            )}
+                          >
                             <ProjectMenu
                               projectId={project.id}
                               currentName={project.name || 'Untitled Chat'}
