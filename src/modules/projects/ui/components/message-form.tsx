@@ -65,7 +65,7 @@ import {
   X,
   Sparkles,
   AudioLines,
-  MicOff,
+  Square,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
@@ -130,7 +130,9 @@ export const MessageForm = ({
   const [isFocused, setIsFocused] = useState(false)
   const [showUsagePanel, setShowUsagePanel] = useState(true)
   const [isRecording, setIsRecording] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const dragCounterRef = useRef(0)
 
   // Functions to save/load form state
   const FORM_STORAGE_KEY = `message-form-draft-${projectId}`
@@ -320,6 +322,56 @@ export const MessageForm = ({
     setAttachedImages((prev) => prev.filter((_, i) => i !== index))
   }
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current++
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    dragCounterRef.current = 0
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      const validFiles: File[] = []
+
+      Array.from(files).forEach((file) => {
+        const validation = validateImageFile(file)
+        if (validation.valid) {
+          validFiles.push(file)
+        } else {
+          toast.error(`${file.name}: ${validation.error}`)
+        }
+      })
+
+      if (validFiles.length > 0) {
+        setAttachedImages((prev) => [...prev, ...validFiles])
+        toast.success(`${validFiles.length} image(s) added`)
+      }
+    }
+  }
+
   const onSelectTemplate = (value: string) => {
     form.setValue('value', value, {
       shouldDirty: true,
@@ -470,21 +522,56 @@ export const MessageForm = ({
   return (
     <>
       <style jsx>{`
-        @keyframes ripple {
+        @keyframes ripple-1 {
           0% {
-            transform: scale(0.5);
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 0.3;
+            transform: scale(1);
+            opacity: 0.4;
           }
           100% {
-            transform: scale(2.5);
+            transform: scale(2.2);
             opacity: 0;
           }
         }
-        .ripple-single {
-          animation: ripple 2s infinite;
+        @keyframes ripple-2 {
+          0% {
+            transform: scale(1);
+            opacity: 0.3;
+          }
+          100% {
+            transform: scale(2.6);
+            opacity: 0;
+          }
+        }
+        @keyframes ripple-3 {
+          0% {
+            transform: scale(1);
+            opacity: 0.2;
+          }
+          100% {
+            transform: scale(3);
+            opacity: 0;
+          }
+        }
+        @keyframes pulse-glow {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 20px 6px rgba(255, 255, 255, 0.5);
+          }
+        }
+        .recording-ripple-1 {
+          animation: ripple-1 1.5s ease-out infinite;
+        }
+        .recording-ripple-2 {
+          animation: ripple-2 1.5s ease-out infinite 0.3s;
+        }
+        .recording-ripple-3 {
+          animation: ripple-3 1.5s ease-out infinite 0.6s;
+        }
+        .recording-glow {
+          animation: pulse-glow 1.5s ease-in-out infinite;
         }
       `}</style>
       <Form {...form}>
@@ -498,10 +585,15 @@ export const MessageForm = ({
         <section className="space-y-6">
           <form
             onSubmit={form.handleSubmit(formSubmit)}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
             className={cn(
               'bg-sidebar dark:bg-sidebar relative rounded-xl border p-3 pt-1 transition-all',
               showUsage ? 'rounded-t-none rounded-b-xl' : 'rounded-xl',
-              isFocused && 'shadow-xs'
+              isFocused && 'shadow-xs',
+              isDragging && 'border-primary border-2 border-dashed'
             )}
           >
             <GlowingEffect
@@ -511,6 +603,18 @@ export const MessageForm = ({
               proximity={64}
               inactiveZone={0.01}
             />
+
+            {/* Drop overlay */}
+            {isDragging && (
+              <div className="bg-primary/5 pointer-events-none absolute inset-0 z-50 flex items-center justify-center rounded-xl">
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="text-primary size-8" />
+                  <p className="text-primary text-sm font-medium">
+                    Drop images here
+                  </p>
+                </div>
+              </div>
+            )}
 
             {attachedImages.length > 0 && (
               <div className="flex flex-wrap gap-2 pb-3">
@@ -658,14 +762,23 @@ export const MessageForm = ({
                   </Tooltip>
                 </TooltipProvider>
 
-                <div className="relative">
+                <div className="relative flex items-center justify-center">
+                  {/* Animated ripples when recording */}
+                  {isClient && isRecording && (
+                    <>
+                      <div className="recording-ripple-1 pointer-events-none absolute h-8 w-8 rounded-full bg-gray-400"></div>
+                      <div className="recording-ripple-2 pointer-events-none absolute h-8 w-8 rounded-full bg-gray-300"></div>
+                      <div className="recording-ripple-3 pointer-events-none absolute h-8 w-8 rounded-full bg-gray-200"></div>
+                    </>
+                  )}
+
                   <Button
                     disabled={isButtonDisabled}
                     className={cn(
-                      'size-8 rounded-full',
+                      'relative z-10 size-8 rounded-full transition-all duration-300',
                       isButtonDisabled && 'bg-muted-foreground border',
                       isRecording &&
-                        'bg-indigo-500 text-white hover:bg-indigo-600'
+                        'recording-glow bg-gray-700 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100'
                     )}
                     onClick={handleButtonClick}
                   >
@@ -674,18 +787,11 @@ export const MessageForm = ({
                     ) : isClient && isEmptyField && !isRecording ? (
                       <AudioLines className="size-4" />
                     ) : isRecording ? (
-                      <MicOff className="size-4" />
+                      <Square className="size-3 fill-current" />
                     ) : (
                       <ArrowUpIcon />
                     )}
                   </Button>
-
-                  {/* Pulsing animation when recording */}
-                  {isClient && isRecording && (
-                    <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-                      <div className="ripple-single h-4 w-4 rounded-full bg-indigo-400 opacity-30"></div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
