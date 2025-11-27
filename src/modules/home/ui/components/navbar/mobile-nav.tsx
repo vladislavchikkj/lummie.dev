@@ -10,10 +10,11 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Menu, Bell, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { LogoLink } from './logo-link'
 import { AuthControls } from './auth-controls'
 import { UserMenu } from './user-menu'
+import { NotificationsPopover } from './notifications-popover'
 
 type NavItem = {
   href: string
@@ -81,14 +82,7 @@ export const MobileNav = ({ pathname, navItems }: MobileNavProps) => (
         <SignedIn>
           <div className="flex items-start justify-between">
             <UserMenu mobile />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-lg"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-            </Button>
+            <NotificationsPopover mobile />
           </div>
         </SignedIn>
       </div>
