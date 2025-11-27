@@ -231,12 +231,45 @@ export const codeAgentFunction = inngest.createFunction(
       }
       reasoningSteps.push(completionEvent)
 
-      const completedReasoningSteps = reasoningSteps.filter(
+      const mergedReasoningSteps: ReasoningEvent[] = []
+      const thinkingEvents = reasoningSteps.filter((e) => e.type === 'thinking')
+      const nonThinkingEvents = reasoningSteps.filter(
+        (e) => e.type !== 'thinking'
+      )
+
+      if (thinkingEvents.length > 0) {
+        const descriptions = thinkingEvents
+          .filter((e) => e.description)
+          .map((e) => e.description)
+          .join('\n\n')
+
+        const completedThinking = thinkingEvents.find(
+          (e) => e.phase === 'completed'
+        )
+        const totalDuration = thinkingEvents.reduce(
+          (sum, e) => sum + (e.duration || 0),
+          0
+        )
+
+        mergedReasoningSteps.push({
+          type: 'thinking',
+          phase: 'completed',
+          title: 'Thinking',
+          description: descriptions || undefined,
+          duration: totalDuration || completedThinking?.duration,
+          timestamp: thinkingEvents[0].timestamp,
+        })
+      }
+
+      const completedNonThinkingEvents = nonThinkingEvents.filter(
         (event) =>
           event.phase === 'completed' ||
           event.phase === 'failed' ||
           !event.phase
       )
+      mergedReasoningSteps.push(...completedNonThinkingEvents)
+
+      const completedReasoningSteps = mergedReasoningSteps
 
       await saveSuccessResult({
         projectId: event.data.projectId,
