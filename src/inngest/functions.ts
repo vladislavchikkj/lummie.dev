@@ -27,6 +27,13 @@ export const codeAgentFunction = inngest.createFunction(
 
     const publishReasoningEvent = async (reasoningEvent: ReasoningEvent) => {
       reasoningSteps.push(reasoningEvent)
+      
+      // Сохраняем шаги в БД для восстановления при перезагрузке страницы
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: { currentReasoningSteps: reasoningSteps },
+      })
+      
       await publish(projectChannel(event.data.projectId).status(reasoningEvent))
     }
 

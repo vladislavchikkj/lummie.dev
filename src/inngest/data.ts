@@ -24,7 +24,10 @@ export async function getPreviousMessages(
 export async function saveErrorResult(projectId: string) {
   await prisma.project.update({
     where: { id: projectId },
-    data: { status: 'ERROR' },
+    data: { 
+      status: 'ERROR',
+      currentReasoningSteps: null, // Очищаем временные шаги при ошибке
+    },
   })
 
   await prisma.message.create({
@@ -64,6 +67,7 @@ export async function saveSuccessResult(args: SaveSuccessResultArgs) {
       data: {
         name: newProjectName,
         status: 'COMPLETED',
+        currentReasoningSteps: null, // Очищаем временные шаги после завершения
       },
     }),
     prisma.message.create({

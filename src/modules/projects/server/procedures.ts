@@ -487,6 +487,43 @@ export const projectsRouter = createTRPCRouter({
 
       return { status: project.status }
     }),
+    
+  // Получение текущих шагов генерации для восстановления при перезагрузке
+  getCurrentReasoningSteps: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, { message: 'Project ID is required' }),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const project = await prisma.project.findUnique({
+        where: {
+          id: input.projectId,
+          userId: ctx.auth.userId,
+        },
+        select: {
+          currentReasoningSteps: true,
+          status: true,
+        },
+      })
+
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' })
+      }
+
+      return {
+        steps: project.currentReasoningSteps as Array<{
+          type: string
+          phase?: string
+          title: string
+          description?: string
+          duration?: number
+          timestamp: number
+          metadata?: Record<string, unknown>
+        }> | null,
+        status: project.status,
+      }
+    }),
 
   updateFragmentScreenshot: protectedProcedure
     .input(

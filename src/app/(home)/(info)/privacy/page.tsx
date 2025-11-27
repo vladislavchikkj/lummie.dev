@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+    <div className="dark:bg-background min-h-screen bg-gray-50 text-gray-800 antialiased transition-colors duration-300 dark:text-gray-100">
       <div className="container mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <header className="mb-16 text-center sm:mb-5">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">

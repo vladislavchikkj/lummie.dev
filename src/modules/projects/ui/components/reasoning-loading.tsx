@@ -1,8 +1,12 @@
 'use client'
 
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useProjectRealtimeStatus } from '@/modules/projects/hooks/useProjectRealtimeStatus'
 import { ReasoningDisplay } from './reasoning-display'
 import { BrainIcon } from 'lucide-react'
+import { useTRPC } from '@/trpc/client'
+import type { ReasoningEvent } from '@/inngest/types'
 
 type ReasoningRealtimeProps = {
   projectId: string
@@ -15,13 +19,46 @@ export const ReasoningRealtime = ({
   maxVisible = 20,
   isGenerating = true,
 }: ReasoningRealtimeProps) => {
+  const trpc = useTRPC()
   const { data, state, error } = useProjectRealtimeStatus(projectId)
   const isConnected = state === 'active'
   const isError = !!error
 
+  // Загружаем сохранённые шаги из БД при монтировании
+  const { data: savedSteps } = useQuery({
+    ...trpc.projects.getCurrentReasoningSteps.queryOptions({ projectId }),
+    staleTime: 5000,
+    refetchInterval: false,
+  })
+
+  // Объединяем сохранённые шаги с realtime шагами
+  const combinedEvents = useMemo(() => {
+    const realtimeEvents = data.map((msg) => msg.data)
+    const initialSteps = (savedSteps?.steps || []) as ReasoningEvent[]
+
+    if (realtimeEvents.length === 0) {
+      // Если нет realtime событий, показываем сохранённые
+      return initialSteps
+    }
+
+    // Если есть realtime события, объединяем уникальные по timestamp
+    const allEvents = [...initialSteps]
+    const existingTimestamps = new Set(allEvents.map((e) => e.timestamp))
+
+    for (const event of realtimeEvents) {
+      if (!existingTimestamps.has(event.timestamp)) {
+        allEvents.push(event)
+        existingTimestamps.add(event.timestamp)
+      }
+    }
+
+    // Сортируем по timestamp
+    return allEvents.sort((a, b) => a.timestamp - b.timestamp)
+  }, [data, savedSteps?.steps])
+
   const visibleEvents = maxVisible
-    ? data.slice(-maxVisible).map((msg) => msg.data)
-    : data.map((msg) => msg.data)
+    ? combinedEvents.slice(-maxVisible)
+    : combinedEvents
 
   if (isError) {
     return (
@@ -31,7 +68,7 @@ export const ReasoningRealtime = ({
     )
   }
 
-  if (isConnected && data.length === 0) {
+  if (isConnected && combinedEvents.length === 0) {
     return (
       <div className="flex items-start gap-3 text-sm">
         <BrainIcon className="text-muted-foreground mt-0.5 size-4" />
