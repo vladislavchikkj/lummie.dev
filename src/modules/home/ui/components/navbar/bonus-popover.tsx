@@ -7,16 +7,33 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Gift, Copy } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { Gift } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { useTRPC } from '@/trpc/client'
+import { useAuth } from '@clerk/nextjs'
 
 const STORAGE_KEY = 'bonus-popover-clicked'
+const TARGET_GENERATIONS = 100
+const FREE_POINTS = 2
+const PRO_POINTS = 100
 
 export const BonusPopover = () => {
-  const promoCode = 'GET-BONUS-2025'
-
   const [showIndicator, setShowIndicator] = useState(false)
+  const trpc = useTRPC()
+  const { userId, has } = useAuth()
+
+  const { data: usage, isLoading } = useQuery({
+    ...trpc.usage.status.queryOptions(),
+    enabled: !!userId,
+  })
+
+  const hasProAccess = has?.({ plan: 'pro' })
+  const remainingPoints = usage?.remainingPoints ?? 0
+  const initialPoints = hasProAccess ? PRO_POINTS : FREE_POINTS
+  const generationsCount = Math.max(initialPoints - remainingPoints, 0)
+  const progress = Math.min((generationsCount / TARGET_GENERATIONS) * 100, 100)
+  const remaining = Math.max(TARGET_GENERATIONS - generationsCount, 0)
 
   useEffect(() => {
     const hasBeenClicked = localStorage.getItem(STORAGE_KEY)
@@ -24,12 +41,6 @@ export const BonusPopover = () => {
       setShowIndicator(true)
     }
   }, [])
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(promoCode).catch((err) => {
-      console.error('Failed to copy text: ', err)
-    })
-  }
 
   const handleOpenChange = (open: boolean) => {
     if (open && showIndicator) {
@@ -46,7 +57,7 @@ export const BonusPopover = () => {
             variant="ghost"
             size="icon"
             className="hover:bg-accent relative rounded-full"
-            aria-label="Bonuses"
+            aria-label="Rewards"
           >
             <Gift className="h-5 w-5" />
 
@@ -58,26 +69,43 @@ export const BonusPopover = () => {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-80">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <h4 className="leading-none font-medium">Referral Bonus</h4>
-              <p className="text-muted-foreground text-sm">
-                Share this promo code with a friend. When they use it, you both
-                get a bonus!
+        <PopoverContent align="end" className="w-80 p-0">
+          <div className="p-5 space-y-4">
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium leading-none tracking-tight">
+                Reward Progress
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Complete {TARGET_GENERATIONS} generations to unlock your bonus
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="grid flex-1 gap-2">
-                <Label htmlFor="promo-code" className="sr-only">
-                  Promo Code
-                </Label>
-                <Input id="promo-code" value={promoCode} readOnly />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground font-normal">
+                  Generations
+                </span>
+                <span className="text-xs font-medium tabular-nums tracking-tight">
+                  {isLoading ? '...' : `${generationsCount} / ${TARGET_GENERATIONS}`}
+                </span>
               </div>
-              <Button size="sm" className="px-3" onClick={handleCopy}>
-                <span className="sr-only">Copy</span>
-                <Copy className="h-4 w-4" />
-              </Button>
+              
+              <Progress 
+                value={progress} 
+                className="h-1 bg-gray-100 dark:bg-gray-800/50 [&_[data-slot=progress-indicator]]:bg-black [&_[data-slot=progress-indicator]]:dark:bg-white [&_[data-slot=progress-indicator]]:rounded-full"
+              />
+              
+              {remaining > 0 && (
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {remaining} more {remaining === 1 ? 'generation' : 'generations'} until reward
+                </p>
+              )}
+              
+              {remaining === 0 && (
+                <p className="text-xs text-green-600 dark:text-green-500 font-medium">
+                  Reward unlocked! Check your next purchase.
+                </p>
+              )}
             </div>
           </div>
         </PopoverContent>
