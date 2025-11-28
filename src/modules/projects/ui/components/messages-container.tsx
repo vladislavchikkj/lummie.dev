@@ -120,7 +120,7 @@ export const MessagesContainer = ({
                       onEditUserMessage={onEditUserMessage}
                     />
                     {isLastUserMessage && (isStreaming || projectCreating) && (
-                      <div className="mt-2 mb-4 flex items-center gap-2">
+                      <div className="mt-2 mb-4 ml-7 flex items-center gap-2">
                         <PulsingLogo width={24} height={24} />
                       </div>
                     )}

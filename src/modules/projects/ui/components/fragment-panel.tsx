@@ -8,7 +8,7 @@ import { TabState } from '../../constants/chat'
 import { cn } from '@/lib/utils'
 
 interface FragmentPanelProps {
-  activeFragment: Fragment
+  activeFragment?: Fragment | null
   tabState: TabState
   fragmentKey: number
   projectId: string
@@ -18,6 +18,7 @@ interface FragmentPanelProps {
   onCopyUrl: () => void
   onClose: () => void
   isMobile?: boolean
+  isGenerating?: boolean
 }
 
 const CodePlaceholder = () => (
@@ -39,6 +40,7 @@ export const FragmentPanel = ({
   onCopyUrl,
   onClose,
   isMobile = false,
+  isGenerating = false,
 }: FragmentPanelProps) => {
   return (
     <Tabs
@@ -56,6 +58,7 @@ export const FragmentPanel = ({
         onCopyUrl={onCopyUrl}
         onClose={onClose}
         isMobile={isMobile}
+        isGenerating={isGenerating}
       />
 
       <TabsContent
@@ -66,6 +69,7 @@ export const FragmentPanel = ({
           data={activeFragment}
           refreshKey={fragmentKey}
           isMobile={isMobile}
+          isGenerating={isGenerating}
         />
       </TabsContent>
 
@@ -73,7 +77,7 @@ export const FragmentPanel = ({
         value="code"
         className={cn('flex-1 overflow-auto', !isMobile && 'border-l')}
       >
-        {activeFragment.files ? (
+        {activeFragment?.files ? (
           <FileExplorer
             files={activeFragment.files as { [path: string]: string }}
             projectId={projectId}
