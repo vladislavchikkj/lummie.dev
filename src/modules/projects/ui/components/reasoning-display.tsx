@@ -11,6 +11,7 @@ import {
   ChevronRightIcon,
   File,
   FolderEdit,
+  Package,
 } from 'lucide-react'
 import type { ReasoningEvent } from '@/inngest/types'
 import {
@@ -178,6 +179,32 @@ const isFileOperation = (event: ReasoningEvent): boolean => {
   return (
     fileKeywords.some((keyword) => title.includes(keyword)) ||
     Boolean(event.metadata?.files && event.metadata.files.length > 0)
+  )
+}
+
+const isDependencyOperation = (event: ReasoningEvent): boolean => {
+  const title = event.title.toLowerCase()
+  const description = (event.description || '').toLowerCase()
+  const dependencyKeywords = [
+    'install',
+    'dependencies',
+    'dependency',
+    'package',
+    'npm',
+    'yarn',
+    'pnpm',
+    'node_modules',
+    'adding package',
+    'add package',
+  ]
+  return (
+    dependencyKeywords.some(
+      (keyword) => title.includes(keyword) || description.includes(keyword)
+    ) ||
+    Boolean(
+      event.metadata?.dependencies && event.metadata.dependencies.length > 0
+    ) ||
+    Boolean(event.metadata?.packages && event.metadata.packages.length > 0)
   )
 }
 
@@ -375,17 +402,35 @@ export const ReasoningDisplay = ({
     )
   }
 
-  const fileOperations = groupedEvents.filter(
-    (item) => item.type !== 'thinking' && isFileOperation(item.event)
+  // Сначала выделяем dependency operations
+  const dependencyOperations = groupedEvents.filter(
+    (item) => item.type !== 'thinking' && isDependencyOperation(item.event)
   )
+
+  // Затем file operations (исключая те, что уже в dependencies)
+  const fileOperations = groupedEvents.filter(
+    (item) =>
+      item.type !== 'thinking' &&
+      isFileOperation(item.event) &&
+      !isDependencyOperation(item.event)
+  )
+
+  // Остальные события
   const otherEvents = groupedEvents.filter(
-    (item) => item.type === 'thinking' || !isFileOperation(item.event)
+    (item) =>
+      item.type === 'thinking' ||
+      (!isFileOperation(item.event) && !isDependencyOperation(item.event))
   )
 
   const fileOpsKey = 'file-operations-group'
+  const depsOpsKey = 'dependency-operations-group'
   const isFileOpsOpen = openStates[fileOpsKey] ?? false
+  const isDepsOpsOpen = openStates[depsOpsKey] ?? false
   const hasFileOperationsInProgress = fileOperations.some(({ event }) =>
     isInProgress(event.phase)
+  )
+  const hasDependencyOperationsInProgress = dependencyOperations.some(
+    ({ event }) => isInProgress(event.phase)
   )
 
   const renderActionItem = (item: GroupedEvent) => {
@@ -475,6 +520,43 @@ export const ReasoningDisplay = ({
         return renderActionItem(item)
       })}
 
+      {/* Dependency operations group */}
+      {dependencyOperations.length > 0 && (
+        <div className="flex flex-col">
+          <button
+            onClick={() =>
+              setOpenStates((prev) => ({
+                ...prev,
+                [depsOpsKey]: !prev[depsOpsKey],
+              }))
+            }
+            className="hover:text-foreground text-muted-foreground flex cursor-pointer items-center gap-2 text-[14px] transition-colors"
+          >
+            <Package className="size-4" />
+            <span>
+              {hasDependencyOperationsInProgress ? (
+                <span className="animate-shimmer bg-[linear-gradient(110deg,#64748b,45%,#e2e8f0,55%,#64748b)] bg-[length:200%_100%] bg-clip-text text-transparent dark:bg-[linear-gradient(110deg,#64748b,45%,#cbd5e1,55%,#64748b)]">
+                  Installing dependencies...
+                </span>
+              ) : (
+                `${dependencyOperations.length} ${dependencyOperations.length === 1 ? 'dependency' : 'dependencies'} installed`
+              )}
+            </span>
+            {isDepsOpsOpen ? (
+              <ChevronDownIcon className="size-4" />
+            ) : (
+              <ChevronRightIcon className="size-4" />
+            )}
+          </button>
+          {isDepsOpsOpen && (
+            <div className="border-border mt-2 ml-2 flex flex-col gap-2 border-l pl-4">
+              {dependencyOperations.map((item) => renderActionItem(item))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* File operations group */}
       {fileOperations.length > 0 && (
         <div className="flex flex-col">
           <button
