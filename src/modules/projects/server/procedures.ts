@@ -52,6 +52,55 @@ export const projectsRouter = createTRPCRouter({
 
     return projects
   }),
+  
+  // Получение недавно завершённых проектов для уведомлений
+  getRecentlyCompleted: protectedProcedure.query(async ({ ctx }) => {
+    // Получаем проекты завершённые за последние 24 часа
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    
+    const projects = await prisma.project.findMany({
+      where: {
+        userId: ctx.auth.userId,
+        status: 'COMPLETED',
+        updatedAt: {
+          gte: twentyFourHoursAgo,
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      take: 10, // Максимум 10 уведомлений
+      include: {
+        messages: {
+          where: {
+            fragment: {
+              isNot: null,
+            },
+          },
+          include: {
+            fragment: {
+              select: {
+                id: true,
+                title: true,
+                screenshot: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
+      },
+    })
+
+    return projects.map((project) => ({
+      id: project.id,
+      name: project.name,
+      updatedAt: project.updatedAt,
+      screenshot: project.messages[0]?.fragment?.screenshot || null,
+    }))
+  }),
   getManyWithPreview: protectedProcedure.query(async ({ ctx }) => {
     // Загружаем только 6 последних проектов для главной страницы
     const projects = await prisma.project.findMany({
@@ -437,6 +486,43 @@ export const projectsRouter = createTRPCRouter({
       }
 
       return { status: project.status }
+    }),
+    
+  // Получение текущих шагов генерации для восстановления при перезагрузке
+  getCurrentReasoningSteps: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1, { message: 'Project ID is required' }),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const project = await prisma.project.findUnique({
+        where: {
+          id: input.projectId,
+          userId: ctx.auth.userId,
+        },
+        select: {
+          currentReasoningSteps: true,
+          status: true,
+        },
+      })
+
+      if (!project) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' })
+      }
+
+      return {
+        steps: project.currentReasoningSteps as Array<{
+          type: string
+          phase?: string
+          title: string
+          description?: string
+          duration?: number
+          timestamp: number
+          metadata?: Record<string, unknown>
+        }> | null,
+        status: project.status,
+      }
     }),
 
   updateFragmentScreenshot: protectedProcedure

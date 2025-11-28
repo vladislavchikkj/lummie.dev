@@ -135,6 +135,9 @@ export const ProjectView = ({ projectId }: Props) => {
 
   const trpcClient = useTRPCClient()
 
+  // Флаг показывающий, что идет создание проекта (не просто чат)
+  const projectCreating = assistantMessageType !== 'CHAT' && !wasStreamAborted
+
   useEffect(() => {
     if (assistantMessageType !== 'CHAT' && !wasStreamAborted) {
       const tick = async () => {
@@ -294,7 +297,7 @@ export const ProjectView = ({ projectId }: Props) => {
     [isMobile]
   )
 
-  if (isMobile && isFragmentFullscreen && activeFragment) {
+  if (isMobile && isFragmentFullscreen && (activeFragment || projectCreating)) {
     return (
       <div className="bg-background flex h-full flex-col overflow-hidden">
         <FragmentPanel
@@ -308,6 +311,7 @@ export const ProjectView = ({ projectId }: Props) => {
           onCopyUrl={handleCopyUrl}
           onClose={handleClose}
           isMobile={true}
+          isGenerating={projectCreating}
         />
       </div>
     )
@@ -317,7 +321,7 @@ export const ProjectView = ({ projectId }: Props) => {
     <div className="flex h-full flex-col overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
-          defaultSize={activeFragment && !isMobile ? 35 : 100}
+          defaultSize={(activeFragment || projectCreating) && !isMobile ? 35 : 100}
           minSize={25}
           className="relative flex min-h-0 flex-col overflow-hidden"
         >
@@ -330,9 +334,7 @@ export const ProjectView = ({ projectId }: Props) => {
                 activeFragment={activeFragment}
                 setActiveFragment={handleFragmentClick}
                 messages={displayedMessages || []}
-                projectCreating={
-                  assistantMessageType !== 'CHAT' && !wasStreamAborted
-                }
+                projectCreating={projectCreating}
                 isStreaming={isStreaming}
                 isMobile={isMobile}
                 onEditUserMessage={handleEditUserMessage}
@@ -352,7 +354,7 @@ export const ProjectView = ({ projectId }: Props) => {
           <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
-        {activeFragment && !isMobile && (
+        {(activeFragment || projectCreating) && !isMobile && (
           <>
             <ResizableHandle withHandle className="bg-transparent" />
             <ResizablePanel defaultSize={65} minSize={50} className="min-h-0">
@@ -366,6 +368,7 @@ export const ProjectView = ({ projectId }: Props) => {
                 onRefreshPreview={onRefreshPreview}
                 onCopyUrl={handleCopyUrl}
                 onClose={handleClose}
+                isGenerating={projectCreating}
               />
             </ResizablePanel>
           </>

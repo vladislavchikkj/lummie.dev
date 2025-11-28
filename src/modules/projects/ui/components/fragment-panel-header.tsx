@@ -16,7 +16,7 @@ import { TabState } from '../../constants/chat'
 import { cn } from '@/lib/utils'
 
 interface FragmentPanelHeaderProps {
-  activeFragment: Fragment
+  activeFragment?: Fragment | null
   tabState: TabState
   copied: boolean
   onTabChange: (value: TabState) => void
@@ -24,6 +24,7 @@ interface FragmentPanelHeaderProps {
   onCopyUrl: () => void
   onClose: () => void
   isMobile?: boolean
+  isGenerating?: boolean
 }
 
 export const FragmentPanelHeader = ({
@@ -35,7 +36,13 @@ export const FragmentPanelHeader = ({
   onCopyUrl,
   onClose,
   isMobile = false,
+  isGenerating = false,
 }: FragmentPanelHeaderProps) => {
+  const hasUrl = !!activeFragment?.sandboxUrl
+  // Кнопки отключены только если нет URL (генерация ещё не завершена или ошибка)
+  const isDisabled = !hasUrl
+  // Показываем "Generating..." только если идет генерация И ещё нет URL
+  const showGenerating = isGenerating && !hasUrl
   return (
     <div
       className={cn(
@@ -66,7 +73,12 @@ export const FragmentPanelHeader = ({
           {tabState === 'preview' && (
             <div className="flex items-center gap-2">
               <Hint text="Refresh Preview" side="bottom">
-                <Button size="icon" variant="ghost" onClick={onRefreshPreview}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={onRefreshPreview}
+                  disabled={isDisabled}
+                >
                   <RefreshCcwIcon className="size-4" />
                 </Button>
               </Hint>
@@ -75,7 +87,7 @@ export const FragmentPanelHeader = ({
                   size="icon"
                   variant="ghost"
                   onClick={onCopyUrl}
-                  disabled={!activeFragment.sandboxUrl}
+                  disabled={isDisabled}
                 >
                   <Copy className="size-4" />
                 </Button>
@@ -84,11 +96,11 @@ export const FragmentPanelHeader = ({
                 <Button
                   size="icon"
                   variant="ghost"
-                  disabled={!activeFragment.sandboxUrl}
+                  disabled={isDisabled}
                   asChild
                 >
                   <a
-                    href={activeFragment.sandboxUrl ?? '#'}
+                    href={activeFragment?.sandboxUrl ?? '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -118,12 +130,15 @@ export const FragmentPanelHeader = ({
                     size="icon"
                     variant="ghost"
                     onClick={onRefreshPreview}
+                    disabled={isDisabled}
                   >
                     <RefreshCcwIcon className="size-4" />
                   </Button>
                 </Hint>
                 <span className="text-muted-foreground truncate font-mono text-sm">
-                  {activeFragment.sandboxUrl ?? 'URL not available'}
+                  {showGenerating
+                    ? 'Generating...'
+                    : activeFragment?.sandboxUrl ?? 'URL not available'}
                 </span>
                 <Hint text={copied ? 'Copied!' : 'Copy URL'} side="bottom">
                   <Button
@@ -131,7 +146,7 @@ export const FragmentPanelHeader = ({
                     variant="ghost"
                     className="absolute top-1/2 right-2 h-7 w-7 -translate-y-1/2"
                     onClick={onCopyUrl}
-                    disabled={!activeFragment.sandboxUrl}
+                    disabled={isDisabled}
                   >
                     <Copy className="size-4" />
                   </Button>
@@ -142,11 +157,11 @@ export const FragmentPanelHeader = ({
                 <Button
                   size="icon"
                   variant="ghost"
-                  disabled={!activeFragment.sandboxUrl}
+                  disabled={isDisabled}
                   asChild
                 >
                   <a
-                    href={activeFragment.sandboxUrl ?? '#'}
+                    href={activeFragment?.sandboxUrl ?? '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

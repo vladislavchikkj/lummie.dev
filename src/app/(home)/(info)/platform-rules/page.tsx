@@ -34,11 +34,11 @@ export const metadata: Metadata = {
 
 export default function PlatformRulesPage() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 antialiased transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+    <div className="dark:bg-background min-h-screen bg-gray-50 text-gray-800 antialiased transition-colors duration-300 dark:text-gray-100">
       <div className="container mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <header className="mb-16 text-center sm:mb-6">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-            Platform Rules (Acceptable Use Policy)
+            Platform Rules <br /> (Acceptable Use Policy)
           </h1>
           <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
             <strong className="font-semibold">

@@ -6,9 +6,12 @@ import {
   FileText,
   Wrench,
   CheckCircle2,
-  BrainIcon,
+  Lightbulb,
   ChevronDownIcon,
+  ChevronRightIcon,
   File,
+  FolderEdit,
+  Package,
 } from 'lucide-react'
 import type { ReasoningEvent } from '@/inngest/types'
 import {
@@ -17,7 +20,7 @@ import {
   ReasoningContent,
 } from '@/components/ui/shadcn-io/ai/reasoning'
 import { Loader } from '@/components/ui/shadcn-io/ai/loader'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 
 interface ReasoningDisplayProps {
   events: ReasoningEvent[]
@@ -30,6 +33,7 @@ type GroupedEvent = {
   type: 'thinking' | 'action' | 'step'
   event: ReasoningEvent
   thinkingContent?: string
+  stableKey: string
 }
 
 const ThinkingText = () => {
@@ -42,15 +46,91 @@ const ThinkingText = () => {
   )
 }
 
-const ScrollingText = ({ text }: { text: string }) => {
+const ScrollingText = ({
+  text,
+  isComplete,
+  onScrollComplete,
+  autoScrollEnabled = true,
+}: {
+  text: string
+  isComplete?: boolean
+  onScrollComplete?: () => void
+  autoScrollEnabled?: boolean
+}) => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const scrollAnimationRef = useRef<number | null>(null)
+  const hasCompletedScrollRef = useRef(false)
+  const isCompleteRef = useRef(isComplete)
 
   useEffect(() => {
-    // Auto-scroll to bottom when text changes
-    if (containerRef.current) {
+    isCompleteRef.current = isComplete
+  }, [isComplete])
+
+  useEffect(() => {
+    if (!isComplete && containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight
     }
-  }, [text])
+  }, [text, isComplete])
+
+  useEffect(() => {
+    if (
+      isComplete &&
+      containerRef.current &&
+      !hasCompletedScrollRef.current &&
+      autoScrollEnabled
+    ) {
+      hasCompletedScrollRef.current = true
+      const container = containerRef.current
+      const scrollHeight = container.scrollHeight
+      const clientHeight = container.clientHeight
+      const isOverflowing = scrollHeight > clientHeight
+
+      container.scrollTop = 0
+
+      if (isOverflowing) {
+        const startTime = performance.now()
+        const scrollDuration = Math.min(3000, Math.max(1000, scrollHeight * 5))
+
+        const animateScroll = (currentTime: number) => {
+          const elapsed = currentTime - startTime
+          const progress = Math.min(elapsed / scrollDuration, 1)
+
+          const easeProgress =
+            progress < 0.5
+              ? 2 * progress * progress
+              : 1 - Math.pow(-2 * progress + 2, 2) / 2
+
+          container.scrollTop = easeProgress * (scrollHeight - clientHeight)
+
+          if (progress < 1) {
+            scrollAnimationRef.current = requestAnimationFrame(animateScroll)
+          } else {
+            onScrollComplete?.()
+          }
+        }
+
+        setTimeout(() => {
+          scrollAnimationRef.current = requestAnimationFrame(animateScroll)
+        }, 500)
+      } else {
+        setTimeout(() => {
+          onScrollComplete?.()
+        }, 1500)
+      }
+    } else if (
+      isComplete &&
+      !autoScrollEnabled &&
+      !hasCompletedScrollRef.current
+    ) {
+      hasCompletedScrollRef.current = true
+    }
+
+    return () => {
+      if (scrollAnimationRef.current) {
+        cancelAnimationFrame(scrollAnimationRef.current)
+      }
+    }
+  }, [isComplete, onScrollComplete, autoScrollEnabled])
 
   return (
     <div
@@ -84,197 +164,192 @@ const FilesList = ({ files }: { files: string[] }) => {
   )
 }
 
+const isFileOperation = (event: ReasoningEvent): boolean => {
+  const title = event.title.toLowerCase()
+  const fileKeywords = [
+    'creat',
+    'save',
+    'updat',
+    'modif',
+    'delet',
+    'edit',
+    'writ',
+    'file',
+  ]
+  return (
+    fileKeywords.some((keyword) => title.includes(keyword)) ||
+    Boolean(event.metadata?.files && event.metadata.files.length > 0)
+  )
+}
+
+const isDependencyOperation = (event: ReasoningEvent): boolean => {
+  const title = event.title.toLowerCase()
+  const description = (event.description || '').toLowerCase()
+  const dependencyKeywords = [
+    'install',
+    'dependencies',
+    'dependency',
+    'package',
+    'npm',
+    'yarn',
+    'pnpm',
+    'node_modules',
+    'adding package',
+    'add package',
+  ]
+  return (
+    dependencyKeywords.some(
+      (keyword) => title.includes(keyword) || description.includes(keyword)
+    ) ||
+    Boolean(
+      event.metadata?.dependencies && event.metadata.dependencies.length > 0
+    ) ||
+    Boolean(event.metadata?.packages && event.metadata.packages.length > 0)
+  )
+}
+
 export const ReasoningDisplay = ({
   events,
   className,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isStreaming = false,
+  isStreaming: _isStreaming = false,
   isHistorical = false,
 }: ReasoningDisplayProps) => {
+  void _isStreaming // Reserved for future use
   const [openStates, setOpenStates] = useState<{ [key: string]: boolean }>({})
   const closeTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
-  const processedCompletedRef = useRef<Set<string>>(new Set())
+
+  const initializedThinkingRef = useRef(false)
 
   const isInProgress = (phase?: ReasoningEvent['phase']) => {
     if (isHistorical) return false
     return phase === 'started' || phase === 'in-progress'
   }
 
-  // Group events before early return
   const groupedEvents: GroupedEvent[] = []
+  const thinkingStableKey = 'thinking-main'
 
   if (events && events.length > 0) {
     const usedIndices = new Set<number>()
 
+    let mergedThinkingContent = ''
+    let thinkingPhase: ReasoningEvent['phase'] = 'started'
+    let thinkingDuration = 0
+    let hasThinkingEvents = false
+
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i]
+      if (event.type === 'thinking') {
+        hasThinkingEvents = true
+        usedIndices.add(i)
+        if (event.description) {
+          mergedThinkingContent = event.description
+        }
+        if (event.phase === 'completed') {
+          thinkingPhase = 'completed'
+          thinkingDuration = event.duration || 0
+        }
+      }
+    }
+
+    if (hasThinkingEvents) {
+      groupedEvents.push({
+        type: 'thinking',
+        event: {
+          type: 'thinking',
+          title: 'Thinking',
+          phase: thinkingPhase,
+          timestamp: Date.now(),
+          duration: thinkingDuration,
+          description: mergedThinkingContent,
+        },
+        thinkingContent: mergedThinkingContent,
+        stableKey: thinkingStableKey,
+      })
+    }
+
     for (let i = 0; i < events.length; i++) {
       if (usedIndices.has(i)) continue
-
       const event = events[i]
+      const key = `${event.type}-${event.timestamp}-${event.metadata?.operationId || event.title}`
 
       if (event.phase === 'started') {
         let matchedIndex = -1
-
         for (let j = i + 1; j < events.length; j++) {
+          if (usedIndices.has(j)) continue
           const candidate = events[j]
 
-          // Match thinking events
-          if (
-            event.type === 'thinking' &&
-            candidate.type === 'thinking' &&
-            candidate.phase === 'completed'
-          ) {
-            matchedIndex = j
-            break
-          }
-
-          // Match action/step events by operationId if available
-          if (
+          const isMatch =
             (event.type === 'action' || event.type === 'step') &&
             event.type === candidate.type &&
-            candidate.phase === 'completed'
-          ) {
-            // First try to match by operationId
-            if (
-              event.metadata?.operationId &&
+            candidate.phase === 'completed' &&
+            ((event.metadata?.operationId &&
               candidate.metadata?.operationId &&
-              event.metadata.operationId === candidate.metadata.operationId
-            ) {
-              matchedIndex = j
-              break
-            }
-            // Fallback to title matching
-            if (
-              event.title === candidate.title &&
-              !event.metadata?.operationId
-            ) {
-              matchedIndex = j
-              break
-            }
+              event.metadata.operationId === candidate.metadata.operationId) ||
+              (event.title === candidate.title && !event.metadata?.operationId))
+
+          if (isMatch) {
+            matchedIndex = j
+            break
           }
         }
 
         if (matchedIndex !== -1) {
-          const completedEvent = events[matchedIndex]
           usedIndices.add(matchedIndex)
-
-          if (event.type === 'thinking') {
-            groupedEvents.push({
-              type: 'thinking',
-              event: {
-                ...completedEvent,
-                description: event.description,
-              },
-              thinkingContent: event.description,
-            })
-          } else {
-            groupedEvents.push({
-              type: event.type,
-              event: completedEvent,
-            })
-          }
+          groupedEvents.push({
+            type: event.type,
+            event: events[matchedIndex],
+            stableKey: key,
+          })
           continue
         }
       }
-
-      if (event.type === 'thinking') {
-        groupedEvents.push({
-          type: 'thinking',
-          event,
-          thinkingContent: event.description,
-        })
-      } else {
-        groupedEvents.push({
-          type: event.type,
-          event,
-        })
-      }
+      groupedEvents.push({ type: event.type, event, stableKey: key })
     }
   }
 
-  // Effect to manage thinking items - open them and auto-close after completion
   useEffect(() => {
-    groupedEvents.forEach((item, index) => {
-      if (item.type === 'thinking') {
-        const key = `thinking-${item.event.timestamp}-${index}`
-        const isThinking = isInProgress(item.event.phase)
-        const wasCompleted = item.event.phase === 'completed'
+    const thinkingItem = groupedEvents.find((item) => item.type === 'thinking')
 
-        console.log('Processing thinking event:', {
-          key,
-          phase: item.event.phase,
-          isThinking,
-          wasCompleted,
-          isHistorical,
-          alreadyProcessed: processedCompletedRef.current.has(key),
-          currentState: openStates[key],
-        })
+    if (thinkingItem) {
+      const key = thinkingStableKey
 
-        // Open thinking items that are in progress
-        if (isThinking) {
-          console.log('Opening thinking (in progress):', key)
-          setOpenStates((prev) => {
-            if (prev[key]) return prev
-            return { ...prev, [key]: true }
-          })
-
-          // Clear any existing close timer
-          if (closeTimersRef.current[key]) {
-            clearTimeout(closeTimersRef.current[key])
-            delete closeTimersRef.current[key]
-          }
-        }
-
-        // When thinking completes, keep it open briefly then auto-close
-        // BUT only if we haven't processed this completion before
-        // Skip auto-close for historical data - user can manually control
-        if (
-          wasCompleted &&
-          !isHistorical &&
-          !processedCompletedRef.current.has(key)
-        ) {
-          console.log('Thinking completed, scheduling auto-close:', key)
-          // Mark as processed immediately to prevent reopening
-          processedCompletedRef.current.add(key)
-
-          setOpenStates((prev) => {
-            if (prev[key]) return prev
-            return { ...prev, [key]: true }
-          })
-
-          // Schedule auto-close after 5 seconds if not already scheduled
-          if (!closeTimersRef.current[key]) {
-            closeTimersRef.current[key] = setTimeout(() => {
-              console.log('Auto-closing thinking:', key)
-              setOpenStates((prev) => ({ ...prev, [key]: false }))
-              delete closeTimersRef.current[key]
-            }, 5000)
-          }
-        }
-
-        // For historical data, ensure it starts closed but remains interactive
-        if (
-          wasCompleted &&
-          isHistorical &&
-          !processedCompletedRef.current.has(key)
-        ) {
-          console.log('Historical thinking, starting closed:', key)
-          processedCompletedRef.current.add(key)
-          setOpenStates((prev) => {
-            if (key in prev) return prev
-            return { ...prev, [key]: false }
-          })
-        }
+      if (isHistorical) {
+        setOpenStates((prev) => ({ ...prev, [key]: false }))
+        return
       }
-    })
 
-    // Cleanup timers on unmount
-    return () => {
-      Object.values(closeTimersRef.current).forEach(clearTimeout)
-      closeTimersRef.current = {}
+      if (!initializedThinkingRef.current) {
+        setOpenStates((prev) => ({ ...prev, [key]: true }))
+        initializedThinkingRef.current = true
+      }
+
+      if (isInProgress(thinkingItem.event.phase)) {
+        if (closeTimersRef.current[key]) {
+          clearTimeout(closeTimersRef.current[key])
+          delete closeTimersRef.current[key]
+        }
+        setOpenStates((prev) => ({ ...prev, [key]: true }))
+      }
     }
-    // groupedEvents changes on every render, so we use events as dependency
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events, isHistorical])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- groupedEvents and isInProgress are derived from events/isHistorical
+  }, [isHistorical, events.length])
+
+  const handleScrollAnimationComplete = useCallback((stableKey: string) => {
+    if (!closeTimersRef.current[stableKey]) {
+      closeTimersRef.current[stableKey] = setTimeout(() => {
+        setOpenStates((prev) => ({ ...prev, [stableKey]: false }))
+        delete closeTimersRef.current[stableKey]
+      }, 2000)
+    }
+  }, [])
+
+  const handleManualOpenChange = (key: string, isOpen: boolean) => {
+    setOpenStates((prev) => ({ ...prev, [key]: isOpen }))
+    if (closeTimersRef.current[key]) {
+      clearTimeout(closeTimersRef.current[key])
+      delete closeTimersRef.current[key]
+    }
+  }
 
   if (!events || events.length === 0) {
     return null
@@ -302,15 +377,13 @@ export const ReasoningDisplay = ({
     if (
       title.toLowerCase().includes('check') ||
       title.toLowerCase().includes('read')
-    ) {
+    )
       return <Search className={iconClass} />
-    }
     if (
       title.toLowerCase().includes('creat') ||
       title.toLowerCase().includes('save')
-    ) {
+    )
       return <FileText className={iconClass} />
-    }
     if (
       title.toLowerCase().includes('review') ||
       title.toLowerCase().includes('build') ||
@@ -322,7 +395,6 @@ export const ReasoningDisplay = ({
         <Wrench className={iconClass} />
       )
     }
-
     return isInProgress ? (
       <Loader size={16} className={iconClass} />
     ) : (
@@ -330,126 +402,195 @@ export const ReasoningDisplay = ({
     )
   }
 
+  // Сначала выделяем dependency operations
+  const dependencyOperations = groupedEvents.filter(
+    (item) => item.type !== 'thinking' && isDependencyOperation(item.event)
+  )
+
+  // Затем file operations (исключая те, что уже в dependencies)
+  const fileOperations = groupedEvents.filter(
+    (item) =>
+      item.type !== 'thinking' &&
+      isFileOperation(item.event) &&
+      !isDependencyOperation(item.event)
+  )
+
+  // Остальные события
+  const otherEvents = groupedEvents.filter(
+    (item) =>
+      item.type === 'thinking' ||
+      (!isFileOperation(item.event) && !isDependencyOperation(item.event))
+  )
+
+  const fileOpsKey = 'file-operations-group'
+  const depsOpsKey = 'dependency-operations-group'
+  const isFileOpsOpen = openStates[fileOpsKey] ?? false
+  const isDepsOpsOpen = openStates[depsOpsKey] ?? false
+  const hasFileOperationsInProgress = fileOperations.some(({ event }) =>
+    isInProgress(event.phase)
+  )
+  const hasDependencyOperationsInProgress = dependencyOperations.some(
+    ({ event }) => isInProgress(event.phase)
+  )
+
+  const renderActionItem = (item: GroupedEvent) => {
+    const { event, stableKey } = item
+    const icon = getActionIcon(event.title, event.phase)
+    const duration = event.duration ? formatDuration(event.duration) : null
+    const isCompleted = event.phase === 'completed'
+    const isFailed = event.phase === 'failed'
+    const loading = isInProgress(event.phase)
+
+    return (
+      <div key={stableKey} className="flex items-start gap-3">
+        <div className="mt-0.5 shrink-0">{icon}</div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                'text-[14px] leading-tight',
+                isCompleted && 'text-foreground',
+                isFailed && 'text-red-600 dark:text-red-400',
+                loading && 'text-muted-foreground'
+              )}
+            >
+              {event.title}
+            </span>
+            {duration && !loading && (
+              <span className="text-muted-foreground/60 text-[12px]">
+                {duration}
+              </span>
+            )}
+          </div>
+          {event.description && (
+            <p className="text-muted-foreground/80 mt-1 text-[13px] leading-snug">
+              {event.description}
+            </p>
+          )}
+          {event.metadata?.files && <FilesList files={event.metadata.files} />}
+        </div>
+      </div>
+    )
+  }
+
+  const renderThinkingItem = (item: GroupedEvent) => {
+    const { event, thinkingContent, stableKey } = item
+    const duration = event.duration || 0
+    const isThinking = isInProgress(event.phase)
+    const isComplete = event.phase === 'completed'
+
+    const isOpen = openStates[stableKey] ?? false
+
+    return (
+      <Reasoning
+        key={stableKey}
+        isStreaming={false}
+        open={isOpen}
+        onOpenChange={(open) => handleManualOpenChange(stableKey, open)}
+        duration={duration}
+      >
+        <ReasoningTrigger className="hover:text-foreground cursor-pointer transition-colors">
+          <Lightbulb className="size-4" />
+          {isThinking ? (
+            <ThinkingText />
+          ) : (
+            <p>Thought for {formatDuration(duration)}</p>
+          )}
+          <ChevronDownIcon className="text-muted-foreground size-4 transition-transform" />
+        </ReasoningTrigger>
+        <ReasoningContent>
+          <div className="relative pl-6">
+            <div className="bg-border absolute top-0 bottom-0 left-2 w-px" />
+            <ScrollingText
+              text={thinkingContent || ''}
+              isComplete={isComplete}
+              autoScrollEnabled={!isHistorical}
+              onScrollComplete={() => handleScrollAnimationComplete(stableKey)}
+            />
+          </div>
+        </ReasoningContent>
+      </Reasoning>
+    )
+  }
+
   return (
     <div className={cn('flex flex-col gap-3', className)}>
-      {groupedEvents.map((item, index) => {
-        const { event, thinkingContent } = item
-
-        if (item.type === 'thinking') {
-          const duration = event.duration || 0
-          const isThinking = isInProgress(event.phase)
-          const key = `thinking-${event.timestamp}-${index}`
-          // Use explicit state value or default to thinking state
-          const isOpen = key in openStates ? openStates[key] : isThinking
-
-          return (
-            <Reasoning
-              key={key}
-              isStreaming={false}
-              open={isOpen}
-              onOpenChange={(open) => {
-                console.log('ReasoningDisplay: onOpenChange called', {
-                  key,
-                  open,
-                  wasOpen: isOpen,
-                })
-                // Always allow user to control the state
-                setOpenStates((prev) => ({ ...prev, [key]: open }))
-                // Cancel auto-close timer if user manually interacts
-                if (closeTimersRef.current[key]) {
-                  clearTimeout(closeTimersRef.current[key])
-                  delete closeTimersRef.current[key]
-                }
-              }}
-              duration={duration}
-              disabled={false}
-            >
-              <ReasoningTrigger
-                className="hover:text-foreground cursor-pointer transition-colors"
-                disabled={false}
-              >
-                <BrainIcon className="size-4" />
-                {isThinking ? (
-                  <ThinkingText />
-                ) : (
-                  <p>Thought for {formatDuration(duration)}</p>
-                )}
-                <ChevronDownIcon className="text-muted-foreground size-4 transition-transform" />
-              </ReasoningTrigger>
-              {thinkingContent && (
-                <ReasoningContent>
-                  <div className="relative pl-6">
-                    <div className="bg-border absolute top-0 bottom-0 left-2 w-px" />
-                    {isThinking && !isHistorical ? (
-                      <ScrollingText text={thinkingContent} />
-                    ) : (
-                      <div
-                        className="text-muted-foreground scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/30 max-h-[200px] overflow-y-auto whitespace-pre-wrap"
-                        style={{
-                          scrollbarWidth: 'thin',
-                          scrollbarColor:
-                            'rgba(100, 116, 139, 0.2) transparent',
-                        }}
-                      >
-                        {thinkingContent}
-                      </div>
-                    )}
-                  </div>
-                </ReasoningContent>
-              )}
-            </Reasoning>
-          )
-        }
-
-        const icon = getActionIcon(event.title, event.phase)
-        const duration = event.duration ? formatDuration(event.duration) : null
-        const isCompleted = event.phase === 'completed'
-        const isFailed = event.phase === 'failed'
-        const loading = isInProgress(event.phase)
-
-        return (
-          <div
-            key={`action-${event.timestamp}-${event.title}-${index}`}
-            className="flex items-start gap-3"
-          >
-            <div className="mt-0.5 shrink-0">{icon}</div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    'text-[14px] leading-tight',
-                    isCompleted && 'text-foreground',
-                    isFailed && 'text-red-600 dark:text-red-400',
-                    loading && 'text-muted-foreground'
-                  )}
-                >
-                  {event.title}
-                </span>
-                {duration && !loading && (
-                  <span className="text-muted-foreground/60 text-[12px]">
-                    {duration}
-                  </span>
-                )}
-              </div>
-
-              {event.description && (
-                <p
-                  className={cn(
-                    'text-muted-foreground/80 mt-1 text-[13px] leading-snug'
-                  )}
-                >
-                  {event.description}
-                </p>
-              )}
-
-              {event.metadata?.files && (
-                <FilesList files={event.metadata.files} />
-              )}
-            </div>
-          </div>
-        )
+      {otherEvents.map((item) => {
+        if (item.type === 'thinking') return renderThinkingItem(item)
+        return renderActionItem(item)
       })}
+
+      {/* Dependency operations group */}
+      {dependencyOperations.length > 0 && (
+        <div className="flex flex-col">
+          <button
+            onClick={() =>
+              setOpenStates((prev) => ({
+                ...prev,
+                [depsOpsKey]: !prev[depsOpsKey],
+              }))
+            }
+            className="hover:text-foreground text-muted-foreground flex cursor-pointer items-center gap-2 text-[14px] transition-colors"
+          >
+            <Package className="size-4" />
+            <span>
+              {hasDependencyOperationsInProgress ? (
+                <span className="animate-shimmer bg-[linear-gradient(110deg,#64748b,45%,#e2e8f0,55%,#64748b)] bg-[length:200%_100%] bg-clip-text text-transparent dark:bg-[linear-gradient(110deg,#64748b,45%,#cbd5e1,55%,#64748b)]">
+                  Installing dependencies...
+                </span>
+              ) : (
+                `${dependencyOperations.length} ${dependencyOperations.length === 1 ? 'dependency' : 'dependencies'} installed`
+              )}
+            </span>
+            {isDepsOpsOpen ? (
+              <ChevronDownIcon className="size-4" />
+            ) : (
+              <ChevronRightIcon className="size-4" />
+            )}
+          </button>
+          {isDepsOpsOpen && (
+            <div className="border-border mt-2 ml-2 flex flex-col gap-2 border-l pl-4">
+              {dependencyOperations.map((item) => renderActionItem(item))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* File operations group */}
+      {fileOperations.length > 0 && (
+        <div className="flex flex-col">
+          <button
+            onClick={() =>
+              setOpenStates((prev) => ({
+                ...prev,
+                [fileOpsKey]: !prev[fileOpsKey],
+              }))
+            }
+            className="hover:text-foreground text-muted-foreground flex cursor-pointer items-center gap-2 text-[14px] transition-colors"
+          >
+            <FolderEdit className="size-4" />
+            <span>
+              {hasFileOperationsInProgress ? (
+                <span className="animate-shimmer bg-[linear-gradient(110deg,#64748b,45%,#e2e8f0,55%,#64748b)] bg-[length:200%_100%] bg-clip-text text-transparent dark:bg-[linear-gradient(110deg,#64748b,45%,#cbd5e1,55%,#64748b)]">
+                  Working with files...
+                </span>
+              ) : (
+                `${fileOperations.length} file ${fileOperations.length === 1 ? 'operation' : 'operations'}`
+              )}
+            </span>
+            {isFileOpsOpen ? (
+              <ChevronDownIcon className="size-4" />
+            ) : (
+              <ChevronRightIcon className="size-4" />
+            )}
+          </button>
+          {isFileOpsOpen && (
+            <div className="border-border mt-2 ml-2 flex flex-col gap-2 border-l pl-4">
+              {fileOperations.map((item) => renderActionItem(item))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

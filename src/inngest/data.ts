@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { Prisma } from '@/generated/prisma'
 import { TextMessage, type Message } from '@inngest/agent-kit'
 
 export async function getPreviousMessages(
@@ -24,7 +25,10 @@ export async function getPreviousMessages(
 export async function saveErrorResult(projectId: string) {
   await prisma.project.update({
     where: { id: projectId },
-    data: { status: 'ERROR' },
+    data: { 
+      status: 'ERROR',
+      currentReasoningSteps: Prisma.DbNull, // Очищаем временные шаги при ошибке
+    },
   })
 
   await prisma.message.create({
@@ -64,6 +68,7 @@ export async function saveSuccessResult(args: SaveSuccessResultArgs) {
       data: {
         name: newProjectName,
         status: 'COMPLETED',
+        currentReasoningSteps: Prisma.DbNull, // Очищаем временные шаги после завершения
       },
     }),
     prisma.message.create({

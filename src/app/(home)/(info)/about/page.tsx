@@ -64,7 +64,7 @@ export default function AboutPage() {
 
   return (
     // Основной контейнер теперь имеет фон и цвет текста для обеих тем
-    <div className="bg-white text-zinc-800 antialiased dark:bg-black dark:text-zinc-200">
+    <div className="dark:bg-background bg-white text-zinc-800 antialiased dark:text-zinc-200">
       <div className="container mx-auto px-4 pt-20 pb-16 sm:pt-28 sm:pb-24 lg:pt-36 lg:pb-32">
         {/* --- Hero Section --- */}
         <header className="mx-auto max-w-4xl text-center">
