@@ -2,6 +2,7 @@ import { Sandbox } from '@e2b/code-interpreter'
 import { createNetwork, createState } from '@inngest/agent-kit'
 import { inngest } from './client'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@/generated/prisma'
 import { FileOperation, SANDBOX_TIMEOUT, ReasoningEvent } from './types'
 import { getAllSandboxTextFiles, getSandbox, parseAgentOutput } from './utils'
 import {
@@ -31,7 +32,7 @@ export const codeAgentFunction = inngest.createFunction(
       // Сохраняем шаги в БД для восстановления при перезагрузке страницы
       await prisma.project.update({
         where: { id: event.data.projectId },
-        data: { currentReasoningSteps: reasoningSteps },
+        data: { currentReasoningSteps: reasoningSteps as unknown as Prisma.InputJsonValue },
       })
       
       await publish(projectChannel(event.data.projectId).status(reasoningEvent))
