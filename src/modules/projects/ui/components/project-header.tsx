@@ -56,6 +56,7 @@ export const ProjectHeader = ({
       leftContent={
         <ProjectHeaderContent
           projectName={project?.name || 'Loading...'}
+          projectId={projectId}
           isPrivate={isPrivateProject}
         />
       }

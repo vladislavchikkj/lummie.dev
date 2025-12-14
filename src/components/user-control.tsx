@@ -18,8 +18,12 @@ export const UserControl = ({ showName }: Props) => {
       appearance={{
         elements: {
           userButtonBox: isMobile ? 'rounded-full!' : 'rounded-md!',
-          userButtonAvatarBox: isMobile ? 'rounded-full! size-8!' : 'rounded-md! size-8!',
+          userButtonAvatarBox: isMobile
+            ? 'rounded-full! size-8!'
+            : 'rounded-md! size-8!',
           userButtonTrigger: isMobile ? 'rounded-full!' : 'rounded-md!',
+          // Скрытие внутренних лейблов Clerk
+          userButtonLabel: 'hidden!',
         },
         baseTheme: currentTheme === 'dark' ? dark : undefined,
       }}

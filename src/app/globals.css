@@ -245,6 +245,31 @@
   z-index: 9999;
 }
 
+/* Скрытие внутренних лейблов Clerk */
+.cl-internal-1dauvpw,
+[class*='cl-internal'][class*='dauvpw'],
+label.cl-internal-1dauvpw,
+label[class*='cl-internal'][class*='dauvpw'],
+/* Более общий селектор для всех внутренних лейблов */
+[class^='cl-internal'] label,
+label[class^='cl-internal'],
+/* Скрытие через userButtonLabel */
+[class*='userButtonLabel'] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  clip: rect(0, 0, 0, 0) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
 .animate-shimmer {
   animation: shimmer 3s linear infinite;
 }
