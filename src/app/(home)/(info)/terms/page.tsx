@@ -1,35 +1,17 @@
-import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
+import { APP_URL } from '@/app/constants'
+import {
+  PAGE_SEO,
+  createOpenGraphMetadata,
+  createTwitterMetadata,
+} from '@/app/constants/seo'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-
-  title: 'Terms',
-  description: APP_DESCRIPTION,
-
-  openGraph: {
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
-    url: APP_URL,
-    siteName: APP_NAME,
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: `Preview image for ${APP_NAME}`,
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-
-  twitter: {
-    card: 'summary_large_image',
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
-    images: ['/og-image.png'],
-  },
+  title: PAGE_SEO.terms.title,
+  description: PAGE_SEO.terms.description,
+  openGraph: createOpenGraphMetadata(PAGE_SEO.terms.title),
+  twitter: createTwitterMetadata(PAGE_SEO.terms.title),
 }
 
 export default function TermsOfServicePage() {

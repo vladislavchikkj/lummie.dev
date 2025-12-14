@@ -1,16 +1,34 @@
 import type { Metadata } from 'next'
 import { Footer } from '@/modules/home/ui/components/footer'
 import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
+import {
+  SEO_TEXTS,
+  createOpenGraphMetadata,
+  createTwitterMetadata,
+} from '@/app/constants/seo'
 import { Particles } from '@/components/ui/particles'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-
-  title: {
-    default: APP_NAME,
-    template: `${APP_NAME} | %s`,
+  description: SEO_TEXTS.defaultDescription,
+  keywords: SEO_TEXTS.keywords,
+  authors: [{ name: APP_NAME }],
+  creator: APP_NAME,
+  publisher: APP_NAME,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
-  description: APP_DESCRIPTION,
+  alternates: {
+    canonical: APP_URL,
+  },
 
   icons: {
     icon: [
@@ -25,29 +43,8 @@ export const metadata: Metadata = {
     ],
   },
 
-  openGraph: {
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
-    url: APP_URL,
-    siteName: APP_NAME,
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: `Preview image for ${APP_NAME}`,
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-
-  twitter: {
-    card: 'summary_large_image',
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
-    images: ['/og-image.png'],
-  },
+  openGraph: createOpenGraphMetadata(),
+  twitter: createTwitterMetadata(),
 }
 
 interface Props {

@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     )
 
     return {
-      title: `${APP_NAME} | ${project.name}`,
+      title: project.name,
     }
   } catch {
     // Если проект не найден или произошла ошибка, используем базовое название
@@ -36,12 +36,15 @@ const Page = async ({ params }: Props) => {
   const { projectId } = await params
 
   const queryClient = getQueryClient()
-  void queryClient.prefetchQuery(
-    trpc.messages.getMany.queryOptions({ projectId })
-  )
-  void queryClient.prefetchQuery(
-    trpc.projects.getOne.queryOptions({ id: projectId })
-  )
+
+  try {
+    await queryClient.fetchQuery(
+      trpc.projects.getOne.queryOptions({ id: projectId })
+    )
+    void queryClient.prefetchQuery(
+      trpc.messages.getMany.queryOptions({ projectId })
+    )
+  } catch {}
 
   return (
     <div className="fixed inset-y-0 top-[52px] right-0 left-0 overflow-hidden md:group-data-[state=expanded]/sidebar-wrapper:left-[var(--sidebar-width)]">

@@ -8,7 +8,7 @@ echo "🐳 Настройка локальной базы данных для р
 echo "📝 Создание .env.local файла..."
 cat > .env.local << 'EOF'
 # Локальная база данных PostgreSQL для разработки
-DATABASE_URL="postgresql://luci_user:luci_password@localhost:5432/luci_dev?schema=public"
+DATABASE_URL="postgresql://luci_user:luci_password@localhost:5433/luci_dev?schema=public"
 
 # Остальные переменные окружения для разработки
 # (скопируйте из вашего основного .env файла, если нужно)

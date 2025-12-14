@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
@@ -74,10 +74,16 @@ const ProjectName = ({
 export const ProjectsList = () => {
   const trpc = useTRPC()
   const { user } = useUser()
+  const [isMounted, setIsMounted] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('latest')
   const [visibleCount, setVisibleCount] = useState(6)
+
+  // Предотвращаем проблему гидратации, проверяя монтирование компонента
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Данные могут быть prefetch-ены на сервере, поэтому enabled=true
   // Запрос не будет выполняться повторно если данные уже есть в кэше
@@ -231,14 +237,15 @@ export const ProjectsList = () => {
 
               {/* Footer */}
               <div className="flex items-center gap-3 p-4">
-                {user?.imageUrl ? (
-                  <Image
-                    src={user.imageUrl}
-                    alt={user.fullName || 'User'}
-                    width={32}
-                    height={32}
-                    className="shrink-0 rounded-full"
-                  />
+                {isMounted && user?.imageUrl ? (
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                    <Image
+                      src={user.imageUrl}
+                      alt={user.fullName || 'User'}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
                     <span className="text-muted-foreground text-xs font-medium">

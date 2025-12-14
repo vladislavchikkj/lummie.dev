@@ -6,7 +6,12 @@ import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
 import { ClerkProvider } from '@clerk/nextjs'
 import CookieConsent from '@/components/cookie-consent'
-import { APP_NAME } from './constants'
+import { APP_NAME, APP_URL } from './constants'
+import {
+  SEO_TEXTS,
+  createOpenGraphMetadata,
+  createTwitterMetadata,
+} from './constants/seo'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { DynamicNavbar } from '@/components/dynamic-navbar'
@@ -25,9 +30,35 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: APP_NAME,
-  description: 'AI-powered development platform',
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: SEO_TEXTS.defaultTitle,
+    template: SEO_TEXTS.titleTemplate,
+  },
+  description: SEO_TEXTS.defaultDescription,
+  keywords: SEO_TEXTS.keywords,
+  authors: [{ name: APP_NAME }],
+  creator: APP_NAME,
+  publisher: APP_NAME,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: APP_URL,
+  },
   manifest: '/manifest.json',
+
+  verification: {
+    google: 'google-site-verification-code',
+  },
   icons: {
     icon: [
       {
@@ -77,7 +108,6 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: APP_NAME,
   },
-  // Дополнительные мета-теги для предотвращения стандартного поведения браузера
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
@@ -87,17 +117,8 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  openGraph: {
-    type: 'website',
-    siteName: APP_NAME,
-    title: APP_NAME,
-    description: 'AI-powered development platform',
-  },
-  twitter: {
-    card: 'summary',
-    title: APP_NAME,
-    description: 'AI-powered development platform',
-  },
+  openGraph: createOpenGraphMetadata(),
+  twitter: createTwitterMetadata(),
 }
 
 export const viewport: Viewport = {
@@ -109,7 +130,6 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#000000' },
   ],
-  // Предотвращаем стандартные жесты браузера
   viewportFit: 'cover',
 }
 
@@ -118,6 +138,34 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: APP_NAME,
+    applicationCategory: 'ProductivityApplication',
+    operatingSystem: 'Web, iOS, Android',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      description: 'Free tier available',
+    },
+    description:
+      'All-in-one AI assistant: Chat with AI, generate professional images, and build fully functional websites from text.',
+    featureList: [
+      'AI Chat Assistant',
+      'Text to Website Generator',
+      'AI Image Generator',
+      'Code Generation',
+      'React & Tailwind Builder',
+    ],
+    isSimilarTo: [
+      { '@type': 'SoftwareApplication', name: 'ChatGPT' },
+      { '@type': 'SoftwareApplication', name: 'ChatOn' },
+      { '@type': 'SoftwareApplication', name: 'Grok' },
+    ],
+  }
+
   return (
     <ClerkProvider
       appearance={{
@@ -125,12 +173,14 @@ export default function RootLayout({
           colorPrimary: '',
         },
       }}
+      signInUrl="/"
+      signUpUrl="/"
     >
       <TRPCReactProvider>
         <PWAProvider>
           <html lang="en" suppressHydrationWarning className="h-full">
             <head>
-              {/* Дополнительные мета-теги для iOS PWA */}
+              {/* iOS PWA tags */}
               <meta name="apple-mobile-web-app-capable" content="yes" />
               <meta
                 name="apple-mobile-web-app-status-bar-style"
@@ -140,7 +190,6 @@ export default function RootLayout({
               <meta name="mobile-web-app-capable" content="yes" />
               <meta name="format-detection" content="telephone=no" />
 
-              {/* Apple Touch Icons */}
               <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
               <link
                 rel="apple-touch-icon"
@@ -191,6 +240,11 @@ export default function RootLayout({
             <body
               className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
             >
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+              />
+
               <ThemeProvider
                 attribute="class"
                 defaultTheme="system"

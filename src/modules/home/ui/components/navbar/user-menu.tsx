@@ -108,7 +108,9 @@ const UserMenuDesktop = ({
               className="hover:bg-accent rounded-full md:rounded-md [&_.cl-userButtonAvatarBox]:!rounded-full md:[&_.cl-userButtonAvatarBox]:!rounded-md [&_.cl-userButtonBox]:!rounded-full md:[&_.cl-userButtonBox]:!rounded-md [&_.cl-userButtonTrigger]:!rounded-full md:[&_.cl-userButtonTrigger]:!rounded-md"
               aria-label="Open user menu"
             >
-              <UserControl />
+              <div className="pointer-events-none">
+                <UserControl />
+              </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
