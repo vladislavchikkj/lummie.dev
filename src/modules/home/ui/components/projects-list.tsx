@@ -232,13 +232,14 @@ export const ProjectsList = () => {
               {/* Footer */}
               <div className="flex items-center gap-3 p-4">
                 {user?.imageUrl ? (
-                  <Image
-                    src={user.imageUrl}
-                    alt={user.fullName || 'User'}
-                    width={32}
-                    height={32}
-                    className="shrink-0 rounded-full"
-                  />
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                    <Image
+                      src={user.imageUrl}
+                      alt={user.fullName || 'User'}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
                     <span className="text-muted-foreground text-xs font-medium">

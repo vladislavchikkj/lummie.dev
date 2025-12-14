@@ -84,12 +84,12 @@ const NotificationItem = ({
   return (
     <button
       onClick={() => onNavigate(id)}
-      className="group border-border/50 hover:bg-muted/50 flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors last:border-0"
+      className="group hover:bg-accent/50 flex w-full items-start gap-3 px-3 py-2 text-left transition-colors first:pt-3 last:pb-3"
     >
       {/* Превью или иконка */}
       <div className="relative flex-shrink-0">
         {screenshot ? (
-          <div className="border-border bg-background relative h-9 w-9 overflow-hidden rounded border">
+          <div className="bg-muted relative h-8 w-8 overflow-hidden rounded-md">
             <img
               src={screenshot}
               alt={name || 'Project preview'}
@@ -97,25 +97,25 @@ const NotificationItem = ({
             />
           </div>
         ) : (
-          <div className="border-border bg-background flex h-9 w-9 items-center justify-center rounded border">
-            <Box className="text-muted-foreground h-4 w-4" />
+          <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md">
+            <Box className="text-muted-foreground h-3.5 w-3.5" />
           </div>
         )}
-        <span className="bg-foreground absolute top-1/2 -left-1.5 h-1.5 w-1.5 -translate-y-1/2 rounded-full" />
+        <span className="bg-primary ring-background absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2" />
       </div>
 
       {/* Контент */}
-      <div className="min-w-0 flex-1">
-        <p className="text-foreground truncate text-sm font-medium">
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <p className="text-foreground truncate text-sm leading-tight font-medium">
           {name || 'Untitled Project'}
         </p>
-        <p className="text-muted-foreground mt-0.5 text-xs">
+        <p className="text-muted-foreground text-xs leading-tight">
           Ready {formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}
         </p>
       </div>
 
       {/* Стрелка при ховере */}
-      <span className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="text-muted-foreground mt-1 opacity-0 transition-opacity group-hover:opacity-100">
         →
       </span>
     </button>
@@ -220,29 +220,31 @@ export const NotificationsPopover = ({ mobile }: NotificationsPopoverProps) => {
           align="end"
           className="border-border bg-background w-72 overflow-hidden rounded-lg border p-0 shadow-lg"
         >
-          <div className="border-border flex items-center justify-between border-b px-4 py-2.5">
+          <div className="border-border flex items-center justify-between border-b px-3 py-2.5">
             <p className="text-sm font-medium">Notifications</p>
             {unreadNotifications.length > 1 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+                className="text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
               >
                 Clear all
               </button>
             )}
           </div>
           {isLoading ? (
-            <div className="flex h-[140px] items-center justify-center">
+            <div className="flex h-32 items-center justify-center">
               <div className="border-muted-foreground/30 border-t-foreground h-4 w-4 animate-spin rounded-full border-2" />
             </div>
           ) : unreadNotifications.length === 0 ? (
-            <div className="flex h-[140px] flex-col items-center justify-center px-4 text-center">
-              <Bell className="text-muted-foreground/50 mb-2 h-5 w-5" />
-              <p className="text-muted-foreground text-sm">No notifications</p>
+            <div className="flex h-32 flex-col items-center justify-center px-4 text-center">
+              <Bell className="text-muted-foreground/40 mb-2.5 h-5 w-5" />
+              <p className="text-muted-foreground text-sm font-medium">
+                No notifications
+              </p>
             </div>
           ) : (
             <ScrollArea className="max-h-[240px]">
-              <div>
+              <div className="py-1">
                 {unreadNotifications.map((notification) => (
                   <NotificationItem
                     key={notification.id}
@@ -285,12 +287,12 @@ export const NotificationsPopover = ({ mobile }: NotificationsPopoverProps) => {
           className="border-border bg-background w-80 overflow-hidden rounded-lg border p-0 shadow-lg"
         >
           {/* Заголовок */}
-          <div className="border-border flex items-center justify-between border-b px-4 py-3">
+          <div className="border-border flex items-center justify-between border-b px-3 py-2.5">
             <p className="text-sm font-medium">Notifications</p>
             {unreadNotifications.length > 1 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+                className="text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
               >
                 Clear all
               </button>
@@ -299,24 +301,24 @@ export const NotificationsPopover = ({ mobile }: NotificationsPopoverProps) => {
 
           {/* Список уведомлений */}
           {isLoading ? (
-            <div className="flex h-[180px] items-center justify-center">
+            <div className="flex h-40 items-center justify-center">
               <div className="border-muted-foreground/30 border-t-foreground h-4 w-4 animate-spin rounded-full border-2" />
             </div>
           ) : unreadNotifications.length === 0 ? (
-            <div className="flex h-[180px] flex-col items-center justify-center px-4 text-center">
-              <div className="border-border mb-3 flex h-10 w-10 items-center justify-center rounded-full border">
-                <Bell className="text-muted-foreground/50 h-5 w-5" />
+            <div className="flex h-40 flex-col items-center justify-center px-4 text-center">
+              <div className="bg-muted mb-3 flex h-10 w-10 items-center justify-center rounded-md">
+                <Bell className="text-muted-foreground/50 h-4 w-4" />
               </div>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-foreground text-sm font-medium">
                 No notifications yet
               </p>
-              <p className="text-muted-foreground/70 mt-1 text-xs">
+              <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
                 When your projects are ready, they&apos;ll appear here.
               </p>
             </div>
           ) : (
-            <ScrollArea className="max-h-[280px]">
-              <div>
+            <ScrollArea className="max-h-[320px]">
+              <div className="py-1">
                 {unreadNotifications.map((notification) => (
                   <NotificationItem
                     key={notification.id}

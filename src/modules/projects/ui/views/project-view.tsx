@@ -2,6 +2,9 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { Fragment } from '@/generated/prisma'
 import {
@@ -22,7 +25,8 @@ import {
   TabState,
   LocalImagePreview,
 } from '../../constants/chat'
-import { useTRPCClient } from '@/trpc/client'
+import { useTRPCClient, useTRPC } from '@/trpc/client'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ProcessedImage } from '@/lib/image-processing'
 
 interface Props {
@@ -30,13 +34,36 @@ interface Props {
 }
 
 export const ProjectView = ({ projectId }: Props) => {
+  const router = useRouter()
+  const trpc = useTRPC()
   const isMobileQuery = useIsMobile()
   const [isMounted, setIsMounted] = useState(false)
-  
+
   useEffect(() => {
     setIsMounted(true)
   }, [])
-  
+
+  // Проверяем существование проекта
+  const { error: projectError } = useQuery({
+    ...trpc.projects.getOne.queryOptions({ id: projectId }),
+    retry: false, // Не повторять запрос при ошибке
+  })
+
+  // Обработка случая, когда проект не найден
+  useEffect(() => {
+    if (projectError) {
+      const errorMessage = projectError?.message || ''
+      if (
+        errorMessage.includes('not found') ||
+        errorMessage.includes('NOT_FOUND')
+      ) {
+        toast.error('Project not found')
+        router.push('/')
+        return
+      }
+    }
+  }, [projectError, router])
+
   // До монтирования считаем что это десктоп для консистентности SSR
   const isMobile = isMounted ? isMobileQuery : false
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
@@ -134,6 +161,14 @@ export const ProjectView = ({ projectId }: Props) => {
   })
 
   const trpcClient = useTRPCClient()
+  const queryClient = useQueryClient()
+
+  // Invalidate usage status when streaming completes to update credits
+  useEffect(() => {
+    if (streamingCompleted && !wasStreamAborted && !isStreaming) {
+      queryClient.invalidateQueries(trpc.usage.status.queryOptions())
+    }
+  }, [streamingCompleted, wasStreamAborted, isStreaming, queryClient, trpc])
 
   // Флаг показывающий, что идет создание проекта (не просто чат)
   const projectCreating = assistantMessageType !== 'CHAT' && !wasStreamAborted
@@ -321,7 +356,9 @@ export const ProjectView = ({ projectId }: Props) => {
     <div className="flex h-full flex-col overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel
-          defaultSize={(activeFragment || projectCreating) && !isMobile ? 35 : 100}
+          defaultSize={
+            (activeFragment || projectCreating) && !isMobile ? 35 : 100
+          }
           minSize={25}
           className="relative flex min-h-0 flex-col overflow-hidden"
         >

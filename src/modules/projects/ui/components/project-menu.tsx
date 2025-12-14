@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Edit2, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useTRPC } from '@/trpc/client'
@@ -22,6 +22,7 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
   const trpc = useTRPC()
   const router = useRouter()
+  const pathname = usePathname()
   const queryClient = useQueryClient()
 
   // Calculate dropdown position with bounds checking
@@ -88,10 +89,19 @@ export const ProjectMenu = ({ projectId, currentName }: ProjectMenuProps) => {
   const deleteMutation = useMutation(
     trpc.projects.delete.mutationOptions({
       onSuccess: () => {
+        // Инвалидируем оба query, так как они используются в разных местах
         queryClient.invalidateQueries(trpc.projects.getMany.queryOptions())
+        queryClient.invalidateQueries(
+          trpc.projects.getManyWithPreview.queryOptions()
+        )
         setIsDeleteDialogOpen(false)
         toast.success('Chat deleted successfully')
-        router.push('/')
+
+        // Навигация только если мы не на главной странице
+        // Это предотвращает сброс позиции скролла при удалении с главной страницы
+        if (pathname !== '/') {
+          router.push('/')
+        }
       },
       onError: (error) => {
         toast.error('Failed to delete chat')

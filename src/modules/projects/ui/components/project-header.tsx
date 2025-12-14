@@ -7,6 +7,7 @@ import { ProjectHeaderContent } from '@/components/ui/project-header-content'
 import { useTRPC } from '@/trpc/client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface Props {
   projectId: string
@@ -21,19 +22,30 @@ export const ProjectHeader = ({
   const { isLoaded, userId } = useAuth()
   const router = useRouter()
 
-  // Используем useQuery вместо useSuspenseQuery с условием enabled
-  const { data: project } = useQuery({
+  const { data: project, error } = useQuery({
     ...trpc.projects.getOne.queryOptions({ id: projectId }),
-    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+    enabled: !!userId,
+    retry: false,
   })
 
-  // Ждем загрузки Clerk
   useEffect(() => {
     if (isLoaded && !userId) {
-      // Если Clerk загрузился и пользователь не авторизован, редирект на главную
       router.push('/')
     }
   }, [isLoaded, userId, router])
+
+  useEffect(() => {
+    if (error && isLoaded && userId) {
+      const errorMessage = error?.message || ''
+      if (
+        errorMessage.includes('not found') ||
+        errorMessage.includes('NOT_FOUND')
+      ) {
+        toast.error('Project not found')
+        router.push('/')
+      }
+    }
+  }, [error, isLoaded, userId, router])
 
   const isPrivateProject = true
 

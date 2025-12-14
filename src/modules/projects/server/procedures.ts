@@ -13,7 +13,11 @@ import { CHAT_SYSTEM_PROMPT } from '@/prompt'
 import puppeteer from 'puppeteer'
 import { getSubscriptionToken } from '@inngest/realtime'
 import { inngest } from '@/inngest/client'
-import { PROJECT_CHANNEL_TOPIC, projectChannel, ProjectChannelToken } from '@/inngest/channels'
+import {
+  PROJECT_CHANNEL_TOPIC,
+  projectChannel,
+  ProjectChannelToken,
+} from '@/inngest/channels'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -52,12 +56,12 @@ export const projectsRouter = createTRPCRouter({
 
     return projects
   }),
-  
+
   // Получение недавно завершённых проектов для уведомлений
   getRecentlyCompleted: protectedProcedure.query(async ({ ctx }) => {
     // Получаем проекты завершённые за последние 24 часа
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    
+
     const projects = await prisma.project.findMany({
       where: {
         userId: ctx.auth.userId,
@@ -322,9 +326,20 @@ export const projectsRouter = createTRPCRouter({
           }
         )
 
-        // Добавляем системный промпт для обычных сообщений (не для первого сообщения проекта)
-        // Это обеспечивает структурированные ответы в markdown формате
-        if (!input.isFirst && messagesForApi.length > 0) {
+        // Добавляем системный промпт для всех текстовых сообщений в чате
+        // Исключаем только случай, когда это действительно первое сообщение проекта (input.isFirst === true)
+        // которое обрабатывается через Inngest для создания приложения
+        // Проверяем: если в истории есть сообщение с isFirst: true, значит проект уже создан,
+        // и это обычное текстовое сообщение в чате - применяем системный промпт
+        // Или если input.isFirst !== true, то это тоже обычное текстовое сообщение
+        const hasFirstMessageInHistory = history.some(
+          (msg) => msg.isFirst === true
+        )
+        const shouldApplySystemPrompt =
+          (hasFirstMessageInHistory || input.isFirst !== true) &&
+          messagesForApi.length > 0
+
+        if (shouldApplySystemPrompt) {
           messagesForApi.unshift({
             role: 'system',
             content: CHAT_SYSTEM_PROMPT,
@@ -487,7 +502,7 @@ export const projectsRouter = createTRPCRouter({
 
       return { status: project.status }
     }),
-    
+
   // Получение текущих шагов генерации для восстановления при перезагрузке
   getCurrentReasoningSteps: protectedProcedure
     .input(
@@ -656,7 +671,7 @@ export const projectsRouter = createTRPCRouter({
       const token = await getSubscriptionToken(inngest, {
         channel: projectChannel(input.projectId),
         topics: [PROJECT_CHANNEL_TOPIC],
-      });
+      })
       return token
-    })
+    }),
 })

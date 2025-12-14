@@ -125,6 +125,8 @@ export default function RootLayout({
           colorPrimary: '',
         },
       }}
+      signInUrl="/"
+      signUpUrl="/"
     >
       <TRPCReactProvider>
         <PWAProvider>

@@ -68,11 +68,11 @@ function SidebarProvider({
   const isMobileQuery = useIsMobile()
   const [isMounted, setIsMounted] = React.useState(false)
   const [openMobile, setOpenMobile] = React.useState(false)
-  
+
   React.useEffect(() => {
     setIsMounted(true)
   }, [])
-  
+
   // До монтирования считаем что это десктоп (false) для консистентности SSR
   const isMobile = isMounted ? isMobileQuery : false
 
@@ -110,19 +110,26 @@ function SidebarProvider({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [toggleSidebar])
 
-  // Блокировка скролла при открытом сайдбаре
+  // Блокировка скролла при открытом сайдбаре (только для мобильных устройств)
+  // На десктопе ScrollbarGutterFix обрабатывает блокировку скролла от Radix UI Dialog
   React.useEffect(() => {
-    const isSidebarOpen = isMobile ? openMobile : open
+    if (!isMobile) {
+      // На десктопе не блокируем скролл - ScrollbarGutterFix обрабатывает это
+      return
+    }
 
-    if (isSidebarOpen) {
-      // Сохраняем текущую позицию скролла и ширину scrollbar
+    if (openMobile) {
+      // Сохраняем текущую позицию скролла
       const scrollY = window.scrollY
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-      
+
+      // Блокируем скролл на мобильных устройствах
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
       document.body.style.width = '100%'
-      // Сохраняем место для scrollbar, чтобы предотвратить смещение UI
+
+      // Вычисляем ширину scrollbar и добавляем padding
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`
       }
@@ -133,6 +140,7 @@ function SidebarProvider({
       document.body.style.top = ''
       document.body.style.width = ''
       document.body.style.paddingRight = ''
+
       if (scrollY) {
         window.scrollTo(0, parseInt(scrollY || '0') * -1)
       }
@@ -145,7 +153,7 @@ function SidebarProvider({
       document.body.style.width = ''
       document.body.style.paddingRight = ''
     }
-  }, [isMobile, open, openMobile])
+  }, [isMobile, openMobile])
 
   const state = open ? 'expanded' : 'collapsed'
 
@@ -229,7 +237,16 @@ function Sidebar({
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen} {...props}>
+    <Sheet
+      open={open}
+      onOpenChange={setOpen}
+      modal={false}
+      onOpenAutoFocus={(e) => {
+        // Убираем фокус сразу после открытия, чтобы не было outline
+        e.preventDefault()
+      }}
+      {...props}
+    >
       <SheetContent
         data-sidebar="sidebar"
         data-slot="sidebar"
@@ -237,12 +254,14 @@ function Sidebar({
         // onMouseLeave={() => setOpen(false)}
         className={cn(
           'bg-background text-sidebar-foreground w-[var(--sidebar-width)] p-0',
-          'border-sidebar-border border transition-none [&>button]:hidden [&~div]:hidden',
+          'border-0 transition-none [&>button]:hidden [&~div]:hidden',
           'h-[92vh]',
           'rounded-xl',
           'top-auto',
           'bottom-4',
           'left-2',
+          'focus-visible:outline-ring outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
+          '[&[data-state=open]]:ring-0 [&[data-state=open]]:outline-none',
           className
         )}
         style={
