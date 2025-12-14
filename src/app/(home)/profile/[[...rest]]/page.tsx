@@ -1,39 +1,25 @@
-import { APP_NAME, APP_URL } from '@/app/constants'
+import { APP_URL } from '@/app/constants'
+import {
+  PAGE_SEO,
+  createOpenGraphMetadata,
+  createTwitterMetadata,
+} from '@/app/constants/seo'
 import { Metadata } from 'next'
 import { ProfileClient } from './profile-client'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-
-  title: 'User Profile',
-  description:
-    'Manage your profile, update personal information, and configure account settings.',
-
-  openGraph: {
-    title: `${APP_NAME} | User Profile`,
-    description:
-      'Manage your profile, update personal information, and configure account settings.',
-    url: `${APP_URL}/profile`,
-    siteName: APP_NAME,
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: `User Profile - ${APP_NAME}`,
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-
-  twitter: {
-    card: 'summary_large_image',
-    title: `${APP_NAME} | User Profile`,
-    description:
-      'Manage your profile, update personal information, and configure account settings.',
-    images: ['/og-image.png'],
-  },
+  title: PAGE_SEO.profile.title,
+  description: PAGE_SEO.profile.description,
+  openGraph: createOpenGraphMetadata(
+    PAGE_SEO.profile.title,
+    PAGE_SEO.profile.description,
+    `${APP_URL}/profile`
+  ),
+  twitter: createTwitterMetadata(
+    PAGE_SEO.profile.title,
+    PAGE_SEO.profile.description
+  ),
 }
 
 export default function ProfilePage() {

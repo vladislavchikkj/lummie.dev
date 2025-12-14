@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     )
 
     return {
-      title: `${APP_NAME} | ${project.name}`,
+      title: project.name,
     }
   } catch {
     // Если проект не найден или произошла ошибка, используем базовое название

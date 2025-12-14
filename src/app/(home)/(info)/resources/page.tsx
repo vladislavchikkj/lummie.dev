@@ -1,6 +1,11 @@
 // File: src/app/(home)/(info)/resources/page.tsx
 
-import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/app/constants'
+import { APP_URL } from '@/app/constants'
+import {
+  PAGE_SEO,
+  createOpenGraphMetadata,
+  createTwitterMetadata,
+} from '@/app/constants/seo'
 import { Button } from '@/components/ui/button'
 import {
   ArrowRight,
@@ -14,12 +19,12 @@ import {
 import { Metadata } from 'next'
 import Link from 'next/link'
 
-// SEO metadata remains a good practice.
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  title: 'Resources',
-  description: APP_DESCRIPTION,
-  // ... other metadata properties
+  title: PAGE_SEO.resources.title,
+  description: PAGE_SEO.resources.description,
+  openGraph: createOpenGraphMetadata(PAGE_SEO.resources.title),
+  twitter: createTwitterMetadata(PAGE_SEO.resources.title),
 }
 
 // A focused and simplified list of main resources.
