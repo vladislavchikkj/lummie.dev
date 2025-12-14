@@ -28,10 +28,10 @@ const SkeletonBlock = ({
   className?: string
 }) => {
   const colorClasses = {
-    default: 'bg-muted-foreground/30',
-    accent: 'bg-teal-500/50',
-    muted: 'bg-muted-foreground/20',
-    highlight: 'bg-blue-400/40',
+    default: 'bg-muted-foreground/40 dark:bg-muted-foreground/30',
+    accent: 'bg-teal-500/50 dark:bg-teal-500/50',
+    muted: 'bg-muted-foreground/30 dark:bg-muted-foreground/20',
+    highlight: 'bg-blue-500/50 dark:bg-blue-400/40',
   }
 
   return (
@@ -206,13 +206,13 @@ const GeneratingState = () => {
       {/* Editor window */}
       <div
         className={cn(
-          'relative flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0d] shadow-2xl',
+          'border-border bg-card relative flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border shadow-2xl dark:border-white/10 dark:bg-[#0d0d0d]',
           'transition-all duration-500',
           showWindow ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         )}
       >
         {/* Window header */}
-        <div className="flex items-center gap-3 border-b border-white/5 px-4 py-3">
+        <div className="border-border/50 flex items-center gap-3 border-b px-4 py-3 dark:border-white/5">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
             <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
@@ -221,7 +221,7 @@ const GeneratingState = () => {
           <div className="flex-1 text-center">
             <span
               className={cn(
-                'inline-block text-sm text-white/50 transition-all duration-200',
+                'text-muted-foreground inline-block text-sm transition-all duration-200 dark:text-white/50',
                 isChanging
                   ? 'translate-y-2 opacity-0'
                   : 'translate-y-0 opacity-100'
@@ -248,7 +248,7 @@ const GeneratingState = () => {
           <div className="mt-2 flex h-6 items-center">
             <SkeletonBlock width="50px" color="muted" delay={1.6} />
             <div
-              className="ml-1 h-4 w-0.5 bg-white/70"
+              className="bg-foreground/70 ml-1 h-4 w-0.5 dark:bg-white/70"
               style={{
                 animation: 'cursorBlink 1s ease-in-out infinite',
               }}
@@ -257,9 +257,11 @@ const GeneratingState = () => {
         </div>
 
         {/* Status indicator */}
-        <div className="flex items-center justify-center gap-2 border-t border-white/5 py-3">
+        <div className="border-border/50 flex items-center justify-center gap-2 border-t py-3 dark:border-white/5">
           <PulsingLogo width={18} height={18} />
-          <span className="text-xs text-white/40">Building your app...</span>
+          <span className="text-muted-foreground/70 text-xs dark:text-white/40">
+            Building your app...
+          </span>
         </div>
       </div>
     </div>

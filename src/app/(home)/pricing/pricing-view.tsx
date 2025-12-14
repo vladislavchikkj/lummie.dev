@@ -4,7 +4,6 @@ import { PricingTable } from '@clerk/nextjs'
 import Logo from '@/components/ui/logo'
 import { dark } from '@clerk/themes'
 import { useCurrentTheme } from '@/hooks/use-current-theme'
-import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect'
 
 const PricingView = () => {
   const currentTheme = useCurrentTheme()

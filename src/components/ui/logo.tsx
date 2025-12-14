@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
+import { cn } from '@/lib/utils'
 
 interface LogoProps {
   width?: number
@@ -22,32 +23,37 @@ const Logo = ({ width, height, theme: propTheme, className }: LogoProps) => {
         alt="logo"
         width={width}
         height={height}
-        className={`logo ${className}`}
+        className={cn('logo', className)}
       />
     )
   }
 
   // Для автоматической темы рендерим оба логотипа и скрываем через CSS
   // Это гарантирует одинаковый HTML на сервере и клиенте
+  // /logo.svg - темный логотип для светлой темы
+  // /logo-l.svg - светлый логотип для темной темы
   return (
-    <>
-      {/* Light theme logo - показывается только в light mode */}
+    <span
+      className={cn('relative inline-block', className)}
+      style={{ width, height }}
+    >
+      {/* Dark logo - показывается только в light mode */}
       <Image
         src="/logo.svg"
         alt="logo"
         width={width}
         height={height}
-        className={`logo ${className} block dark:hidden`}
+        className="logo absolute inset-0 block dark:hidden"
       />
-      {/* Dark theme logo - показывается только в dark mode */}
+      {/* Light logo - показывается только в dark mode */}
       <Image
         src="/logo-l.svg"
         alt="logo"
         width={width}
         height={height}
-        className={`logo ${className} hidden dark:block`}
+        className="logo absolute inset-0 hidden dark:block"
       />
-    </>
+    </span>
   )
 }
 

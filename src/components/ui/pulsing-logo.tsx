@@ -21,12 +21,21 @@ export const PulsingLogo = ({
         animation: 'logo-pulse 1.5s ease-in-out infinite',
       }}
     >
+      {/* Light theme logo - показывается только в light mode */}
+      <Image
+        src="/logo.svg"
+        alt="logo"
+        width={width}
+        height={height}
+        className={cn('block drop-shadow-sm dark:hidden')}
+      />
+      {/* Dark theme logo - показывается только в dark mode */}
       <Image
         src="/logo-l.svg"
         alt="logo"
         width={width}
         height={height}
-        className="drop-shadow-sm"
+        className={cn('hidden drop-shadow-sm dark:block')}
       />
     </div>
   )
