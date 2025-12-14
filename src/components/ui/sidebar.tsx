@@ -237,16 +237,7 @@ function Sidebar({
   }
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={setOpen}
-      modal={false}
-      onOpenAutoFocus={(e) => {
-        // Убираем фокус сразу после открытия, чтобы не было outline
-        e.preventDefault()
-      }}
-      {...props}
-    >
+    <Sheet open={open} onOpenChange={setOpen} modal={false} {...props}>
       <SheetContent
         data-sidebar="sidebar"
         data-slot="sidebar"
