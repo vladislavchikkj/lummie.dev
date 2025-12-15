@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTRPCClient } from '@/trpc/client'
 import { TRPCClientError } from '@trpc/client'
+import { toast } from 'sonner'
 import type { ProcessedImage } from '@/lib/image-processing'
 
 interface UseChatStreamingProps {
@@ -29,6 +31,7 @@ export const useChatStreaming = ({
   const [streamingCompleted, setStreamingCompleted] = useState(false)
 
   const trpcClient = useTRPCClient()
+  const router = useRouter()
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const startStreaming = useCallback(
@@ -84,6 +87,13 @@ export const useChatStreaming = ({
           setWasStreamAborted(true)
           onStreamAborted()
           console.debug('Stream aborted by user')
+        } else if (
+          error instanceof TRPCClientError &&
+          error.data?.code === 'TOO_MANY_REQUESTS'
+        ) {
+          // Handle out of credits error
+          toast.error(error.message || 'You have run out of credits')
+          router.push('/pricing')
         } else {
           console.error('Streaming error:', error)
         }
