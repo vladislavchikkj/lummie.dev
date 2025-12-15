@@ -61,8 +61,6 @@ export const Header = ({
   const trpc = useTRPC()
   const { toggleSidebar } = useSidebar()
 
-  // Используем состояние для отслеживания монтирования клиента
-  // чтобы избежать hydration mismatch
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -71,7 +69,7 @@ export const Header = ({
 
   const { data: usage, isLoading: isUsageLoading } = useQuery({
     ...trpc.usage.status.queryOptions(),
-    enabled: !!userId, // Выполнять запрос только если пользователь авторизован
+    enabled: !!userId,
   })
 
   const hasProAccess = has?.({ plan: 'pro' })
@@ -156,22 +154,20 @@ export const Header = ({
               <SignedIn>
                 {isUsageLoading ? (
                   <Skeleton className="h-8 w-20 rounded-md" />
-                ) : hasNoCredits && !hasProAccess ? (
+                ) : usage && hasNoCredits && !hasProAccess ? (
                   <Button asChild size="sm" className="h-8">
                     <Link href="/pricing" scroll={false}>
                       <CrownIcon className="mr-2 h-4 w-4" />
                       Upgrade
                     </Link>
                   </Button>
-                ) : (
-                  usage && (
-                    <UsagePopover
-                      points={points}
-                      hasProAccess={hasProAccess}
-                      resetTime={resetTime}
-                    />
-                  )
-                )}
+                ) : usage ? (
+                  <UsagePopover
+                    points={points}
+                    hasProAccess={hasProAccess}
+                    resetTime={resetTime}
+                  />
+                ) : null}
                 <UserMenu />
               </SignedIn>
             </>

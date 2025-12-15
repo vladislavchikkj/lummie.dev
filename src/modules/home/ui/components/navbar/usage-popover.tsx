@@ -26,10 +26,10 @@ export const UsagePopover = ({
         <Button
           variant="outline"
           size="icon"
-          className="relative h-8 w-8 md:h-8 md:w-auto md:px-3"
+          className="relative h-8 w-8 gap-1 md:h-8 md:w-auto md:px-3"
         >
           <CircleDollarSign className="h-4 w-4" />
-          <span className="hidden md:ml-2 md:inline">{points.toFixed(2)}</span>
+          <span className="hidden md:ml-2 md:inline">{Math.round(points)}</span>
           <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold md:hidden">
             {Math.round(points)}
           </span>

@@ -15,7 +15,7 @@ import { useAuth } from '@clerk/nextjs'
 
 const STORAGE_KEY = 'bonus-popover-clicked'
 const TARGET_GENERATIONS = 100
-const FREE_POINTS = 2
+const FREE_POINTS = 5
 const PRO_POINTS = 100
 
 export const BonusPopover = () => {
