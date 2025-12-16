@@ -30,7 +30,6 @@ export async function POST(req: Request) {
   const subscription = event.data.object as Stripe.Subscription
   const client = await clerkClient()
 
-  // Получаем userId из различных источников в зависимости от события
   const getUserId = async (): Promise<string | null> => {
     if (event.type === 'checkout.session.completed') {
       return session.metadata?.userId || null
@@ -40,12 +39,10 @@ export async function POST(req: Request) {
       event.type === 'customer.subscription.deleted' ||
       event.type === 'customer.subscription.updated'
     ) {
-      // Сначала пробуем получить из metadata подписки
       if (subscription.metadata?.userId) {
         return subscription.metadata.userId
       }
 
-      // Если нет в metadata, получаем из customer metadata
       if (subscription.customer) {
         const customer =
           typeof subscription.customer === 'string'
@@ -68,7 +65,6 @@ export async function POST(req: Request) {
       return new NextResponse('User ID missing in metadata', { status: 400 })
     }
 
-    // Обновляем metadata подписки и customer для будущих событий
     if (session.subscription && typeof session.subscription === 'string') {
       await stripe.subscriptions.update(session.subscription, {
         metadata: { userId },

@@ -28,7 +28,6 @@ export const subscriptionRouter = createTRPCRouter({
         })
       }
 
-      // Используем переданный URL или главную страницу
       const returnUrl = input?.returnUrl || `${appUrl}/`
       const successUrl = new URL(returnUrl)
       successUrl.searchParams.set('success', 'true')
@@ -83,7 +82,6 @@ export const subscriptionRouter = createTRPCRouter({
         })
       }
 
-      // Получаем stripeCustomerId из метаданных пользователя
       const clerkUser = await user.users.getUser(userId)
       const publicMetadata = clerkUser.publicMetadata as {
         stripeCustomerId?: string
@@ -98,10 +96,8 @@ export const subscriptionRouter = createTRPCRouter({
         })
       }
 
-      // Используем переданный URL или главную страницу
       const returnUrl = input?.returnUrl || `${appUrl}/`
 
-      // Создаем сессию для Customer Portal
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
         return_url: returnUrl,
