@@ -6,6 +6,8 @@ import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
 import { ClerkProvider } from '@clerk/nextjs'
 import CookieConsent from '@/components/cookie-consent'
+import { SubscriptionDialogProvider } from '@/modules/subscriptions/hooks/use-subscription-dialog'
+import { SubscriptionDialogWrapper } from './layout-subscription-dialog'
 import { APP_NAME, APP_URL } from './constants'
 import {
   SEO_TEXTS,
@@ -253,15 +255,18 @@ export default function RootLayout({
               >
                 <Toaster />
 
-                <SidebarProvider>
-                  <SwipeGesturesProvider>
-                    <ScrollbarGutterFix />
-                    <DynamicNavbar />
-                    <AppSidebar />
-                    <main className="w-full ring-0">{children}</main>
-                  </SwipeGesturesProvider>
-                </SidebarProvider>
-                <CookieConsent />
+                <SubscriptionDialogProvider>
+                  <SidebarProvider>
+                    <SwipeGesturesProvider>
+                      <ScrollbarGutterFix />
+                      <DynamicNavbar />
+                      <AppSidebar />
+                      <main className="w-full ring-0">{children}</main>
+                    </SwipeGesturesProvider>
+                  </SidebarProvider>
+                  <SubscriptionDialogWrapper />
+                  <CookieConsent />
+                </SubscriptionDialogProvider>
               </ThemeProvider>
             </body>
           </html>

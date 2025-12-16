@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useScroll } from '@/hooks/use-scroll'
-import { SignedIn, SignedOut, useAuth } from '@clerk/nextjs'
+import { SignedIn, SignedOut, useAuth, useUser } from '@clerk/nextjs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AuthControls } from '@/modules/home/ui/components/navbar/auth-controls'
 import { UserMenu } from '@/modules/home/ui/components/navbar/user-menu'
@@ -13,14 +13,15 @@ import { Button } from '@/components/ui/button'
 import { CrownIcon, Menu } from 'lucide-react'
 import { useMemo, useState, useEffect } from 'react'
 import { formatDuration, intervalToDuration } from 'date-fns'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTRPC } from '@/trpc/client'
 import { UsagePopover } from '@/modules/home/ui/components/navbar/usage-popover'
 import { useSidebar } from '@/components/ui/sidebar'
+import { useSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
+import { SubscriptionDialog } from '@/modules/subscriptions/ui/subscription-dialog'
 
 const navItems = [
   { href: '/enterprise', label: 'Enterprise' },
-  { href: '/pricing', label: 'Pricing' },
   { href: '/resources', label: 'Resources' },
 ]
 
@@ -57,25 +58,72 @@ export const Header = ({
 }: HeaderProps) => {
   const isScrolled = useScroll()
   const pathname = usePathname()
-  const { isLoaded, has, userId } = useAuth()
+  const { isLoaded, userId } = useAuth()
+  const { user, isLoaded: isUserLoaded } = useUser()
   const trpc = useTRPC()
+  const queryClient = useQueryClient()
   const { toggleSidebar } = useSidebar()
+  const { open: subscriptionDialogOpen, setOpen: setSubscriptionDialogOpen } =
+    useSubscriptionDialog()
 
   const [isMounted, setIsMounted] = useState(false)
+  const [lastProStatus, setLastProStatus] = useState<boolean | null>(null)
+  const [hasCheckedSuccess, setHasCheckedSuccess] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  const { data: usage, isLoading: isUsageLoading } = useQuery({
-    ...trpc.usage.status.queryOptions(),
-    enabled: !!userId,
-  })
+  // Проверяем Pro статус из user.publicMetadata
+  const hasProAccess =
+    (user?.publicMetadata as { plan?: string })?.plan === 'pro'
 
-  const hasProAccess = has?.({ plan: 'pro' })
+  const { data: usage, isLoading: isUsageLoading, refetch: refetchUsage } =
+    useQuery({
+      ...trpc.usage.status.queryOptions(),
+      enabled: !!userId,
+    })
+
   const points = usage?.remainingPoints ?? 0
   const msBeforeNext = usage?.msBeforeNext ?? 0
   const hasNoCredits = points <= 0
+
+  // Обновляем данные пользователя и usage при возврате с оплаты
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user || !isUserLoaded || hasCheckedSuccess)
+      return
+
+    const searchParams = new URLSearchParams(window.location.search)
+    const success = searchParams.get('success')
+    if (success === 'true') {
+      setHasCheckedSuccess(true)
+      // Обновляем данные пользователя
+      user.reload().then(() => {
+        // Обновляем usage query после обновления пользователя
+        setTimeout(() => {
+          refetchUsage()
+        }, 1000)
+      })
+    }
+  }, [user, isUserLoaded, hasCheckedSuccess, refetchUsage])
+
+  // Обновляем usage query при изменении Pro статуса
+  useEffect(() => {
+    if (
+      user &&
+      userId &&
+      isLoaded &&
+      isUserLoaded &&
+      lastProStatus !== null &&
+      lastProStatus !== hasProAccess
+    ) {
+      // Статус изменился, обновляем usage
+      refetchUsage()
+    }
+    if (lastProStatus === null && hasProAccess !== undefined) {
+      setLastProStatus(hasProAccess)
+    }
+  }, [hasProAccess, user, userId, isLoaded, isUserLoaded, lastProStatus, refetchUsage])
 
   const resetTime = useMemo(() => {
     if (!msBeforeNext) return '...'
@@ -140,6 +188,17 @@ export const Header = ({
                   {item.label}
                 </Link>
               ))}
+              <button
+                onClick={() => setSubscriptionDialogOpen(true)}
+                className={cn(
+                  'hover:text-foreground px-3 py-2 text-sm font-medium transition-colors',
+                  pathname === '/pricing'
+                    ? 'text-foreground'
+                    : 'text-muted-foreground'
+                )}
+              >
+                Pricing
+              </button>
             </div>
           )}
         </div>
@@ -155,11 +214,13 @@ export const Header = ({
                 {isUsageLoading ? (
                   <Skeleton className="h-8 w-20 rounded-md" />
                 ) : usage && hasNoCredits && !hasProAccess ? (
-                  <Button asChild size="sm" className="h-8">
-                    <Link href="/pricing" scroll={false}>
-                      <CrownIcon className="mr-2 h-4 w-4" />
-                      Upgrade
-                    </Link>
+                  <Button
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setSubscriptionDialogOpen(true)}
+                  >
+                    <CrownIcon className="mr-2 h-4 w-4" />
+                    Upgrade
                   </Button>
                 ) : usage ? (
                   <UsagePopover

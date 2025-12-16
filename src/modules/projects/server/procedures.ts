@@ -57,9 +57,7 @@ export const projectsRouter = createTRPCRouter({
     return projects
   }),
 
-  // Получение недавно завершённых проектов для уведомлений
   getRecentlyCompleted: protectedProcedure.query(async ({ ctx }) => {
-    // Получаем проекты завершённые за последние 24 часа
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
     const projects = await prisma.project.findMany({
@@ -73,7 +71,7 @@ export const projectsRouter = createTRPCRouter({
       orderBy: {
         updatedAt: 'desc',
       },
-      take: 10, // Максимум 10 уведомлений
+      take: 10,
       include: {
         messages: {
           where: {
@@ -106,7 +104,6 @@ export const projectsRouter = createTRPCRouter({
     }))
   }),
   getManyWithPreview: protectedProcedure.query(async ({ ctx }) => {
-    // Загружаем только 6 последних проектов для главной страницы
     const projects = await prisma.project.findMany({
       where: {
         userId: ctx.auth.userId,
@@ -114,7 +111,7 @@ export const projectsRouter = createTRPCRouter({
       orderBy: {
         updatedAt: 'desc',
       },
-      take: 12, // Берем больше чтобы отфильтровать проекты без фрагментов
+      take: 12,
       include: {
         messages: {
           where: {
@@ -321,17 +318,10 @@ export const projectsRouter = createTRPCRouter({
               return { role: 'user' as const, content }
             }
 
-            // Обычный текстовый формат
             return { role, content: msg.content }
           }
         )
 
-        // Добавляем системный промпт для всех текстовых сообщений в чате
-        // Исключаем только случай, когда это действительно первое сообщение проекта (input.isFirst === true)
-        // которое обрабатывается через Inngest для создания приложения
-        // Проверяем: если в истории есть сообщение с isFirst: true, значит проект уже создан,
-        // и это обычное текстовое сообщение в чате - применяем системный промпт
-        // Или если input.isFirst !== true, то это тоже обычное текстовое сообщение
         const hasFirstMessageInHistory = history.some(
           (msg) => msg.isFirst === true
         )
@@ -381,13 +371,11 @@ export const projectsRouter = createTRPCRouter({
               toolCallName in availableFunctions &&
               toolCallName === CREATE_PROJECT_FN_NAME
             ) {
-              // Проверяем статус проекта перед вызовом createProjectTool
               const project = await prisma.project.findUnique({
                 where: { id: input.projectId },
                 select: { status: true, sandboxId: true },
               })
 
-              // Если проект уже завершен, не вызываем createProjectTool
               if (project?.status === 'COMPLETED') {
                 console.log(
                   `Project ${input.projectId} is already completed, skipping createProjectTool call`
@@ -395,7 +383,6 @@ export const projectsRouter = createTRPCRouter({
                 return
               }
 
-              // Если проект уже в процессе генерации (PENDING + есть sandboxId), не вызываем createProjectTool
               if (project?.status === 'PENDING' && project.sandboxId) {
                 console.log(
                   `Project ${input.projectId} is already in progress with sandbox ${project.sandboxId}, skipping createProjectTool call`
@@ -503,7 +490,6 @@ export const projectsRouter = createTRPCRouter({
       return { status: project.status }
     }),
 
-  // Получение текущих шагов генерации для восстановления при перезагрузке
   getCurrentReasoningSteps: protectedProcedure
     .input(
       z.object({
@@ -550,7 +536,6 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Проверяем, что фрагмент принадлежит пользователю
       const fragment = await prisma.fragment.findFirst({
         where: {
           id: input.fragmentId,
@@ -569,7 +554,6 @@ export const projectsRouter = createTRPCRouter({
         })
       }
 
-      // Обновляем скриншот
       const updatedFragment = await prisma.fragment.update({
         where: {
           id: input.fragmentId,
@@ -590,7 +574,6 @@ export const projectsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Проверяем, что фрагмент принадлежит пользователю
       const fragment = await prisma.fragment.findFirst({
         where: {
           id: input.fragmentId,
@@ -611,34 +594,27 @@ export const projectsRouter = createTRPCRouter({
 
       let browser
       try {
-        // Запускаем Puppeteer с настройками для Linux/Vercel
         browser = await puppeteer.launch({
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
           headless: true,
         })
 
-        // Открываем новую страницу
         const page = await browser.newPage()
 
-        // Устанавливаем размер окна
         await page.setViewport({ width: 1200, height: 800 })
 
-        // Переходим по URL и ждем полной загрузки
         await page.goto(input.url, {
           waitUntil: 'networkidle0',
           timeout: 30000,
         })
 
-        // Делаем скриншот в base64
         const screenshotBase64 = await page.screenshot({
           encoding: 'base64',
           fullPage: false,
         })
 
-        // Формируем Data URL
         const dataUrl = `data:image/png;base64,${screenshotBase64}`
 
-        // Сохраняем dataUrl в базу данных
         const updatedFragment = await prisma.fragment.update({
           where: {
             id: input.fragmentId,

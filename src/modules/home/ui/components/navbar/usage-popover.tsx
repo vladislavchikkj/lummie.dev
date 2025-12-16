@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { CircleDollarSign, CrownIcon } from 'lucide-react'
-import Link from 'next/link'
+import { useSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
 
 interface UsagePopoverProps {
   points: number
@@ -20,6 +20,8 @@ export const UsagePopover = ({
   hasProAccess,
   resetTime,
 }: UsagePopoverProps) => {
+  const { setOpen } = useSubscriptionDialog()
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -46,10 +48,8 @@ export const UsagePopover = ({
             </p>
           </div>
           {!hasProAccess && (
-            <Button asChild size="sm" className="w-full">
-              <Link href="/pricing">
-                <CrownIcon className="mr-2 h-4 w-4" /> Upgrade to Pro
-              </Link>
+            <Button size="sm" className="w-full" onClick={() => setOpen(true)}>
+              <CrownIcon className="mr-2 h-4 w-4" /> Upgrade to Pro
             </Button>
           )}
         </div>

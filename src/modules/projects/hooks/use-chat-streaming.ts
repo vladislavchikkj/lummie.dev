@@ -4,6 +4,7 @@ import { useTRPCClient } from '@/trpc/client'
 import { TRPCClientError } from '@trpc/client'
 import { toast } from 'sonner'
 import type { ProcessedImage } from '@/lib/image-processing'
+import { openSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
 
 interface UseChatStreamingProps {
   projectId: string
@@ -93,7 +94,7 @@ export const useChatStreaming = ({
         ) {
           // Handle out of credits error
           toast.error(error.message || 'You have run out of credits')
-          router.push('/pricing')
+          openSubscriptionDialog()
         } else {
           console.error('Streaming error:', error)
         }

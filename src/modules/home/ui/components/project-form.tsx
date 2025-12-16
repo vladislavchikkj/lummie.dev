@@ -21,6 +21,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useClerk } from '@clerk/nextjs'
 import { toast } from 'sonner'
+import { openSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
 
 import { cn } from '@/lib/utils'
 import { useTRPC } from '@/trpc/client'
@@ -168,7 +169,7 @@ export const ProjectForm = () => {
           clerk.openSignIn()
         }
         if (error.data?.code === 'TOO_MANY_REQUESTS') {
-          router.push('/pricing')
+          openSubscriptionDialog()
         }
       },
     })

@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import type { UserResource } from '@clerk/types'
 import { NotificationsPopover } from './notifications-popover'
 import { BonusPopover } from './bonus-popover'
+import { useSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
 
 interface UserMenuMobileProps {
   theme: string
@@ -25,6 +26,7 @@ interface UserMenuMobileProps {
 }
 
 const UserMenuMobile = ({ theme, setTheme }: UserMenuMobileProps) => {
+  const { setOpen } = useSubscriptionDialog()
   const itemClasses =
     'flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent'
 
@@ -34,10 +36,10 @@ const UserMenuMobile = ({ theme, setTheme }: UserMenuMobileProps) => {
         <User className="h-4 w-4" />
         Profile
       </Link>
-      <Link href="/profile/billing" className={itemClasses}>
+      <button onClick={() => setOpen(true)} className={itemClasses}>
         <CreditCard className="h-4 w-4" />
-        Billing
-      </Link>
+        Payment
+      </button>
       <div className="flex items-center gap-1">
         <button
           onClick={() => setTheme('light')}
@@ -91,6 +93,7 @@ const UserMenuDesktop = ({
   setTheme: (theme: string) => void
   signOut: () => void
 }) => {
+  const { setOpen } = useSubscriptionDialog()
   return (
     <div className="ml-auto flex items-center justify-center gap-0.5">
       <div className="flex-shrink-0">
@@ -134,12 +137,15 @@ const UserMenuDesktop = ({
                   <DropdownMenuShortcut>⇧P</DropdownMenuShortcut>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile/billing">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  <span>Billing</span>
-                  <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                </Link>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setOpen(true)
+                }}
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                <span>Payment</span>
+                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

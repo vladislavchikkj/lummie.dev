@@ -35,6 +35,7 @@ import {
 import { ProjectMenu } from '@/modules/projects/ui/components/project-menu'
 import { cn } from '@/lib/utils'
 import Logo from './ui/logo'
+import { useSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
 
 const CollapsibleGroupLabel = ({
   icon: Icon,
@@ -121,6 +122,7 @@ export function AppSidebar() {
   const trpc = useTRPC()
   const pathname = usePathname()
   const { userId } = useAuth()
+  const { setOpen: setSubscriptionDialogOpen } = useSubscriptionDialog()
 
   // Состояние для сворачивания групп
   const [collapsedGroups, setCollapsedGroups] = useState({
@@ -563,32 +565,6 @@ export function AppSidebar() {
                 <div className="text-gray-500 dark:text-gray-400">Building</div>
               </div>
             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="space-y-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="w-full justify-start text-gray-600 hover:bg-black/5 hover:text-black dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
-            >
-              <Link href="/profile/billing" scroll={false}>
-                <CreditCard className="mr-2 h-3 w-3" />
-                <span className="text-xs">Billing</span>
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="w-full justify-start text-gray-600 hover:bg-black/5 hover:text-black dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
-            >
-              <Link href="/profile" scroll={false}>
-                <User className="mr-2 h-3 w-3" />
-                <span className="text-xs">Profile</span>
-              </Link>
-            </Button>
           </div>
         </div>
       </SidebarContent>
