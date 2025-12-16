@@ -25,3 +25,4 @@ export const PricingPageClient = () => {
   return <SubscriptionDialog open={open} onOpenChange={setOpen} />
 }
 
+

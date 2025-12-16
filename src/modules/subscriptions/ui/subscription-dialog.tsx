@@ -1,7 +1,16 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useUser, useAuth } from '@clerk/nextjs'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Check } from 'lucide-react'
+
+import { useTRPC } from '@/trpc/client'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
   DialogContent,
@@ -9,14 +18,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { useTRPC } from '@/trpc/client'
-import { useUser, useAuth } from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Separator } from '@/components/ui/separator'
 
 interface SubscriptionDialogProps {
   open: boolean
@@ -44,6 +45,7 @@ export const SubscriptionDialog = ({
     if (success === 'true' && !isReloading) {
       setIsReloading(true)
       router.replace(window.location.pathname, { scroll: false })
+
       const reloadUser = async () => {
         for (let i = 0; i < 5; i++) {
           await new Promise((resolve) => setTimeout(resolve, i * 1000))
@@ -51,7 +53,6 @@ export const SubscriptionDialog = ({
           const updatedPlan = (user.publicMetadata as { plan?: string })?.plan
           if (updatedPlan === 'pro') {
             queryClient.invalidateQueries(trpc.usage.status.queryOptions())
-            setIsReloading(false)
             break
           }
         }
@@ -61,11 +62,13 @@ export const SubscriptionDialog = ({
     }
   }, [user, router, isReloading, queryClient, trpc, open])
 
+  const handlePayment = (url?: string) => {
+    if (url) window.location.href = url
+  }
+
   const { mutate: createStripeSession, isPending } = useMutation(
     trpc.subscriptions.createCheckoutSession.mutationOptions({
-      onSuccess: ({ url }) => {
-        if (url) window.location.href = url
-      },
+      onSuccess: ({ url }) => handlePayment(url),
       onError: (err) => console.error(err),
     })
   )
@@ -73,12 +76,13 @@ export const SubscriptionDialog = ({
   const { mutate: createPortalSession, isPending: isPortalPending } =
     useMutation(
       trpc.subscriptions.createCustomerPortal.mutationOptions({
-        onSuccess: ({ url }) => {
-          if (url) window.location.href = url
-        },
+        onSuccess: ({ url }) => handlePayment(url),
         onError: (err) => console.error(err),
       })
     )
+
+  const getReturnUrl = () =>
+    typeof window !== 'undefined' ? window.location.href : '/'
 
   const handleUpgrade = () => {
     if (!isLoaded) return
@@ -87,7 +91,7 @@ export const SubscriptionDialog = ({
       onOpenChange(false)
       return
     }
-    createStripeSession()
+    createStripeSession({ returnUrl: getReturnUrl() })
   }
 
   const handleManageSubscription = () => {
@@ -97,18 +101,12 @@ export const SubscriptionDialog = ({
       onOpenChange(false)
       return
     }
-    createPortalSession()
+    createPortalSession({ returnUrl: getReturnUrl() })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* FIX:
-         1. w-[95vw] - на мобильных почти во весь экран.
-         2. sm:max-w-[900px] - принудительно расширяем на десктопе (перебивает стандартный sm:max-w-lg).
-         3. overflow-hidden - чтобы скругленные углы не обрезались контентом.
-      */}
-      <DialogContent className="bg-sidebar max-h-[90vh] w-[95vw] overflow-y-auto border-none p-0 shadow-2xl sm:max-w-[900px] sm:rounded-3xl">
-        {/* Хедер */}
+      <DialogContent className="bg-sidebar m-0 h-screen w-screen max-w-none overflow-y-auto rounded-none border-none p-0 sm:h-auto sm:max-h-[90vh] sm:w-[95vw] sm:max-w-[900px] sm:rounded-3xl sm:border sm:shadow-2xl">
         <div className="flex flex-col items-center justify-center px-6 py-10 text-center sm:pt-16 sm:pb-10">
           <DialogHeader>
             <DialogTitle className="text-3xl font-bold tracking-tight sm:text-5xl">
@@ -120,10 +118,8 @@ export const SubscriptionDialog = ({
           </DialogHeader>
         </div>
 
-        {/* Сетка тарифов */}
         <div className="grid grid-cols-1 gap-6 px-6 pb-12 sm:grid-cols-2 sm:gap-8 sm:px-12">
-          {/* === FREE PLAN === */}
-          <div className="border-border/50 bg-background/50 hover:bg-muted/20 flex flex-col rounded-3xl border p-6 transition-colors sm:p-8">
+          <div className="border-border bg-background/50 flex flex-col rounded-3xl border p-6 transition-colors sm:p-8">
             <div className="mb-4">
               <h3 className="text-foreground/80 text-lg font-semibold">Free</h3>
               <p className="text-muted-foreground mt-1 text-sm">
@@ -164,15 +160,12 @@ export const SubscriptionDialog = ({
             </div>
           </div>
 
-          {/* === PRO PLAN === */}
-          {/* Полная заливка черным (bg-foreground). Белый текст (text-background). Без бордеров. */}
           <div
             className={cn(
               'relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all sm:p-8',
               'bg-foreground text-background shadow-2xl ring-1 ring-white/10'
             )}
           >
-            {/* Блик на фоне */}
             <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
 
             <div className="relative z-10 mb-4 flex items-center justify-between">
