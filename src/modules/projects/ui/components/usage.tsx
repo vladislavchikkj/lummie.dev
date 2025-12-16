@@ -1,9 +1,11 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@clerk/nextjs'
+import { useUser } from '@clerk/nextjs'
 import { formatDuration, intervalToDuration } from 'date-fns'
 import { CrownIcon, XIcon } from 'lucide-react'
-import Link from 'next/link'
 import { useMemo } from 'react'
+import { useSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
 
 interface Props {
   points: number
@@ -12,8 +14,10 @@ interface Props {
 }
 
 export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
-  const { has } = useAuth()
-  const hasProAccess = has?.({ plan: 'pro' })
+  const { user } = useUser()
+  const { setOpen } = useSubscriptionDialog()
+  const hasProAccess =
+    (user?.publicMetadata as { plan?: string })?.plan === 'pro'
 
   const resetTime = useMemo(() => {
     try {
@@ -48,14 +52,12 @@ export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
         <div className="flex items-center gap-2">
           {!hasProAccess && (
             <Button
-              asChild
               size="sm"
               variant="outline"
               className="h-7 px-3 text-xs font-medium"
+              onClick={() => setOpen(true)}
             >
-              <Link href="/pricing">
-                <CrownIcon className="mr-1.5 size-3" /> Upgrade
-              </Link>
+              <CrownIcon className="mr-1.5 size-3" /> Upgrade
             </Button>
           )}
           <button

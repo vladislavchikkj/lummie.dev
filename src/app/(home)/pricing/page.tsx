@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
-import PricingView from './pricing-view'
 import { APP_URL } from '@/app/constants'
 import {
   PAGE_SEO,
   createOpenGraphMetadata,
   createTwitterMetadata,
 } from '@/app/constants/seo'
+import { PricingPageClient } from './pricing-page-client'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 }
 
 const PricingPage = () => {
-  return <PricingView />
+  return <PricingPageClient />
 }
 
 export default PricingPage
