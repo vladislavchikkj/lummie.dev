@@ -340,7 +340,7 @@ export const projectsRouter = createTRPCRouter({
 
         const stream = await openai.chat.completions.create(
           {
-            model: 'gpt-4o-mini',
+            model: 'gpt-5.2',
             messages: messagesForApi,
             stream: true,
             tools,

@@ -1,4 +1,4 @@
 export const APP_NAME = 'Lummie'
 export const APP_DESCRIPTION =
-  'Build your dream application with our powerful AI tools and components.'
+  'Your all-in-one AI companion for chatting, creating art, and building.'
 export const APP_URL = 'https://lummie.app'

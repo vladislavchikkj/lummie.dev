@@ -244,7 +244,7 @@ function Sidebar({
         data-desktop="true"
         // onMouseLeave={() => setOpen(false)}
         className={cn(
-          'bg-background text-sidebar-foreground w-[var(--sidebar-width)] p-0',
+          'bg-sidebar text-sidebar-foreground w-[var(--sidebar-width)] p-0',
           'border-0 transition-none [&>button]:hidden [&~div]:hidden',
           'h-[92vh]',
           'rounded-xl',
@@ -262,13 +262,6 @@ function Sidebar({
         }
         side={side}
       >
-        <GlowingEffect
-          spread={20}
-          glow={true}
-          disabled={false}
-          proximity={64}
-          inactiveZone={0.01}
-        />
         <SheetHeader className="sr-only">
           <SheetTitle>Sidebar</SheetTitle>
           <SheetDescription>Displays the desktop sidebar.</SheetDescription>
@@ -413,7 +406,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn('relative flex w-full min-w-0 flex-col p-2', className)}
+      className={cn('relative flex w-full min-w-0 flex-col', className)}
       {...props}
     />
   )
