@@ -63,7 +63,7 @@ import {
   History,
   Upload,
   X,
-  Sparkles,
+  Lightbulb,
   AudioLines,
   Square,
 } from 'lucide-react'
@@ -654,7 +654,7 @@ export const MessageForm = ({
                     className="w-full resize-none border-none bg-transparent py-2 outline-none placeholder:text-transparent"
                     placeholder=" "
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                      if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
                         form.handleSubmit(formSubmit)()
                       }
@@ -683,11 +683,10 @@ export const MessageForm = ({
                             type="button"
                             variant="secondary"
                             size="sm"
-                            className="h-7 rounded-full px-3"
+                            className="h-7 w-7 rounded-full p-0"
                             disabled={isProcessingImages}
                           >
-                            <Sparkles className="mr-1.5 size-3.5" />
-                            Use a template
+                            <Lightbulb className="size-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start">
@@ -714,13 +713,6 @@ export const MessageForm = ({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-
-                <div className="text-muted-foreground hidden font-mono text-[10px] sm:block">
-                  <kbd className="bg-muted text-muted-foreground pointer-events-none ml-auto inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium select-none">
-                    <span>&#8984;</span>Enter
-                  </kbd>
-                  &nbsp;to submit
-                </div>
               </div>
 
               <div className="flex items-center gap-1">

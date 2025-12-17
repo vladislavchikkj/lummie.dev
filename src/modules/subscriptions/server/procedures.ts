@@ -48,6 +48,7 @@ export const subscriptionRouter = createTRPCRouter({
         metadata: { userId },
         success_url: successUrl.toString(),
         cancel_url: cancelUrl.toString(),
+        allow_promotion_codes: true,
       })
 
       if (!session.url) {
