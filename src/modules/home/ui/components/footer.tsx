@@ -15,7 +15,7 @@ const footerLinks = [
 
 const socialLinks = [
   {
-    href: 'https://github.com/vladislavchikkj/lummie.dev',
+    href: 'https://github.com/vladislavchikkj/lummie.app',
     label: 'GitHub',
     icon: Github,
   },

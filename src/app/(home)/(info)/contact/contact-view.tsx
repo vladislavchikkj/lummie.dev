@@ -43,10 +43,10 @@ export default function ContactView() {
                         For pricing, plans, and partnerships.
                       </p>
                       <a
-                        href="mailto:sales@lummie.dev"
+                        href="mailto:sales@lummie.app"
                         className="text-foreground hover:text-muted-foreground mt-2 inline-block text-sm font-medium transition-colors"
                       >
-                        sales@lummie.dev
+                        sales@lummie.app
                       </a>
                     </div>
                   </div>
@@ -62,10 +62,10 @@ export default function ContactView() {
                         For technical help and other questions.
                       </p>
                       <a
-                        href="mailto:support@lummie.dev"
+                        href="mailto:support@lummie.app"
                         className="text-foreground hover:text-muted-foreground mt-2 inline-block text-sm font-medium transition-colors"
                       >
-                        support@lummie.dev
+                        support@lummie.app
                       </a>
                     </div>
                   </div>

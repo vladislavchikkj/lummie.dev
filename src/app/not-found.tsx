@@ -26,12 +26,12 @@ export default function NotFound() {
 
       <footer className="text-muted-foreground py-8 text-sm">
         <a
-          href="https://lummie.dev"
+          href="https://lummie.app"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-foreground transition-colors"
         >
-          lummie.dev
+          lummie.app
         </a>
       </footer>
     </div>
