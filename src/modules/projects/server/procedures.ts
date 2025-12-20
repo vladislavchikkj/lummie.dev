@@ -278,6 +278,9 @@ export const projectsRouter = createTRPCRouter({
               userId: ctx.auth.userId,
             },
           },
+          orderBy: {
+            createdAt: 'asc',
+          },
         })
 
         interface ImageData {

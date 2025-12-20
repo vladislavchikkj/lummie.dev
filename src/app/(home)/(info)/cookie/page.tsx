@@ -30,10 +30,10 @@ export default function CookiePage() {
 
         <main className="mt-12 space-y-6 rounded-xl bg-white p-8 text-lg leading-relaxed shadow-2xl shadow-indigo-100/50 dark:bg-zinc-800 dark:shadow-none">
           <p>
-            This Cookie Policy explains how lummie.dev ("Company," "we," "us,"
+            This Cookie Policy explains how lummie.app ("Company," "we," "us,"
             or "our") uses cookies and similar technologies (such as web
             beacons, pixels, and scripts) to recognize you when you visit our
-            website at lummie.dev and use our Services. It explains what these
+            website at lummie.app and use our Services. It explains what these
             technologies are, why we use them, and your rights to control our
             use of them.
           </p>
@@ -48,7 +48,7 @@ export default function CookiePage() {
             efficiently, as well as to provide reporting information.
           </p>
           <p>
-            Cookies set by the website owner (in this case, lummie.dev) are
+            Cookies set by the website owner (in this case, lummie.app) are
             called{' '}
             <strong className="font-extrabold text-gray-900 dark:text-gray-50">
               "first-party cookies."
@@ -210,10 +210,10 @@ export default function CookiePage() {
             If you have any questions about our use of cookies or other
             technologies, please email us at:
             <a
-              href="mailto:legal@lummie.dev"
+              href="mailto:legal@lummie.app"
               className="font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
-              legal@lummie.dev
+              legal@lummie.app
             </a>
           </p>
           <CookieManager />

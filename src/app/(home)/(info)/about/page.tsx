@@ -51,13 +51,13 @@ export default function AboutPage() {
         {/* --- Hero Section --- */}
         <header className="mx-auto max-w-4xl text-center">
           <div className="mb-4 inline-block rounded-full border border-zinc-200 bg-zinc-100 px-4 py-1 text-sm font-medium text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-            About lummie.dev
+            About lummie.app
           </div>
           <h1 className="bg-gradient-to-r from-zinc-900 to-zinc-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl dark:from-zinc-200 dark:to-zinc-500">
             Turn ideas into reality. Instantly.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 sm:text-xl dark:text-zinc-400">
-            lummie.dev is an AI-powered platform designed to automate software
+            lummie.app is an AI-powered platform designed to automate software
             development. Describe your idea in plain English, and our AI will
             generate, build, and deliver a complete, ready-to-use web
             application.

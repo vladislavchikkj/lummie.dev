@@ -32,9 +32,9 @@ export default function PrivacyPolicyPage() {
           <div className="privacy-policy-content">
             <p>
               This Privacy Policy ("Policy") governs the manner in which
-              lummie.dev ("Company," "we," "us," or "our") collects, uses,
+              lummie.app ("Company," "we," "us," or "our") collects, uses,
               maintains, and discloses information collected from users ("User,"
-              "you," or "your") of the lummie.dev platform and any related
+              "you," or "your") of the lummie.app platform and any related
               services (collectively, the "Services"). Your access to and use of
               the Services is contingent upon your acceptance of and compliance
               with this Policy.
@@ -415,10 +415,10 @@ export default function PrivacyPolicyPage() {
             <p className="font-bold">
               Email:{' '}
               <a
-                href="mailto:legal@lummie.dev"
+                href="mailto:legal@lummie.app"
                 className="font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
               >
-                legal@lummie.dev
+                legal@lummie.app
               </a>
             </p>
           </div>

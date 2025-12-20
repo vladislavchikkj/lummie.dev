@@ -31,8 +31,8 @@ export default function TermsOfServicePage() {
         <main className="mt-12 space-y-6 rounded-xl bg-white p-8 text-lg leading-relaxed shadow-2xl shadow-indigo-100/50 dark:bg-zinc-800 dark:shadow-none">
           <p>
             These Terms of Service ("Terms") govern your access to and use of
-            the lummie.dev platform and any related services (collectively, the
-            "Services"), provided by lummie.dev ("Company," "we," "us," or
+            the lummie.app platform and any related services (collectively, the
+            "Services"), provided by lummie.app ("Company," "we," "us," or
             "our"). By accessing or using our Services, you agree to be bound by
             these Terms. If you do not agree to these Terms, you may not use the
             Services.
@@ -293,10 +293,10 @@ export default function TermsOfServicePage() {
           <p className="font-bold">
             Email:{' '}
             <a
-              href="mailto:legal@lummie.dev"
+              href="mailto:legal@lummie.app"
               className="font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
             >
-              legal@lummie.dev
+              legal@lummie.app
             </a>
           </p>
         </main>

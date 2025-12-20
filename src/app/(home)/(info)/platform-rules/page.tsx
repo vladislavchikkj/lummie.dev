@@ -33,7 +33,7 @@ export default function PlatformRulesPage() {
           <div className="privacy-policy-content">
             <p>
               These Platform Rules ("Rules") govern the acceptable use of the
-              lummie.dev Services and are incorporated by reference into our
+              lummie.app Services and are incorporated by reference into our
               Terms of Service. By using the Services, you agree to abide by
               these Rules. Failure to comply with these Rules constitutes a
               material breach of the Terms of Service and may result in the
@@ -190,10 +190,10 @@ export default function PlatformRulesPage() {
               If you encounter any content or activity on the Services that you
               believe violates these Rules, please report it immediately to:
               <a
-                href="mailto:legal@lummie.dev"
+                href="mailto:legal@lummie.app"
                 className="font-semibold text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
               >
-                legal@lummie.dev
+                legal@lummie.app
               </a>
             </p>
           </div>
