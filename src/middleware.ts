@@ -10,10 +10,17 @@ const isPublicRoute = createRouteMatcher([
   '/about',
   '/contact',
   '/enterprise',
+  '/resources',
+  '/cookie',
+  '/platform-rules',
   // PWA files
   '/manifest.json',
   '/sw.js',
-  // Clerk routes - allow access to profile and settings routes
+
+  '/robots.txt',
+  '/sitemap.xml',
+
+  // Clerk routes
   '/profile(.*)',
   '/settings(.*)',
 ])

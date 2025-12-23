@@ -20,6 +20,7 @@ import { DynamicNavbar } from '@/components/dynamic-navbar'
 import { PWAProvider } from '@/components/pwa-provider'
 import { SwipeGesturesProvider } from '@/components/swipe-gestures-provider'
 import { ScrollbarGutterFix } from '@/components/scrollbar-gutter-fix'
+import { GoogleAnalyticsComponent } from '@/components/google-analytics'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -57,10 +58,13 @@ export const metadata: Metadata = {
     canonical: APP_URL,
   },
   manifest: '/manifest.json',
-
-  verification: {
-    google: 'google-site-verification-code',
-  },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
   icons: {
     icon: [
       {
@@ -268,6 +272,7 @@ export default function RootLayout({
                   <CookieConsent />
                 </SubscriptionDialogProvider>
               </ThemeProvider>
+              <GoogleAnalyticsComponent />
             </body>
           </html>
         </PWAProvider>

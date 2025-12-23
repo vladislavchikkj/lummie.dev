@@ -41,35 +41,34 @@ const Page = async () => {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: APP_NAME,
-    description: APP_DESCRIPTION,
+    description: SEO_TEXTS.defaultDescription,
     url: APP_URL,
     applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Web',
+    operatingSystem: 'Web, iOS, Android',
     offers: {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '100',
+      description: 'Free tier available',
     },
     featureList: [
-      'AI-Powered Code Generation',
-      'Full-Stack Application Building',
-      'Automated Development Workflow',
-      'Secure Cloud Sandbox',
-      'Project Management Dashboard',
+      'AI Chat Assistant',
+      'Text to Website Generator',
+      'AI Image Generator',
+      'Code Generation',
+      'AI Content Generator',
+      'Multimodal AI Processing',
     ],
     screenshot: `${APP_URL}/og-image.png`,
-    softwareVersion: '1.0',
+    softwareVersion: process.env.npm_package_version || '1.0',
     datePublished: '2025-01-01',
+    dateModified: new Date().toISOString().split('T')[0],
     creator: {
       '@type': 'Organization',
       name: APP_NAME,
       url: APP_URL,
     },
+    keywords: SEO_TEXTS.keywords.join(', '),
   }
 
   const organizationData = {
@@ -77,11 +76,13 @@ const Page = async () => {
     '@type': 'Organization',
     name: APP_NAME,
     url: APP_URL,
-    logo: `${APP_URL}/logo.svg`,
-    description: APP_DESCRIPTION,
-    sameAs: [
-      // Add your social media links here when available
-    ],
+    logo: {
+      '@type': 'ImageObject',
+      url: `${APP_URL}/logo.svg`,
+    },
+    description: SEO_TEXTS.defaultDescription,
+    foundingDate: '2025',
+    sameAs: [],
   }
 
   const websiteData = {
@@ -114,6 +115,8 @@ const Page = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteData) }}
       />
+
+      {/* Основной контент (First View) */}
       <section className="pt-40 pb-20">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center px-5">
           <Logo width={75} height={75} className="relative z-10 mb-2" />
@@ -136,8 +139,72 @@ const Page = async () => {
               </div>
             </HydrationBoundary>
           ) : (
-            <div className="min-h-[50vh]" />
+            <div className="min-h-[30vh]" />
           )}
+        </div>
+      </section>
+
+      {/* SAFE SEO SECTION 
+        Сделано максимально незаметно (мелкий серый шрифт внизу), 
+        но полностью легально для Google.
+      */}
+      <section className="border-t border-neutral-200 bg-neutral-50/50 py-16 dark:border-neutral-800 dark:bg-neutral-900/20">
+        <div className="mx-auto max-w-7xl px-5 text-sm text-neutral-400 dark:text-neutral-500">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {/* Column 1: Core Value */}
+            <div className="space-y-3">
+              <h2 className="font-semibold text-neutral-600 dark:text-neutral-300">
+                Advanced AI Platform
+              </h2>
+              <p>
+                {APP_NAME} represents the next evolution in AI assistance.
+                Unlike a standard <strong>ChatGPT alternative</strong>, our
+                platform acts as a comprehensive
+                <strong>AI App Builder</strong>. We combine state-of-the-art
+                LLMs with specialized rendering engines to allow users to
+                generate not just text, but fully functional web applications
+                and professional visual assets.
+              </p>
+            </div>
+
+            {/* Column 2: Features (Keywords heavy) */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-neutral-600 dark:text-neutral-300">
+                Multimodal Capabilities
+              </h3>
+              <p>
+                Our <strong>AI Image Generator</strong> creates high-fidelity
+                visuals from natural language, while our{' '}
+                <strong>Text to Website</strong> engine transforms prompts into
+                production-ready React code. Whether you need an intelligent{' '}
+                <strong>AI Writer</strong> for content creation or a
+                sophisticated coding companion, {APP_NAME} unifies these tools
+                into one seamless interface.
+              </p>
+            </div>
+
+            {/* Column 3: Comparison & Tech */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-neutral-600 dark:text-neutral-300">
+                Why Lummie?
+              </h3>
+              <p>
+                Designed for efficiency, {APP_NAME} serves as a powerful{' '}
+                <strong>ChatOn alternative</strong> and
+                <strong>Jasper alternative</strong>. By integrating{' '}
+                <strong>text generation</strong>,<strong>code building</strong>,
+                and visual design, we empower creators to go from idea to
+                deployed application in minutes. Experience the future of
+                generative AI today.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center text-xs opacity-60">
+            © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
+            Generated content is powered by advanced artificial intelligence
+            models.
+          </div>
         </div>
       </section>
     </>

@@ -1,52 +1,38 @@
 import { APP_NAME, APP_URL } from './index'
 
-// Основные SEO тексты
 export const SEO_TEXTS = {
-  // Заголовок должен кричать о многофункциональности.
-  // Формула: [Имя] - [Главная функция] + [Киллер-фича]
   defaultTitle: `${APP_NAME} - Advanced AI Chat, Content Creator & Website Generator`,
 
-  // Шаблон для внутренних страниц
   titleTemplate: `%s | ${APP_NAME} - The All-in-One AI Assistant`,
 
-  // OG Title (для соцсетей) - более кликбейтный
   ogTitle: `Better than ChatGPT? Meet ${APP_NAME} - Chat, Draw & Build Apps`,
   ogImageAlt: `${APP_NAME} Interface - AI Chat, Image Generation and Code Building`,
   previewImageAlt: `Preview of ${APP_NAME} capabilities`,
 
-  // Главное описание (Meta Description)
-  // Гугл должен видеть, что это не просто чат, а "швейцарский нож"
   defaultDescription:
     'The ultimate AI assistant for everyone. Chat with advanced AI, generate stunning images, write professional content, and build websites instantly. A powerful alternative to ChatGPT and ChatOn with more features.',
 
-  // Ключевые слова
-  // Смешиваем категории: Чат, Контент, Код, Картинки
   keywords: [
-    // Брендовые и Общие
     'Lummie',
     'Lummie App',
     'AI Assistant',
     'AI Chatbot',
 
-    // Функционал: Текст и Чат
     'AI Content Generator',
     'AI Writer',
     'text generation',
     'smart assistant',
     'natural language processing',
 
-    // Функционал: Картинки (бьем по конкуренту lummi.ai)
     'AI Image Generator',
     'text to image',
     'create art with AI',
 
-    // Функционал: Код (твоя киллер-фича)
     'text to website',
     'AI app builder',
     'generate websites',
     'code assistant',
 
-    // Сравнение с конкурентами (люди ищут альтернативы)
     'ChatGPT alternative',
     'ChatOn alternative',
     'Grok AI alternative',
@@ -58,7 +44,7 @@ export const SEO_TEXTS = {
   ogLocale: 'en_US',
   ogType: 'website',
   ogImage: {
-    url: '/og-image.png', // На картинке должен быть коллаж: Чат + Красивая картинка + Кусок кода сайта
+    url: '/og-image.png',
     width: 1200,
     height: 630,
   },
@@ -67,18 +53,15 @@ export const SEO_TEXTS = {
   twitterCreator: '@lummie_app',
 }
 
-// SEO метаданные для конкретных страниц
 export const PAGE_SEO = {
   home: {
     title: SEO_TEXTS.defaultTitle,
     description: SEO_TEXTS.defaultDescription,
   },
-  // Страница "О нас" должна объяснять, почему мы лучше GPT
   about: {
     title: 'About Lummie AI',
     description: `Lummie is a next-generation AI platform combining the best of text, image, and code generation. We aim to provide more features than standard AI chatbots.`,
   },
-  // Цены - упор на выгоду (всё в одном)
   pricing: {
     title: 'Pro Plans & Pricing',
     description:
@@ -94,7 +77,6 @@ export const PAGE_SEO = {
     description:
       'Empower your team with an all-in-one AI solution. Secure chat, content generation, and rapid prototyping for enterprises.',
   },
-  // Если есть страница ресурсов/блог
   resources: {
     title: 'AI Prompts & Tutorials',
     description:
@@ -125,8 +107,6 @@ export const PAGE_SEO = {
   },
 }
 
-// Вспомогательные функции остаются без изменений,
-// но теперь они будут подтягивать новые "агрессивные" заголовки.
 export const createOpenGraphMetadata = (
   title?: string,
   description?: string,
