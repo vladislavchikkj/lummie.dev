@@ -148,6 +148,7 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: APP_NAME,
+    alternateName: ['Lumi', 'Lumm', 'Lumi AI', 'Lumm AI', 'Lummie AI'],
     applicationCategory: 'ProductivityApplication',
     operatingSystem: 'Web, iOS, Android',
     offers: {
@@ -169,6 +170,34 @@ export default function RootLayout({
       { '@type': 'SoftwareApplication', name: 'ChatGPT' },
       { '@type': 'SoftwareApplication', name: 'ChatOn' },
       { '@type': 'SoftwareApplication', name: 'Grok' },
+    ],
+  }
+
+  const navigationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: [
+      {
+        '@type': 'SiteNavigationElement',
+        position: 1,
+        name: 'About',
+        description: 'About Lummie AI capabilities',
+        url: `${APP_URL}/about`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 2,
+        name: 'Contact',
+        description: 'Get support',
+        url: `${APP_URL}/contact`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 3,
+        name: 'Sign Up',
+        description: 'Start creating with AI',
+        url: `${APP_URL}/sign-up`,
+      },
     ],
   }
 
@@ -249,6 +278,12 @@ export default function RootLayout({
               <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+              />
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify(navigationSchema),
+                }}
               />
 
               <ThemeProvider

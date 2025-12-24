@@ -69,9 +69,25 @@ export const Header = ({
   const [isMounted, setIsMounted] = useState(false)
   const [lastProStatus, setLastProStatus] = useState<boolean | null>(null)
   const [hasCheckedSuccess, setHasCheckedSuccess] = useState(false)
+  const [isPricingHash, setIsPricingHash] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
+    setIsPricingHash(typeof window !== 'undefined' && window.location.hash === '#pricing')
+  }, [])
+
+  // Отслеживаем изменения хеша для подсветки кнопки Pricing
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleHashChange = () => {
+      setIsPricingHash(window.location.hash === '#pricing')
+    }
+
+    window.addEventListener('hashchange', handleHashChange)
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange)
+    }
   }, [])
 
   // Проверяем Pro статус из user.publicMetadata
@@ -192,9 +208,7 @@ export const Header = ({
                 onClick={() => setSubscriptionDialogOpen(true)}
                 className={cn(
                   'hover:text-foreground px-3 py-2 text-sm font-medium transition-colors',
-                  pathname === '/pricing'
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
+                  isPricingHash ? 'text-foreground' : 'text-muted-foreground'
                 )}
               >
                 Pricing

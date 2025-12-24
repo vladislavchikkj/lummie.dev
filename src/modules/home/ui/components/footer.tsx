@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Github, Twitter, Linkedin } from 'lucide-react'
 
 const footerLinks = [
-  { href: '/about', label: 'About Us' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
   { href: '/cookie', label: 'Cookie' },
   { href: '/privacy', label: 'Privacy Policy' },
