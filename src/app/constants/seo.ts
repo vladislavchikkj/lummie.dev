@@ -9,30 +9,36 @@ export const SEO_TEXTS = {
   ogImageAlt: `${APP_NAME} Interface - AI Chat, Image Generation and Code Building`,
   previewImageAlt: `Preview of ${APP_NAME} capabilities`,
 
-  defaultDescription:
-    'The ultimate AI assistant for everyone. Chat with advanced AI, generate stunning images, write professional content, and build websites instantly. A powerful alternative to ChatGPT and ChatOn with more features.',
+  defaultDescription: `${APP_NAME} is your AI assistant for everyday use. Chat with advanced AI, generate stunning images, write professional content, and build websites instantly.`,
 
   keywords: [
+    // Brand variations - critical for brand name searches
     'Lummie',
     'Lummie App',
+    'Lumi',
+    'Lumm',
+    'Lummie AI',
+    'Lumi AI',
+    'Lumm AI',
+    'Lummie platform',
+    'Lumi platform',
+    'Lumm platform',
+
+    // Core features
     'AI Assistant',
     'AI Chatbot',
-
     'AI Content Generator',
     'AI Writer',
     'text generation',
     'smart assistant',
     'natural language processing',
-
     'AI Image Generator',
     'text to image',
     'create art with AI',
-
     'text to website',
     'AI app builder',
     'generate websites',
     'code assistant',
-
     'ChatGPT alternative',
     'ChatOn alternative',
     'Grok AI alternative',
@@ -59,28 +65,28 @@ export const PAGE_SEO = {
     description: SEO_TEXTS.defaultDescription,
   },
   about: {
-    title: 'About Lummie AI',
-    description: `Lummie is a next-generation AI platform combining the best of text, image, and code generation. We aim to provide more features than standard AI chatbots.`,
+    title: 'About',
+    description: `Lummie (also known as Lumi or Lumm) is a next-generation AI platform combining the best of text, image, and code generation. We aim to provide more features than standard AI chatbots.`,
   },
   pricing: {
-    title: 'Pro Plans & Pricing',
+    title: 'Pricing',
     description:
       'Get access to premium AI models, unlimited image generation, and website building features. One subscription replaces 5 different tools.',
   },
   contact: {
-    title: 'Contact Support',
+    title: 'Contact',
     description:
-      'Need help using Lummie AI? Contact our support team for assistance with chat, API, or subscription inquiries.',
+      'Need help using Lummie (Lumi, Lumm) AI? Contact our support team for assistance with chat, API, or subscription inquiries.',
   },
   enterprise: {
-    title: 'Lummie for Business',
+    title: 'Lummie (Lumi) for Business',
     description:
-      'Empower your team with an all-in-one AI solution. Secure chat, content generation, and rapid prototyping for enterprises.',
+      'Empower your team with Lummie (Lumi, Lumm) - an all-in-one AI solution. Secure chat, content generation, and rapid prototyping for enterprises.',
   },
   resources: {
     title: 'AI Prompts & Tutorials',
     description:
-      'Learn how to write better prompts for AI chat, generate professional images, and create websites using Lummie.',
+      'Learn how to write better prompts for AI chat, generate professional images, and create websites using Lummie (Lumi, Lumm).',
   },
   profile: {
     title: 'Your Workspace',
@@ -89,21 +95,23 @@ export const PAGE_SEO = {
   },
   cookie: {
     title: 'Cookie Policy',
-    description: 'How Lummie uses cookies to enhance your AI experience.',
+    description:
+      'How Lummie (Lumi, Lumm) uses cookies to enhance your AI experience.',
   },
   privacy: {
     title: 'Privacy Policy',
     description:
-      'We respect your data privacy. Learn how Lummie handles your chat history and generated content.',
+      'We respect your data privacy. Learn how Lummie (Lumi, Lumm) handles your chat history and generated content.',
   },
   terms: {
     title: 'Terms of Service',
-    description: 'Terms and conditions for using the Lummie AI platform.',
+    description:
+      'Terms and conditions for using the Lummie (Lumi, Lumm) AI platform.',
   },
   platformRules: {
     title: 'Content Guidelines',
     description:
-      'Guidelines for safe and responsible AI content generation on Lummie.',
+      'Guidelines for safe and responsible AI content generation on Lummie (Lumi, Lumm).',
   },
 }
 
