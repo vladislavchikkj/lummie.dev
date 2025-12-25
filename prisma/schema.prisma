@@ -16,26 +16,27 @@ model Project {
   userId                String
   status                ProjectStatus @default(PENDING)
   sandboxId             String?
-  currentReasoningSteps Json?         // Temporary storage for reasoning steps during generation
+  currentReasoningSteps Json? // Temporary storage for reasoning steps during generation
   messages              Message[]
 
   @@index([userId, updatedAt(sort: Desc)])
 }
 
 model Message {
-  id             String      @id @default(uuid())
+  id             String          @id @default(uuid())
   content        String
   role           MessageRole
   type           MessageType
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   projectId      String
   fragment       Fragment?
-  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  isFirst        Boolean     @default(false)
-  generationTime Float?      // Generation time in seconds
-  images         Json?       // Array of images in base64 format with metadata
-  reasoningSteps Json?       // Array of reasoning steps (thinking, actions, steps) shown during generation
+  generatedImage GeneratedImage?
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  isFirst        Boolean         @default(false)
+  generationTime Float? // Generation time in seconds
+  images         Json? // Array of images in base64 format with metadata
+  reasoningSteps Json? // Array of reasoning steps (thinking, actions, steps) shown during generation
 
   @@index([projectId, createdAt(sort: Desc)])
 }
@@ -46,7 +47,7 @@ model Fragment {
   sandboxUrl String
   title      String
   files      Json
-  screenshot String?  // base64 encoded screenshot
+  screenshot String? // base64 encoded screenshot
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
@@ -75,6 +76,18 @@ model ChatMessage {
   type      String
   createdAt DateTime    @default(now())
   chat      Chat        @relation(fields: [chatId], references: [id])
+}
+
+model GeneratedImage {
+  id                String   @id @default(uuid())
+  request_id        String
+  content_violation Boolean
+  imageBase64       String   @db.Text
+  description       String?  @db.Text
+  version           Int      @default(1)
+  createdAt         DateTime @default(now())
+  messageId         String   @unique
+  message           Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
 enum ProjectStatus {

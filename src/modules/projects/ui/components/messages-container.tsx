@@ -14,6 +14,7 @@ import { PulsingLogo } from '@/components/ui/pulsing-logo'
 import type { ProcessedImage } from '@/lib/image-processing'
 import type { LocalImagePreview } from '../../constants/chat'
 import type { ReasoningEvent } from '@/inngest/types'
+import { ImageGenerationResponse } from '@/modules/projects/types'
 
 interface Props {
   projectId: string
@@ -27,12 +28,14 @@ interface Props {
     createdAt: Date
     fragment: Fragment | null
     generationTime?: number | null
+    generatedImage?: ImageGenerationResponse | null
     images?: ProcessedImage[] | null | undefined
     localImagePreviews?: LocalImagePreview[]
     reasoningSteps?: ReasoningEvent[] | null
   }[]
   children: ReactNode
   projectCreating: boolean
+  onEditAssistantImageMessage: (image: string) => void
   isStreaming?: boolean
   isMobile?: boolean
   onEditUserMessage?: (content: string) => void
@@ -48,11 +51,11 @@ export const MessagesContainer = ({
   isStreaming = false,
   isMobile = false,
   onEditUserMessage,
+  onEditAssistantImageMessage
 }: Props) => {
   const lastMessage = messages[messages.length - 1]
   const isLastMessageUser = lastMessage?.role === 'USER'
   const isCenteredLayout = !activeFragment || isMobile
-
   const handleFragmentClick = useCallback(
     (fragment: Fragment | null) => {
       setActiveFragment(fragment)
@@ -116,8 +119,10 @@ export const MessagesContainer = ({
                       isStreaming={isCurrentlyStreaming}
                       generationTime={message.generationTime}
                       images={message.images}
+                      generatedImage={message.generatedImage}
                       localImagePreviews={message.localImagePreviews}
                       onEditUserMessage={onEditUserMessage}
+                      onEditAssistantImageMessage={onEditAssistantImageMessage}
                     />
                     {isLastUserMessage && (isStreaming || projectCreating) && (
                       <div className="mt-2 mb-4 ml-7 flex items-center gap-2">

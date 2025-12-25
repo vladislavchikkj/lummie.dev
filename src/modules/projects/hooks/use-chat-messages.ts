@@ -8,11 +8,13 @@ import {
   CHAT_ROLES,
 } from '../constants/chat'
 import type { ProcessedImage } from '@/lib/image-processing'
+import { ImageGenerationResponse } from '@/modules/projects/types'
 
 interface UseChatMessagesProps {
   projectId: string
   isStreaming: boolean
   streamingContent: string
+  streamingImage: ImageGenerationResponse | null
   streamingCompleted: boolean
   wasStreamAborted: boolean
   pendingUserMessage: ChatMessageEntity | null
@@ -29,6 +31,7 @@ export const useChatMessages = ({
   projectId,
   isStreaming,
   streamingContent,
+  streamingImage,
   streamingCompleted,
   wasStreamAborted,
   pendingUserMessage,
@@ -132,8 +135,9 @@ export const useChatMessages = ({
     }
 
     // Show streaming content if we have content and are streaming or completed
+    const hasActiveContent = streamingContent || streamingImage
     const shouldShowStreamingContent =
-      streamingContent && (isStreaming || streamingCompleted)
+      hasActiveContent && (isStreaming || streamingCompleted)
 
     if (shouldShowStreamingContent) {
       const generationTime = isStreaming
@@ -148,6 +152,7 @@ export const useChatMessages = ({
         fragment: null,
         role: CHAT_ROLES.ASSISTANT,
         content: streamingContent,
+        generatedImage: streamingImage || undefined,
         type: 'RESULT' as const,
         isStreaming: isStreaming,
         generationTime: generationTime ?? undefined,
@@ -164,6 +169,7 @@ export const useChatMessages = ({
     messages,
     pendingUserMessage,
     streamingContent,
+    streamingImage,
     isStreaming,
     streamingCompleted,
     lastGenerationTime,

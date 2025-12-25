@@ -10,7 +10,7 @@ import { Fragment } from '@/generated/prisma'
 import {
   ResizableHandle,
   ResizablePanel,
-  ResizablePanelGroup,
+  ResizablePanelGroup
 } from '@/components/ui/resizable'
 import { useIsMobile } from '@/hooks/use-mobile'
 
@@ -21,13 +21,14 @@ import { useChatStreaming } from '../../hooks/use-chat-streaming'
 import { useChatMessages } from '../../hooks/use-chat-messages'
 import {
   ChatMessageEntity,
-  AssistantMessageType,
+  StreamChunkType,
   TabState,
-  LocalImagePreview,
+  LocalImagePreview
 } from '../../constants/chat'
 import { useTRPCClient, useTRPC } from '@/trpc/client'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ProcessedImage } from '@/lib/image-processing'
+import { ImageGenerationResponse } from '@/modules/projects/types'
 
 interface Props {
   projectId: string
@@ -46,7 +47,7 @@ export const ProjectView = ({ projectId }: Props) => {
   // Проверяем существование проекта
   const { error: projectError } = useQuery({
     ...trpc.projects.getOne.queryOptions({ id: projectId }),
-    retry: false, // Не повторять запрос при ошибке
+    retry: false // Не повторять запрос при ошибке
   })
 
   // Обработка случая, когда проект не найден
@@ -68,8 +69,8 @@ export const ProjectView = ({ projectId }: Props) => {
   const isMobile = isMounted ? isMobileQuery : false
   const [activeFragment, setActiveFragment] = useState<Fragment | null>(null)
   const [tabState, setTabState] = useState<TabState>('preview')
-  const [assistantMessageType, setAssistantMessageType] =
-    useState<AssistantMessageType>('CHAT')
+  const [assistantMessageType, setStreamChunkType] =
+    useState<StreamChunkType>(StreamChunkType.Chat)
   const [copied, setCopied] = useState(false)
   const [fragmentKey, setFragmentKey] = useState(0)
   const [pendingUserMessage, setPendingUserMessage] =
@@ -86,6 +87,7 @@ export const ProjectView = ({ projectId }: Props) => {
   )
   const [isFragmentFullscreen, setIsFragmentFullscreen] = useState(false)
   const [editingMessage, setEditingMessage] = useState<string | null>(null)
+  const [editingGenImage, setEditingGenImage] = useState<Pick<ImageGenerationResponse, 'imageBase64'> | null>(null)
   const [isFragmentPanelOpen, setIsFragmentPanelOpen] = useState(true)
 
   const lastMessageWithFragmentIdRef = useRef<string | null>(null)
@@ -95,10 +97,11 @@ export const ProjectView = ({ projectId }: Props) => {
     isStreaming,
     wasStreamAborted,
     streamingContent,
+    streamingImage,
     streamingCompleted,
     startStreaming,
     stopStreaming,
-    clearStreamingContent,
+    clearStreamingContent
   } = useChatStreaming({
     projectId,
     onStreamingStart: () => {
@@ -117,8 +120,9 @@ export const ProjectView = ({ projectId }: Props) => {
       setCurrentStreamingStartTime(null)
       streamingStartTimeRef.current = null
     },
-    onMessageTypeChange: setAssistantMessageType,
-    onContentUpdate: () => {},
+    onMessageTypeChange: setStreamChunkType,
+    onContentUpdate: () => {
+    },
     onStreamAborted: () => {
       setCurrentStreamingStartTime(null)
       streamingStartTimeRef.current = null
@@ -148,6 +152,7 @@ export const ProjectView = ({ projectId }: Props) => {
     isStreaming,
     streamingContent,
     streamingCompleted,
+    streamingImage,
     wasStreamAborted,
     pendingUserMessage,
     lastGenerationTime,
@@ -156,9 +161,10 @@ export const ProjectView = ({ projectId }: Props) => {
     onFirstMessageSubmit: (content: string, images?: ProcessedImage[]) => {
       startStreaming(content, true, images)
     },
-    onMessagesUpdate: () => {},
+    onMessagesUpdate: () => {
+    },
     onStreamingContentClear: clearStreamingContent,
-    onPendingMessageClear: () => setPendingUserMessage(null),
+    onPendingMessageClear: () => setPendingUserMessage(null)
   })
 
   const trpcClient = useTRPCClient()
@@ -171,30 +177,22 @@ export const ProjectView = ({ projectId }: Props) => {
     }
   }, [streamingCompleted, wasStreamAborted, isStreaming, queryClient, trpc])
 
-  // Флаг показывающий, что идет создание проекта (не просто чат)
-  const projectCreating = assistantMessageType !== 'CHAT' && !wasStreamAborted
+  const projectCreating = assistantMessageType === StreamChunkType.Project && !wasStreamAborted
 
   useEffect(() => {
-    if (assistantMessageType !== 'CHAT' && !wasStreamAborted) {
+    if (projectCreating) {
       const tick = async () => {
         try {
           const { status } = await trpcClient.projects.status.query({
-            id: projectId,
+            id: projectId
           })
           if (status === 'COMPLETED' || status === 'ERROR') {
             stopStreaming()
             refetchMessages()
-            // setAssistantMessageType('CHAT'); // Optional: Reset to chat mode if needed
             if (pollingRef.current) {
               clearInterval(pollingRef.current)
               pollingRef.current = null
             }
-            // // Optional: Update generation times or other states if required
-            // const finalTime = currentStreamingStartTime ? (Date.now() - currentStreamingStartTime) / 1000 : null;
-            // if (finalTime) {
-            //   setLastGenerationTime(finalTime);
-            //   setFinalGenerationTime(finalTime);
-            // }
           }
         } catch (error) {
           console.error('Error polling project status:', error)
@@ -219,14 +217,15 @@ export const ProjectView = ({ projectId }: Props) => {
     projectId,
     stopStreaming,
     trpcClient,
-    wasStreamAborted,
+    wasStreamAborted
   ])
 
   const onSubmit = useCallback(
     async (
       message: string,
       images?: ProcessedImage[],
-      originalFiles?: File[]
+      originalFiles?: File[],
+      imageForEdit?: Pick<ImageGenerationResponse, 'imageBase64'> | null | undefined
     ) => {
       if (isStreaming || (!message.trim() && (!images || images.length === 0)))
         return
@@ -238,7 +237,7 @@ export const ProjectView = ({ projectId }: Props) => {
         if (originalFiles && originalFiles.length > 0) {
           localPreviews = originalFiles.map((file) => ({
             url: URL.createObjectURL(file),
-            file,
+            file
           }))
         }
 
@@ -249,14 +248,15 @@ export const ProjectView = ({ projectId }: Props) => {
           createdAt: new Date(),
           fragment: null,
           type: 'RESULT',
-          localImagePreviews: localPreviews,
+          localImagePreviews: localPreviews
         }
 
         setPendingUserMessage(userMsg)
       }
 
-      await startStreaming(message, isFirstMessage, images)
+      await startStreaming(message, isFirstMessage, images, imageForEdit)
       setEditingMessage(null)
+      setEditingGenImage(null)
     },
     [isStreaming, startStreaming]
   )
@@ -317,6 +317,16 @@ export const ProjectView = ({ projectId }: Props) => {
 
   const handleEditUserMessage = useCallback((content: string) => {
     setEditingMessage(content)
+  }, [])
+
+  const handleEditAssistantImageMessage = useCallback((imageContent: string) => {
+    if (imageContent) {
+      setEditingGenImage({ imageBase64: imageContent })
+    }
+  }, [])
+
+  const handleClearAssistantImageMessage = useCallback(() => {
+    setEditingGenImage(null)
   }, [])
 
   const handleFragmentClick = useCallback(
@@ -390,6 +400,7 @@ export const ProjectView = ({ projectId }: Props) => {
                 isStreaming={isStreaming}
                 isMobile={isMobile}
                 onEditUserMessage={handleEditUserMessage}
+                onEditAssistantImageMessage={handleEditAssistantImageMessage}
               >
                 <MessageForm
                   key={activeFragment ? 'narrow' : 'wide'}
@@ -398,12 +409,15 @@ export const ProjectView = ({ projectId }: Props) => {
                   isStreaming={isStreaming}
                   onSubmit={onSubmit}
                   initialValue={editingMessage || undefined}
+                  generatedImage={editingGenImage}
+                  clearGeneratedImage={handleClearAssistantImageMessage}
                 />
               </MessagesContainer>
             </Suspense>
           </ErrorBoundary>
 
-          <div className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
+          <div
+            className="from-background pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 bg-gradient-to-b to-transparent" />
         </ResizablePanel>
 
         {isFragmentPanelOpen &&

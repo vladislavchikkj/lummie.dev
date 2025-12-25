@@ -17,6 +17,8 @@ import { Reasoning } from '@/components/ui/shadcn-io/ai/reasoning'
 import type { ProcessedImage } from '@/lib/image-processing'
 import type { LocalImagePreview } from '../../constants/chat'
 import { ImagePreview } from './image-preview'
+import NextImageBase64DynamicDisplay from '@/modules/projects/ui/components/image-from-ai'
+import { ImageGenerationResponse } from '@/modules/projects/types'
 
 interface FragmentCardProps {
   fragment: Fragment
@@ -25,10 +27,10 @@ interface FragmentCardProps {
 }
 
 const FragmentCard = ({
-  fragment,
-  isActiveFragment,
-  onFragmentClick,
-}: FragmentCardProps) => {
+                        fragment,
+                        isActiveFragment,
+                        onFragmentClick,
+                      }: FragmentCardProps) => {
   return (
     <button
       className={cn(
@@ -87,14 +89,20 @@ const FragmentCard = ({
 interface AssistantMessageActionsProps {
   content: string
   isStreaming?: boolean
-  generationTime?: number | null
+  isImage?: boolean
+  generationTime?: number | null,
+  generatedImage?: string | null,
+  onEditAssistantImageMessage: (image: string) => void
 }
 
 const AssistantMessageActions = ({
-  content,
-  isStreaming = false,
-  generationTime,
-}: AssistantMessageActionsProps) => {
+                                   content,
+                                   isStreaming = false,
+                                   isImage = false,
+                                   generationTime,
+                                   generatedImage,
+                                   onEditAssistantImageMessage
+                                 }: AssistantMessageActionsProps) => {
   const [isLiked, setIsLiked] = useState(false)
   const [isDisliked, setIsDisliked] = useState(false)
 
@@ -170,6 +178,19 @@ const AssistantMessageActions = ({
         <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         <span className="sr-only">Copy</span>
       </Button>
+      {isImage
+        ? <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 transition-all duration-200 hover:scale-110 sm:h-8 sm:w-8"
+          onClick={() => {
+            onEditAssistantImageMessage(generatedImage || '')
+          }}
+        >
+          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="sr-only">Edit message</span>
+        </Button>
+        : null}
       {generationTime !== undefined && generationTime !== null && (
         <span className="text-muted-foreground/70 bg-muted/50 rounded px-1.5 py-0.5 text-xs sm:px-2 sm:py-1">
           {generationTime.toFixed(1)}s
@@ -186,10 +207,10 @@ interface UserMessageActionsProps {
 }
 
 const UserMessageActions = ({
-  content,
-  createdAt,
-  onEdit,
-}: UserMessageActionsProps) => {
+                              content,
+                              createdAt,
+                              onEdit,
+                            }: UserMessageActionsProps) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(content).catch((err) => {
       console.error('Failed to copy text: ', err)
@@ -210,7 +231,8 @@ const UserMessageActions = ({
   }
 
   return (
-    <div className="text-muted-foreground mr-4 flex items-center gap-1 opacity-100 transition-opacity sm:opacity-80 sm:group-hover:opacity-100">
+    <div
+      className="text-muted-foreground mr-4 flex items-center gap-1 opacity-100 transition-opacity sm:opacity-80 sm:group-hover:opacity-100">
       <Button
         variant="ghost"
         size="icon"
@@ -244,6 +266,8 @@ interface MessageCardProps {
   isActiveFragment: boolean
   onFragmentClick: (fragment: Fragment | null) => void
   type: MessageType
+  onEditAssistantImageMessage: (image: string) => void
+  generatedImage?: ImageGenerationResponse | undefined | null
   isStreaming?: boolean
   generationTime?: number | null
   images?: ProcessedImage[] | null | undefined
@@ -253,24 +277,26 @@ interface MessageCardProps {
 
 export const MessageCard = memo(
   ({
-    content,
-    role,
-    fragment,
-    createdAt,
-    isActiveFragment,
-    onFragmentClick,
-    type,
-    isStreaming = false,
-    generationTime,
-    images,
-    localImagePreviews,
-    onEditUserMessage,
-  }: MessageCardProps) => {
+     content,
+     role,
+     fragment,
+     createdAt,
+     isActiveFragment,
+     onFragmentClick,
+     type,
+     isStreaming = false,
+     generationTime,
+     images,
+     localImagePreviews,
+     generatedImage = null,
+     onEditAssistantImageMessage,
+     onEditUserMessage,
+   }: MessageCardProps) => {
     const messageRole = role.toLowerCase() as 'user' | 'assistant'
-
     const hasLocalPreviews = localImagePreviews && localImagePreviews.length > 0
     const hasDbImages = images && images.length > 0
     const shouldShowLocalPreviews = hasLocalPreviews && !hasDbImages
+    const hasGeneratedImage = generatedImage !== null
 
     return (
       <>
@@ -329,6 +355,11 @@ export const MessageCard = memo(
                 >
                   {content}
                 </Response>
+                {!content.length && generatedImage !== null && (
+                  <div className="overflow-wrap-anywhere text-base break-words sm:text-base">
+                    <NextImageBase64DynamicDisplay image={generatedImage} />
+                  </div>
+                )}
                 {fragment && type === 'RESULT' && (
                   <Tool className="mt-2">
                     <FragmentCard
@@ -343,6 +374,9 @@ export const MessageCard = memo(
                     content={content}
                     isStreaming={isStreaming}
                     generationTime={generationTime}
+                    isImage={hasGeneratedImage}
+                    generatedImage={generatedImage?.imageBase64}
+                    onEditAssistantImageMessage={onEditAssistantImageMessage}
                   />
                 )}
                 {type === 'ERROR' && (
@@ -367,6 +401,7 @@ export const MessageCard = memo(
       prevProps.type === nextProps.type &&
       prevProps.isStreaming === nextProps.isStreaming &&
       prevProps.isActiveFragment === nextProps.isActiveFragment &&
+      prevProps?.generatedImage === nextProps?.generatedImage &&
       prevProps.fragment?.id === nextProps.fragment?.id &&
       prevProps.createdAt.getTime() === nextProps.createdAt.getTime() &&
       prevProps.onEditUserMessage === nextProps.onEditUserMessage &&

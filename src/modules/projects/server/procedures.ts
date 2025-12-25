@@ -6,7 +6,7 @@ import { consumeCredits } from '@/lib/usage'
 import { OpenAI } from 'openai'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import { tools } from '@/modules/projects/tools'
-import { CREATE_PROJECT_FN_NAME } from '@/modules/projects/constants'
+import { CREATE_IMAGE_TOOL_NAME, CREATE_PROJECT_FN_NAME, EDIT_IMAGE_TOOL_NAME } from '@/modules/projects/constants'
 import { availableFunctions } from '@/modules/projects/functions'
 import { generateChatName } from '@/lib/chat-name-generator'
 import { CHAT_SYSTEM_PROMPT } from '@/prompt'
@@ -18,6 +18,10 @@ import {
   projectChannel,
   ProjectChannelToken,
 } from '@/inngest/channels'
+
+import { StreamChunkType } from '@/modules/projects/constants/chat'
+import { isImagePrompt } from '@/modules/projects/types/typeGuards'
+import { safeJsonParse } from '@/modules/projects/utlis/safeJson'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -228,6 +232,10 @@ export const projectsRouter = createTRPCRouter({
             )
             .nullable()
             .optional(),
+          editableImage: z
+            .string()
+            .nullable()
+            .optional()
         })
         .refine(
           (data) =>
@@ -270,6 +278,44 @@ export const projectsRouter = createTRPCRouter({
 
       try {
         const startTime = Date.now()
+        if (input.editableImage) {
+          const editFunction = availableFunctions[EDIT_IMAGE_TOOL_NAME]; // или как она у вас называется
+
+          if (!editFunction) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Edit function not found' });
+          }
+
+          const editedImage = await editFunction({
+            image: input.editableImage,
+            instruction: input.value
+          });
+
+          const generationTime = (Date.now() - startTime) / 1000;
+
+          await prisma.project.update({
+            where: { id: input.projectId, userId: ctx.auth.userId },
+            data: {
+              messages: {
+                create: {
+                  content: '',
+                  role: 'ASSISTANT',
+                  type: 'RESULT',
+                  generatedImage: {
+                    create: {
+                      imageBase64: editedImage.imageBase64,
+                      content_violation: editedImage.content_violation,
+                      request_id: editedImage.request_id,
+                    }
+                  },
+                  generationTime: generationTime,
+                },
+              },
+            },
+          });
+
+          yield { content: editedImage, type: StreamChunkType.Image };
+          return;
+        }
 
         const history = await prisma.message.findMany({
           where: {
@@ -355,18 +401,28 @@ export const projectsRouter = createTRPCRouter({
         )
 
         let toolCallName = ''
+        let toolCallArguments = ''
 
         for await (const chunk of stream) {
           const delta = chunk.choices[0]?.delta || ''
           const toolCallDelta = delta?.tool_calls?.[0]
           if (toolCallDelta) {
-            if (toolCallDelta.function?.name) {
-              toolCallName = toolCallDelta.function.name
+            if (toolCallDelta.function?.arguments) {
+              toolCallArguments += toolCallDelta.function.arguments
             }
-            yield { content: '', type: 'PROJECT' as 'CHAT' | 'PROJECT' }
+
+            if (toolCallDelta.function?.name) {
+              toolCallName = toolCallDelta.function.name;
+              if (toolCallName === CREATE_IMAGE_TOOL_NAME) {
+                yield { content: '', type: StreamChunkType.Image}
+              }
+              if (toolCallName === CREATE_PROJECT_FN_NAME) {
+                yield { content: '', type: StreamChunkType.Project }
+              }
+            }
           } else if (delta?.content) {
             assistantContent += delta.content
-            yield { content: delta.content, type: 'CHAT' as 'CHAT' | 'PROJECT' }
+            yield { content: delta.content, type: StreamChunkType.Chat}
           }
 
           if (chunk.choices[0]?.finish_reason === 'tool_calls') {
@@ -395,6 +451,38 @@ export const projectsRouter = createTRPCRouter({
 
               const functionToCall = availableFunctions[toolCallName]
               await functionToCall({ input })
+            } else if
+            ( toolCallName in availableFunctions &&
+              toolCallName === CREATE_IMAGE_TOOL_NAME
+            ) {
+              const functionToCall = availableFunctions[toolCallName]
+              const prompt = safeJsonParse(toolCallArguments);
+              isImagePrompt(prompt);
+              const image = await functionToCall(prompt);
+              const generationTime = (Date.now() - startTime) / 1000
+
+              await prisma.project.update({
+                where: { id: input.projectId, userId: ctx.auth.userId },
+                data: {
+                  messages: {
+                    create: {
+                      content: '',
+                      role: 'ASSISTANT',
+                      type: 'RESULT',
+                      generatedImage: {
+                        create: {
+                          imageBase64: image.imageBase64,
+                          content_violation: image.content_violation,
+                          request_id: image.request_id,
+                        }
+                      },
+                      generationTime: generationTime,
+                    },
+                  },
+                },
+              })
+              yield { content: image, type: StreamChunkType.Image}
+              return { content: { image: 'STOP' }, type: StreamChunkType.Image}
             }
 
             return

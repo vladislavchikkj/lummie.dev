@@ -21,6 +21,7 @@ export const messagesRouter = createTRPCRouter({
         },
         include: {
           fragment: true,
+          generatedImage: true
         },
         orderBy: {
           updatedAt: 'asc',

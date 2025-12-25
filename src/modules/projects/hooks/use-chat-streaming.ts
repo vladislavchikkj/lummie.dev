@@ -4,13 +4,15 @@ import { useTRPCClient } from '@/trpc/client'
 import { TRPCClientError } from '@trpc/client'
 import { toast } from 'sonner'
 import type { ProcessedImage } from '@/lib/image-processing'
+import { HandleUserMessageStream, StreamChunkType } from '@/modules/projects/constants/chat'
 import { openSubscriptionDialog } from '@/modules/subscriptions/hooks/use-subscription-dialog'
+import { ImageGenerationResponse } from '@/modules/projects/types'
 
 interface UseChatStreamingProps {
   projectId: string
   onStreamingStart: () => void
   onStreamingEnd: () => void
-  onMessageTypeChange: (type: 'CHAT' | 'PROJECT') => void
+  onMessageTypeChange: (type: StreamChunkType) => void
   onContentUpdate: (content: string) => void
   onStreamAborted: () => void
   onStreamCompleted: () => void
@@ -29,6 +31,7 @@ export const useChatStreaming = ({
   const [isAborting, setIsAborting] = useState(false)
   const [wasStreamAborted, setWasStreamAborted] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
+  const [streamingImage, setStreamingImage] = useState<ImageGenerationResponse | null>(null)
   const [streamingCompleted, setStreamingCompleted] = useState(false)
 
   const trpcClient = useTRPCClient()
@@ -39,7 +42,8 @@ export const useChatStreaming = ({
     async (
       message: string,
       isFirstMessage: boolean = false,
-      images?: ProcessedImage[]
+      images?: ProcessedImage[],
+      imageForEdit?:  Pick<ImageGenerationResponse, 'imageBase64'> | null | undefined
     ) => {
       if (isStreaming || !message.trim()) return
 
@@ -50,6 +54,7 @@ export const useChatStreaming = ({
       // Reset all streaming state before starting
       setIsStreaming(true)
       setStreamingContent('')
+      setStreamingImage(null)
       setWasStreamAborted(false)
       setStreamingCompleted(false)
       onStreamingStart()
@@ -61,20 +66,29 @@ export const useChatStreaming = ({
             value: message,
             isFirst: isFirstMessage,
             images,
+            editableImage: imageForEdit?.imageBase64
           },
           {
             signal: abortControllerRef.current.signal,
           }
-        )
+        ) as HandleUserMessageStream
 
-        for await (const { content, type } of stream) {
+        for await (const { content, type  }  of stream) {
           onMessageTypeChange(type)
-          setStreamingContent((prev) => {
-            const newContent = prev + content
-            onContentUpdate(newContent)
 
-            return newContent
-          })
+          if (type === StreamChunkType.Image) {
+            if (typeof content === 'object' && content !== null && 'image' in content) {
+              setStreamingImage(content)
+            }
+          } else {
+            if (typeof content === 'string') {
+              setStreamingContent((prev) => {
+                const newContent = prev + content
+                onContentUpdate(newContent)
+                return newContent
+              })
+            }
+          }
         }
       } catch (error) {
         const isAbortError =
@@ -148,6 +162,7 @@ export const useChatStreaming = ({
 
   const clearStreamingContent = useCallback(() => {
     setStreamingContent('')
+    setStreamingImage(null)
     setStreamingCompleted(false)
   }, [])
 
@@ -156,6 +171,7 @@ export const useChatStreaming = ({
     isAborting,
     wasStreamAborted,
     streamingContent,
+    streamingImage,
     streamingCompleted,
     startStreaming,
     stopStreaming,
