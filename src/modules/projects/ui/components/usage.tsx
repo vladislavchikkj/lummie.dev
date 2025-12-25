@@ -63,6 +63,7 @@ export const Usage = ({ points, msBeforeNext, onClose }: Props) => {
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground flex h-6 w-6 items-center justify-center rounded-md transition-colors"
+            aria-label="Close"
           >
             <XIcon className="size-3.5" />
           </button>

@@ -632,6 +632,7 @@ export const ProjectForm = () => {
                     maxRows={8}
                     className="w-full resize-none border-none bg-transparent pt-4 outline-none placeholder:text-transparent"
                     placeholder=" "
+                    aria-label={"Describe what you'd like to build"}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
@@ -717,6 +718,7 @@ export const ProjectForm = () => {
                             size="icon"
                             className="size-8 rounded-full"
                             disabled={isPending}
+                            aria-label={"Attach images to your project"}
                           >
                             <Plus className="size-4" />
                           </Button>
@@ -763,6 +765,17 @@ export const ProjectForm = () => {
                         'recording-glow bg-gray-700 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100'
                     )}
                     onClick={handleButtonClick}
+                    aria-label={
+                      isPending
+                        ? 'Processing'
+                        : isRecording
+                          ? 'Stop voice recording'
+                          : isHydrated && isEmptyField
+                            ? 'Start voice recording'
+                            : 'Send message'
+                    }
+
+                    aria-pressed={isRecording}
                   >
                     {isPending ? (
                       <Loader2Icon className="size-4 animate-spin" />

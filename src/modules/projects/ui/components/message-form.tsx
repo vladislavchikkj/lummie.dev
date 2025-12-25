@@ -97,17 +97,21 @@ import {
   type ProcessedImage,
 } from '@/lib/image-processing'
 import { PROJECT_TEMPLATES } from '@/modules/home/constants'
+import { ImageGenerationResponse } from '@/modules/projects/types'
 
 interface Props {
   projectId: string
   onSubmit?: (
     message: string,
     images?: ProcessedImage[],
-    originalFiles?: File[]
+    originalFiles?: File[],
+    imageForEdit?: Pick<ImageGenerationResponse, 'imageBase64'> | null | undefined,
   ) => void
   isStreaming?: boolean
   onStop?: () => void
   initialValue?: string
+  generatedImage?: Pick<ImageGenerationResponse, 'imageBase64'> | null
+  clearGeneratedImage: () => void
 }
 
 const formSchema = z.object({
@@ -115,12 +119,14 @@ const formSchema = z.object({
 })
 
 export const MessageForm = ({
-  projectId,
-  onStop,
-  isStreaming,
-  onSubmit,
-  initialValue,
-}: Props) => {
+                              projectId,
+                              onStop,
+                              isStreaming,
+                              onSubmit,
+                              initialValue,
+                              generatedImage,
+                              clearGeneratedImage,
+                            }: Props) => {
   const trpc = useTRPC()
   const { userId } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -202,7 +208,6 @@ export const MessageForm = ({
           setIsProcessingImages(true)
           try {
             processedImages = await processImages(attachedImages)
-            console.log('Processed images:', processedImages)
           } catch (error) {
             console.error('Error processing images:', error)
             toast.error('Failed to process images')
@@ -213,15 +218,14 @@ export const MessageForm = ({
           }
         }
 
-        console.log('Calling onSubmit with value:', data.value)
-        console.log('Processed images:', processedImages)
         const messageText = data.value.trim() || ' '
         onSubmit(
           messageText,
           processedImages,
-          originalFiles.length > 0 ? originalFiles : undefined
+          originalFiles.length > 0 ? originalFiles : undefined,
+          generatedImage,
         )
-        clearFormState() // Очищаем сохраненное состояние после успешной отправки
+        clearFormState()
         form.reset()
         setAttachedImages([])
       } catch (error) {
@@ -522,57 +526,64 @@ export const MessageForm = ({
   return (
     <>
       <style jsx>{`
-        @keyframes ripple-1 {
-          0% {
-            transform: scale(1);
-            opacity: 0.4;
+          @keyframes ripple-1 {
+              0% {
+                  transform: scale(1);
+                  opacity: 0.4;
+              }
+              100% {
+                  transform: scale(2.2);
+                  opacity: 0;
+              }
           }
-          100% {
-            transform: scale(2.2);
-            opacity: 0;
+
+          @keyframes ripple-2 {
+              0% {
+                  transform: scale(1);
+                  opacity: 0.3;
+              }
+              100% {
+                  transform: scale(2.6);
+                  opacity: 0;
+              }
           }
-        }
-        @keyframes ripple-2 {
-          0% {
-            transform: scale(1);
-            opacity: 0.3;
+
+          @keyframes ripple-3 {
+              0% {
+                  transform: scale(1);
+                  opacity: 0.2;
+              }
+              100% {
+                  transform: scale(3);
+                  opacity: 0;
+              }
           }
-          100% {
-            transform: scale(2.6);
-            opacity: 0;
+
+          @keyframes pulse-glow {
+              0%,
+              100% {
+                  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+              }
+              50% {
+                  box-shadow: 0 0 20px 6px rgba(255, 255, 255, 0.5);
+              }
           }
-        }
-        @keyframes ripple-3 {
-          0% {
-            transform: scale(1);
-            opacity: 0.2;
+
+          .recording-ripple-1 {
+              animation: ripple-1 1.5s ease-out infinite;
           }
-          100% {
-            transform: scale(3);
-            opacity: 0;
+
+          .recording-ripple-2 {
+              animation: ripple-2 1.5s ease-out infinite 0.3s;
           }
-        }
-        @keyframes pulse-glow {
-          0%,
-          100% {
-            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+
+          .recording-ripple-3 {
+              animation: ripple-3 1.5s ease-out infinite 0.6s;
           }
-          50% {
-            box-shadow: 0 0 20px 6px rgba(255, 255, 255, 0.5);
+
+          .recording-glow {
+              animation: pulse-glow 1.5s ease-in-out infinite;
           }
-        }
-        .recording-ripple-1 {
-          animation: ripple-1 1.5s ease-out infinite;
-        }
-        .recording-ripple-2 {
-          animation: ripple-2 1.5s ease-out infinite 0.3s;
-        }
-        .recording-ripple-3 {
-          animation: ripple-3 1.5s ease-out infinite 0.6s;
-        }
-        .recording-glow {
-          animation: pulse-glow 1.5s ease-in-out infinite;
-        }
       `}</style>
       <Form {...form}>
         {showUsage && (
@@ -635,6 +646,27 @@ export const MessageForm = ({
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {generatedImage && (
+              <div className="flex flex-wrap gap-2 pb-3">
+                <div className="group relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={generatedImage.imageBase64}
+                    alt={'Generated preview'}
+                    className="border-border h-20 w-20 rounded-lg border object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => clearGeneratedImage()}
+                    aria-label={`Remove attached image`}
+                    className="bg-destructive text-destructive-foreground absolute -top-2 -right-2 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -773,6 +805,15 @@ export const MessageForm = ({
                         'recording-glow bg-gray-700 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100'
                     )}
                     onClick={handleButtonClick}
+                    aria-label={
+                      isStreaming
+                        ? 'Processing'
+                        : isRecording
+                          ? 'Stop voice recording'
+                          : isClient && isEmptyField
+                            ? 'Start voice recording'
+                            : 'Send message'
+                    }
                   >
                     {isStreaming ? (
                       <Loader2Icon className="size-4 animate-spin" />
