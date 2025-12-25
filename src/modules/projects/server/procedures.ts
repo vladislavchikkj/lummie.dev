@@ -279,42 +279,49 @@ export const projectsRouter = createTRPCRouter({
       try {
         const startTime = Date.now()
         if (input.editableImage) {
-          const editFunction = availableFunctions[EDIT_IMAGE_TOOL_NAME]; // или как она у вас называется
+          const editFunction = availableFunctions[EDIT_IMAGE_TOOL_NAME]
 
-          if (!editFunction) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Edit function not found' });
+          if (!editFunction || typeof editFunction !== 'function') {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Edit function not found' })
           }
+          try {
+            const editedImage = await editFunction({
+              image: input.editableImage,
+              instruction: input.value
+            })
 
-          const editedImage = await editFunction({
-            image: input.editableImage,
-            instruction: input.value
-          });
+            const generationTime = (Date.now() - startTime) / 1000
 
-          const generationTime = (Date.now() - startTime) / 1000;
-
-          await prisma.project.update({
-            where: { id: input.projectId, userId: ctx.auth.userId },
-            data: {
-              messages: {
-                create: {
-                  content: '',
-                  role: 'ASSISTANT',
-                  type: 'RESULT',
-                  generatedImage: {
-                    create: {
-                      imageBase64: editedImage.imageBase64,
-                      content_violation: editedImage.content_violation,
-                      request_id: editedImage.request_id,
-                    }
+            await prisma.project.update({
+              where: { id: input.projectId, userId: ctx.auth.userId },
+              data: {
+                messages: {
+                  create: {
+                    content: '',
+                    role: 'ASSISTANT',
+                    type: 'RESULT',
+                    generatedImage: {
+                      create: {
+                        imageBase64: editedImage.imageBase64,
+                        content_violation: editedImage.content_violation,
+                        request_id: editedImage.request_id,
+                      }
+                    },
+                    generationTime: generationTime,
                   },
-                  generationTime: generationTime,
                 },
               },
-            },
-          });
+            })
 
-          yield { content: editedImage, type: StreamChunkType.Image };
-          return;
+            yield { content: editedImage, type: StreamChunkType.Image }
+            return
+          } catch (error) {
+            console.error('Image editing failed:', error)
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: error instanceof Error ? error.message : 'Failed to edit image',
+            })
+          }
         }
 
         const history = await prisma.message.findMany({
@@ -412,9 +419,9 @@ export const projectsRouter = createTRPCRouter({
             }
 
             if (toolCallDelta.function?.name) {
-              toolCallName = toolCallDelta.function.name;
+              toolCallName = toolCallDelta.function.name
               if (toolCallName === CREATE_IMAGE_TOOL_NAME) {
-                yield { content: '', type: StreamChunkType.Image}
+                yield { content: '', type: StreamChunkType.Image }
               }
               if (toolCallName === CREATE_PROJECT_FN_NAME) {
                 yield { content: '', type: StreamChunkType.Project }
@@ -422,7 +429,7 @@ export const projectsRouter = createTRPCRouter({
             }
           } else if (delta?.content) {
             assistantContent += delta.content
-            yield { content: delta.content, type: StreamChunkType.Chat}
+            yield { content: delta.content, type: StreamChunkType.Chat }
           }
 
           if (chunk.choices[0]?.finish_reason === 'tool_calls') {
@@ -452,37 +459,59 @@ export const projectsRouter = createTRPCRouter({
               const functionToCall = availableFunctions[toolCallName]
               await functionToCall({ input })
             } else if
-            ( toolCallName in availableFunctions &&
+            (toolCallName in availableFunctions &&
               toolCallName === CREATE_IMAGE_TOOL_NAME
             ) {
               const functionToCall = availableFunctions[toolCallName]
-              const prompt = safeJsonParse(toolCallArguments);
-              isImagePrompt(prompt);
-              const image = await functionToCall(prompt);
-              const generationTime = (Date.now() - startTime) / 1000
+              if (!functionToCall || typeof functionToCall !== 'function') {
+                throw new TRPCError({
+                  code: 'NOT_FOUND',
+                  message: 'Image generation function not found',
+                })
+              }
 
-              await prisma.project.update({
-                where: { id: input.projectId, userId: ctx.auth.userId },
-                data: {
-                  messages: {
-                    create: {
-                      content: '',
-                      role: 'ASSISTANT',
-                      type: 'RESULT',
-                      generatedImage: {
-                        create: {
-                          imageBase64: image.imageBase64,
-                          content_violation: image.content_violation,
-                          request_id: image.request_id,
-                        }
+              const prompt = safeJsonParse(toolCallArguments)
+              if (!prompt || !isImagePrompt(prompt)) {
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message: 'Invalid image prompt format',
+                })
+              }
+
+              try {
+                const image = await functionToCall(prompt)
+                const generationTime = (Date.now() - startTime) / 1000
+
+                await prisma.project.update({
+                  where: { id: input.projectId, userId: ctx.auth.userId },
+                  data: {
+                    messages: {
+                      create: {
+                        content: '',
+                        role: 'ASSISTANT',
+                        type: 'RESULT',
+                        generatedImage: {
+                          create: {
+                            imageBase64: image.imageBase64,
+                            content_violation: image.content_violation,
+                            request_id: image.request_id,
+                          }
+                        },
+                        generationTime: generationTime,
                       },
-                      generationTime: generationTime,
                     },
                   },
-                },
-              })
-              yield { content: image, type: StreamChunkType.Image}
-              return { content: { image: 'STOP' }, type: StreamChunkType.Image}
+                })
+
+                yield { content: image, type: StreamChunkType.Image }
+                return
+              } catch (error) {
+                console.error('Image generation failed:', error)
+                throw new TRPCError({
+                  code: 'INTERNAL_SERVER_ERROR',
+                  message: error instanceof Error ? error.message : 'Failed to generate image',
+                })
+              }
             }
 
             return
